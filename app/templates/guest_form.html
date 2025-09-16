@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo hóspede</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Cadastrar Novo Hóspede</h1>
+    <form action="/guests/new" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label>Nome</label>
+        <input type="text" name="name" placeholder="Nome" required>
+        <label>Email</label>
+        <input type="email" name="email" placeholder="Email" required>
+        <label>Telefone</label>
+        <input type="text" name="phone" placeholder="Telefone" required>
+        <label>CPF</label>
+        <input type="text" name="cpf" placeholder="CPF" required>
+        <button type="submit">Cadastrar</button>
+    </form>
+</body>
+</html>

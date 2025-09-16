@@ -1,0 +1,33 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database / logs
+*.db
+*.sqlite3
+*.log
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+
+# Alembic versions (se quiser versionar, comente essa linha)
+versions/

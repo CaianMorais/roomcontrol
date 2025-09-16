@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Hotel</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Cadastre seu Hotel</h1>
+    <form action="/auth/login" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <label>Login ou CNPJ do Hotel</label>
+        <input type="text" name="login" placeholder="Login ou CNPJ" required>
+        <label>Senha</label>
+        <input type="password" name="password" placeholder="Senha" required>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
