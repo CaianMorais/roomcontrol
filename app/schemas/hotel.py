@@ -1,3 +1,4 @@
+import datetime
 from pydantic import BaseModel, Field, EmailStr
 
 class HotelBase(BaseModel):
@@ -16,6 +17,8 @@ class HotelCreate(HotelBase):
 
 class HotelOut(HotelBase):
     id: int
+    created_at: str
+    updated_at: str
 
     class Config:
         orm_mode = True

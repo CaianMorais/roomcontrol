@@ -1,11 +1,11 @@
 <!-- Include Header Start -->
-{% include "includes/header.html" %}
+{% extends "partials/base.html" %}
 <!-- Include Header End -->
 
-<body>
+{% block content %}
 
     <!-- Include Navbar Start -->
-    {% include "includes/navbar.html" %}
+    {% include "partials/_navbar.html" %}
     <!-- Include Navbar End -->
 
     <!-- Hero Start -->
@@ -20,9 +20,9 @@
                 </div>
                 <div class="col-lg-6">
                     <div class="owl-carousel header-carousel animated fadeIn">
-                        <img class="img-fluid" src="/static/img/hero-slider-1.jpg" alt="">
-                        <img class="img-fluid" src="/static/img/hero-slider-2.jpg" alt="">
-                        <img class="img-fluid" src="/static/img/hero-slider-3.jpg" alt="">
+                        <img class="img-fluid" src="{{ url_for('static', path='img/hero-slider-1.jpg') }}" alt="">
+                        <img class="img-fluid" src="{{ url_for('static', path='img/hero-slider-2.jpg') }}" alt="">
+                        <img class="img-fluid" src="{{ url_for('static', path='img/hero-slider-3.jpg') }}" alt="">
                     </div>
                 </div>
             </div>
@@ -170,7 +170,7 @@
         <div class="container p-0">
             <div class="row g-0 align-items-center">
                 <div class="col-md-5 ps-lg-0 text-start wow fadeIn" data-wow-delay="0.2s">
-                    <img class="img-fluid w-100" src="/static/img/newsletter.jpg" alt="">
+                    <img class="img-fluid w-100" src="{{ url_for('static', path='img/newsletter.jpg') }}" alt="">
                 </div>
                 <div class="col-md-7 py-5 newsletter-text wow fadeIn" data-wow-delay="0.5s">
                     <div class="p-5">
@@ -206,7 +206,7 @@
                     <div class="row g-0">
                         <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.2s">
                             <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="/static/img/project-1.jpg" alt="">
+                                <img class="img-fluid w-100" src="{{ url_for('static', path='img/project-1.jpg') }}" alt="">
                                 <a class="project-overlay text-decoration-none" href="#!">
                                     <h4 class="text-white">Gestão</h4>
                                 </a>
@@ -214,7 +214,7 @@
                         </div>
                         <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.3s">
                             <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="/static/img/project-2.jpg" alt="">
+                                <img class="img-fluid w-100" src="{{ url_for('static', path='img/project-2.jpg') }}" alt="">
                                 <a class="project-overlay text-decoration-none" href="#!">
                                     <h4 class="text-white">Controle</h4>
                                 </a>
@@ -222,7 +222,7 @@
                         </div>
                         <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.4s">
                             <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="/static/img/project-3.jpg" alt="">
+                                <img class="img-fluid w-100" src="{{ url_for('static', path='img/project-3.jpg') }}" alt="">
                                 <a class="project-overlay text-decoration-none" href="#!">
                                     <h4 class="text-white">Praticidade</h4>
                                 </a>
@@ -230,7 +230,7 @@
                         </div>
                         <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.5s">
                             <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="/static/img/project-4.jpg" alt="">
+                                <img class="img-fluid w-100" src="{{ url_for('static', path='img/project-4.jpg') }}" alt="">
                                 <a class="project-overlay text-decoration-none" href="#!">
                                     <h4 class="text-white">Eficiência</h4>
                                 </a>
@@ -238,7 +238,7 @@
                         </div>
                         <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.6s">
                             <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="/static/img/project-5.jpg" alt="">
+                                <img class="img-fluid w-100" src="{{ url_for('static', path='img/project-5.jpg') }}" alt="">
                                 <a class="project-overlay text-decoration-none" href="#!">
                                     <h4 class="text-white">Autonomia</h4>
                                 </a>
@@ -246,7 +246,7 @@
                         </div>
                         <div class="col-md-6 col-lg-4 wow fadeIn" data-wow-delay="0.7s">
                             <div class="project-item position-relative overflow-hidden">
-                                <img class="img-fluid w-100" src="/static/img/project-6.jpg" alt="">
+                                <img class="img-fluid w-100" src="{{ url_for('static', path='img/project-6.jpg') }}" alt="">
                                 <a class="project-overlay text-decoration-none" href="#!">
                                     <h4 class="text-white">Gratuidade</h4>
                                 </a>
@@ -508,23 +508,10 @@
     <!-- Testimonial End -->
 
     <!-- Include Footer Start -->
-    {% include "includes/footer.html" %}
+    {% include "partials/_footer.html" %}
     <!-- Include Footer End -->
 
     <!-- Back to Top -->
     <a href="#!" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
 
-
-    <!-- JavaScript Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/lib/wow/wow.min.js"></script>
-    <script src="/static/lib/easing/easing.min.js"></script>
-    <script src="/static/lib/waypoints/waypoints.min.js"></script>
-    <script src="/static/lib/owlcarousel/owl.carousel.min.js"></script>
-
-    <!-- Template Javascript -->
-    <script src="/static/js/main.js"></script>
-</body>
-
-</html>
+{% endblock %}

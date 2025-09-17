@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends, Form, Request, status
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from app.models.guest import Guest
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from validate_docbr import CNPJ
@@ -11,7 +13,8 @@ from app.models.hotel import Hotel
 from app.schemas.hotel import HotelCreate, HotelOut
 from app.core.security import generate_csrf_token, validate_csrf_token, hash_password, verify_password, create_access_token, decode_access_token
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["hotels"])
+api_router = APIRouter(prefix="/api", tags=["api_hotels"])
 templates = Jinja2Templates(directory="app/templates")
 
 def get_db():
@@ -23,7 +26,27 @@ def get_db():
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-@router.get("/register", response_class=HTMLResponse)
+@api_router.get("/get_hotels", response_model=List[HotelOut])
+def get_hotels(
+    cnpj: Optional[str] = Query(None, description="Filtrar pelo CNPJ do hotel"),
+    name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Hotel)
+
+    if cnpj:
+        query = query.filter(Hotel.cnpj == cnpj)
+    if name:
+        query = query.filter(Hotel.name.ilike(f"%{name}%"))
+
+    hotels = query.all()
+
+    if not hotels:
+        raise HTTPException(status_code=404, detail="Nenhum hotel encontrado")
+    
+    return hotels
+
+@router.get("/register", response_class=HTMLResponse, include_in_schema=False)
 def get_registration_form(request: Request):
     csrf_token = generate_csrf_token()
     return templates.TemplateResponse("/auth/register.html", {"request": request, "csrf_token": csrf_token})
@@ -79,7 +102,7 @@ def register_hotel(
     db.refresh(new_hotel)
     return RedirectResponse(url="/", status_code=303)
 
-@router.get("/login", response_class=HTMLResponse)
+@router.get("/login", response_class=HTMLResponse, include_in_schema=False)
 def get_login_form(request: Request):
     csrf_token = generate_csrf_token()
     return templates.TemplateResponse("/auth/login.html", {"request": request, "csrf_token": csrf_token})
@@ -109,22 +132,7 @@ def login(
     response = RedirectResponse(url="/dashboard", status_code=302)
     return response
 
-@router.get("/logout")
+@router.get("/logout", include_in_schema=False)
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/auth/login", status_code=302)
-
-# def get_current_hotel(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-# payload = decode_access_token(token)
-# if payload is None:
-#     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
-
-# login: str = payload.get("sub")
-# if login is None:
-#     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
-
-# hotel = db.query(Hotel).filter(Hotel.login == login).first()
-# if hotel is None:
-#     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
-
-# return hotel

@@ -1,47 +1,55 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Erro {{ status_code }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #fafafa;
-            text-align: center;
-            padding: 40px;
-        }
-        .error-container {
-            display: inline-block;
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #e74c3c;
-        }
-        p {
-            color: #333;
-        }
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: #3498db;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 8px;
-        }
-        a:hover {
-            background: #2980b9;
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <h1>Erro {{ status_code }}</h1>
-        <p>{{ detail }}</p>
-        <a href="/">Voltar para a página inicial</a>
+{% extends "partials/base.html" %}
+
+{% block content %}
+
+    <!-- Include Navbar Start -->
+    {% include "partials/_navbar.html" %}
+    <!-- Include Navbar End -->
+
+    <!-- Hero Start -->
+    <div class="container-fluid pb-5 bg-primary hero-header">
+        <div class="container py-2">
+            <div class="row g-3 align-items-center">
+                <div class="col-lg-6 text-center text-lg-start">
+                    <h1 class="display-1 mb-0 animated slideInLeft">Erro {{ status_code }}</h1>
+                </div>
+                <!-- <div class="col-lg-6 animated slideInRight">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center justify-content-lg-end mb-0">
+                            <li class="breadcrumb-item"><a class="text-primary" href="#!">Home</a></li>
+                            <li class="breadcrumb-item"><a class="text-primary" href="#!">Pages</a></li>
+                            <li class="breadcrumb-item text-secondary active" aria-current="page">404 Error</li>
+                        </ol>
+                    </nav>
+                </div> -->
+            </div>
+        </div>
     </div>
-</body>
-</html>
+    <!-- Hero End -->
+
+
+    <!-- 404 Start -->
+    <div class="container-fluid py-2 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container text-center py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <i class="bi bi-exclamation-triangle display-1 text-primary"></i>
+                    <h1 class="display-1">{{ status_code }}</h1>
+                    <h1 class="mb-4">{{ detail }}</h1>
+                    <a class="btn btn-primary py-3 px-4" href="{{ url_for('home') }}">Voltar para tela inicial</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 404 End -->
+
+    <!-- Include Footer Start -->
+    {% include "partials/_footer.html" %}
+    <!-- Include Footer End -->
+
+
+    <!-- Back to Top -->
+    <a href="#!" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+
+{% endblock %}
