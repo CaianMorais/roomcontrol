@@ -31,3 +31,4 @@ build/
 
 # Alembic versions (se quiser versionar, comente essa linha)
 versions/
+alembic.ini
