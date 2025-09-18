@@ -20,5 +20,15 @@ class HotelOut(HotelBase):
     created_at: str
     updated_at: str
 
+class RegisterHotelStep1In(BaseModel):
+    email: EmailStr
+    cnpj: str
+
+class RegisterHotelStep1Out(BaseModel):
+    ok: bool
+    message: str | None = None
+    cnpj: str | None = None
+    email: EmailStr | None = None
+
     class Config:
         orm_mode = True

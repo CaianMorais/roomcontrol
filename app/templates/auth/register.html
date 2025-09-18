@@ -10,39 +10,101 @@
 </head>
 
 <body>
+  {% if flash %}
+  <div aria-live="polite" aria-atomic="true" class="position-relative">
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100">
+      {% for category, message in flash %}
+      <div class="toast align-items-center text-bg-{{ 'danger' if category=='error' else category }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
   <!--  Body Wrapper -->
   <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
     data-sidebar-position="fixed" data-header-position="fixed">
-    <div
-      class="position-relative overflow-hidden radial-gradient min-vh-100 d-flex align-items-center justify-content-center">
+    <div class="position-relative overflow-hidden radial-gradient min-vh-100 d-flex align-items-center justify-content-center">
       <div class="d-flex align-items-center justify-content-center w-100">
         <div class="row justify-content-center w-100">
-          <div class="col-md-8 col-lg-6 col-xxl-3">
-            <div class="card mb-0">
-              <div class="card-body">
+          <div class="col-md-8 col-lg-8 col-xxl-8">
+            <div class="card mb-0 shadow-lg">
+              <div class="card-body row justify-content-between">
                 <a href="./index.html" class="text-nowrap logo-img text-center d-block py-3 w-100">
-                  <img src="{{ url_for('dashboard', path='images/logos/dark-logo.svg') }}" width="180" alt="">
-                </a>
-                <p class="text-center">Registre seu hotel</p>
-                <form>
-                  <div class="mb-3">
-                    <label for="exampleInputtext1" class="form-label">Nome do Hotel</label>
-                    <input type="text" class="form-control" id="exampleInputtext1" aria-describedby="textHelp">
-                  </div>
-                  <div class="mb-3">
-                    <label for="exampleInputEmail1" class="form-label">E-mail do Hotel</label>
-                    <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-                  </div>
-                  <div class="mb-4">
-                    <label for="exampleInputPassword1" class="form-label">CNPJ</label>
-                    <input type="text" class="form-control" id="exampleInputPassword1">
-                  </div>
-                  <a href="./index.html" class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2">Avançar</a>
-                  <div class="d-flex align-items-center justify-content-center">
-                    <p class="fs-4 mb-0 fw-bold">Já tem uma conta?</p>
-                    <a class="text-primary fw-bold ms-2" href="./authentication-login.html">Entrar</a>
-                  </div>
-                </form>
+                    <img src="{{ url_for('dashboard', path='images/logos/dark-logo.svg') }}" width="200" alt="">
+                  </a>
+                <!-- LOGIN -->
+                <div id="login-card" class="col-5 card shadow-lg p-4">
+                  <p class="text-center"><strong>Entrar</strong> no seu hotel</p>
+                  <form>
+                    {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+                    <div class="mb-3">
+                      <label for="exampleInputtext1" class="form-label">Login ou CNPJ</label>
+                      <input type="text" class="form-control" id="exampleInputtext1" aria-describedby="textHelp">
+                    </div>
+                    <div class="mb-3">
+                      <label for="exampleInputEmail1" class="form-label">Senha</label>
+                      <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+                    </div>
+                    <div class="mb-4">
+                      <div class="align-items-center justify-content-between mb-4">
+                        <div class="form-check mb-4">
+                          <input class="form-check-input primary" type="checkbox" value="" id="flexCheckChecked">
+                          <label class="form-check-label text-dark" for="flexCheckChecked">
+                            Lembrar deste dispositivo.
+                          </label>
+                        </div>
+                        <a class="text-primary fw-bold" href="./index.html">Esqueceu a senha?</a>
+                      </div>
+                    </div>
+                    <a href="./index.html" class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2">Entrar</a>
+                  </form>
+                </div>
+
+
+                <!-- REGISTRO (PASSO 1) -->
+                <div id="register-card" class="col-12 col-lg-5 card shadow-lg p-4">
+                  <p class="text-center"><strong>Registre</strong> o seu hotel</p>
+                  <form id="register-step1" novalidate>
+                    {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}
+
+                    <div class="mb-3">
+                      <label class="form-label">E-mail do Hotel</label>
+                      <input type="email" class="form-control" name="email" required>
+                      <div class="invalid-feedback">Informe um e-mail válido.</div>
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label">CNPJ</label>
+                      <input type="text" class="form-control" name="cnpj" placeholder="00.000.000/0000-00" required>
+                      <div class="invalid-feedback">Informe um CNPJ válido.</div>
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="align-items-center justify-content-between mb-4">
+                        <div class="form-check mb-4">
+                          <input class="form-check-input" type="checkbox" required id="tosCheck">
+                          <label class="form-check-label text-dark" for="tosCheck">Concordo com os termos de serviço.</label>
+                          <div class="invalid-feedback">É necessário aceitar os termos.</div>
+                        </div>
+                        <a class="text-primary fw-bold" href="#">Não consegue registrar?</a>
+                      </div>
+                    </div>
+                    
+
+                    <button class="btn btn-primary w-100 py-2 fs-5 rounded-2" type="submit" id="register-next-btn">
+                      Avançar
+                    </button>
+
+                    <div class="form-text mt-3" id="register-step1-help"></div>
+                  </form>
+                </div>
+                <!-- FIM DO REGISTRO (PASSO 1) -->
               </div>
             </div>
           </div>
@@ -52,6 +114,149 @@
   </div>
   <script src="{{ url_for('dashboard', path='libs/jquery/dist/jquery.min.js') }}"></script>
   <script src="{{ url_for('dashboard', path='libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+  {% block scripts %}
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toastEls = document.querySelectorAll('.toast');
+      toastEls.forEach(el => new bootstrap.Toast(el, { delay: 4000 }).show());
+    });
+  </script>
+  
+  <script>
+    (() => {
+      const form = document.getElementById('register-step1');
+      const helpEl = document.getElementById('register-step1-help');
+      const card = document.getElementById('register-card');
+
+      function getCsrf() {
+        const inp = form.querySelector('input[name="csrf_token"]');
+        return inp ? inp.value : null;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        helpEl.textContent = '';
+
+        // simples validação do lado do cliente
+        if (!form.checkValidity()) {
+          form.classList.add('was-validated');
+          return;
+        }
+
+        const fd = new FormData(form);
+        const payload = {
+          email: fd.get('email'),
+          cnpj: fd.get('cnpj')
+        };
+
+        try {
+          const res = await fetch("{{ url_for('register_check') }}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(getCsrf() ? { 'X-CSRF-Token': getCsrf() } : {})
+            },
+            body: JSON.stringify(payload),
+            credentials: 'same-origin'
+          });
+
+          if (!res.ok) {
+            helpEl.textContent = 'Não foi possível validar agora. Tente novamente.';
+            return;
+          }
+          
+          const data = await res.json();
+          if (!data.ok) {
+            helpEl.textContent = data.message || 'Dados inválidos.';
+            helpEl.classList.add('text-danger');
+            return;
+          }
+
+          // sucesso → buscar o HTML do passo 2 e substituir o card
+          const params = new URLSearchParams({ email: data.email, cnpj: data.cnpj });
+          const fragRes = await fetch(`{{ url_for('register_step2_partial') }}?${params.toString()}`, {
+            method: 'GET',
+            headers: { ...(getCsrf() ? { 'X-CSRF-Token': getCsrf() } : {}) },
+            credentials: 'same-origin'
+          });
+
+          const html = await fragRes.text();
+
+          card.innerHTML = html; // substitui conteúdo do card pelo formulário completo
+
+          window.initCepAutoFill('#register-card form');
+          
+          // SOME COM CARD DE LOGIN E AJUSTA LAYOUT
+          const loginCard = document.getElementById('login-card');
+          if (loginCard) loginCard.classList.add('d-none');
+          card.classList.remove('col-lg-5');
+          card.classList.add('col-12');
+          card.style.transition = 'all .2s ease';
+
+          window.scrollTo({ top: card.offsetTop - 20, behavior: 'smooth' });
+
+        } catch (err) {
+          helpEl.textContent = 'Erro de rede. Verifique sua conexão.';
+          helpEl.classList.add('text-danger');
+        }
+      });
+    })();
+
+  window.initCepAutoFill = function (formSelector) {
+    const form = document.querySelector(formSelector);
+    if (!form) return;
+
+    const $cep = form.querySelector('input[name="zip_code"]');
+    const $rua = form.querySelector('input[name="address"]');
+    const $uf = form.querySelector('input[name="state"]');
+    const $cidade = form.querySelector('input[name="city"]');
+
+    if (!$cep) return;
+
+    const onlyDigits = (s) => (s || '').replace(/\D/g, '');
+
+    const setValues = ({ logradouro, uf, localidade }) => {
+      if ($rua && logradouro) $rua.value = logradouro;
+      if ($uf && uf) $uf.value = uf.toUpperCase();
+      if ($cidade && localidade) $cidade.value = localidade;
+    };
+
+    const clearValues = () => {
+      if ($rua) $rua.value = '';
+      if ($uf) $uf.value = '';
+      if ($cidade) $cidade.value = '';
+    };
+
+    async function fetchByCep() {
+      const digits = onlyDigits($cep.value);
+      if (digits.length !== 8) {
+        clearValues();
+        return;
+      }
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+        const data = await res.json();
+        if (data.erro) {
+          clearValues();
+          return;
+        }
+        setValues(data);
+      } catch (e) {
+        console.error("Erro ao consultar CEP:", e);
+      }
+    }
+
+    // listeners
+    $cep.addEventListener('blur', fetchByCep);
+    $cep.addEventListener('keyup', () => {
+      const digits = onlyDigits($cep.value);
+      if (digits.length === 8) fetchByCep();
+    });
+  };
+
+  </script>
+
+  {% endblock %}
 </body>
 
 </html>
