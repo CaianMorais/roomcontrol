@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, func, Boolean
 from app.core.config import Base
 
 #   op.create_table(
@@ -31,5 +31,6 @@ class Hotel(Base):
     phone_number = Column(String(20), nullable=True)
     email = Column(String(100), nullable=True)
     cnpj = Column(String(20), nullable=False, unique=True)
+    is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

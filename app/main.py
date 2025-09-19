@@ -1,6 +1,6 @@
 import os
 from fastapi import FastAPI, Request, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.utils.flash import add_flash_message, render
@@ -10,7 +10,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import SessionLocal
 from app.models.guest import Guest
-from app.routers import auth, guest
+from app.routers import auth, guest, dashboard
 
 app = FastAPI(title="Hotel Management API")
 
@@ -32,6 +32,7 @@ app.include_router(auth.api_router)
 app.include_router(guest.api_router)
 app.include_router(auth.router)
 app.include_router(guest.router)
+app.include_router(dashboard.router)
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def home(request: Request, db: Session = Depends(get_db)):
@@ -39,24 +40,35 @@ def home(request: Request, db: Session = Depends(get_db)):
     #return templates.TemplateResponse("index.html", {"request": request, "guests": guests})
     return render(templates, request, "index.html", {"request": request, "guests": guests})
 
+
+REDIRECT_STATUSES = {301, 302, 303, 307, 308}
+
 # Handler para erros HTTP
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    # Se for código de redirect, respeite o Location
+    if exc.status_code in REDIRECT_STATUSES:
+        location = exc.headers.get("Location") if exc.headers else None
+        if location:
+            return RedirectResponse(url=location, status_code=exc.status_code)
+        
+    # Se for erro pela API, resposta em JSON
     if request.url.path.startswith("/api"):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail if exc.detail else "Erro desconhecido."}
         )
-    else:
-        return templates.TemplateResponse(
-            "error.html",
-            {
-                "request": request,
-                "status_code": exc.status_code,
-                "detail": exc.detail if exc.detail else "Erro desconhecido."
-            },
-            status_code=exc.status_code,
-        )
+    
+    # página de erro
+    return templates.TemplateResponse(
+        "error.html",
+        {
+            "request": request,
+            "status_code": exc.status_code,
+            "detail": exc.detail if exc.detail else "Erro desconhecido."
+        },
+        status_code=exc.status_code,
+    )
 
 # Handler para erros internos
 @app.exception_handler(Exception)

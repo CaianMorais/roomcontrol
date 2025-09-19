@@ -2,10 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.models.guest import Guest
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from validate_docbr import CNPJ
 from passlib.hash import bcrypt
 
 from app.core.config import SessionLocal
@@ -26,8 +23,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @api_router.get("/get_hotels", response_model=List[HotelOut])
 def get_hotels(
@@ -52,7 +47,6 @@ def get_hotels(
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def get_registration_form(request: Request):
     csrf_token = generate_csrf_token()
-    add_flash_message(request, "teste", "success")
     return render(
         templates,
         request,
@@ -63,7 +57,7 @@ def get_registration_form(request: Request):
         }
     )
 
-@router.post("/register/check", response_model=RegisterHotelStep1Out)
+@router.post("/register/check", response_model=RegisterHotelStep1Out, include_in_schema=False)
 async def register_check(request: Request, payload: RegisterHotelStep1In, db: Session = Depends(get_db),):
     email = payload.email
     cnpj = payload.cnpj
@@ -98,7 +92,6 @@ def register_step2_partial(request: Request, email: str, cnpj: str):
 @router.post("/register", response_model=HotelOut)
 async def register_hotel(
     request: Request,
-    csrf_token: str = Form(...),
     name: str = Form(...),
     email: str = Form(...),
     ddd: str = Form(...),
@@ -114,8 +107,10 @@ async def register_hotel(
     confirm_password: str = Form(...),
     db: Session = Depends(get_db),
 ):
+    form = await request.form()
+    csrf_token = form.get("csrf_token") or request.headers.get("X-CSRF-Token")
     if not validate_csrf_token(csrf_token):
-        add_flash_message(request, "Token CSRF adulterado, operação finalizada.", "danger")
+        add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
         return RedirectResponse(url="/auth", status_code=303)
     
     sess_email = request.session.get('reg_email')
@@ -136,11 +131,11 @@ async def register_hotel(
 
     db_hotel = db.query(Hotel).filter(Hotel.cnpj == cnpj).first()
     if db_hotel:
-        add_flash_message(request, "O hotel já existe em nossos registros")
+        add_flash_message(request, "O hotel já existe em nossos registros", "danger")
         return RedirectResponse(url="/auth", status_code=303)
 
     if password != confirm_password:
-        add_flash_message(request, "As senhas não conferem.")
+        add_flash_message(request, "As senhas não conferem.", "danger")
         return RedirectResponse(url="/auth", status_code=303)
     
     try:
@@ -150,7 +145,7 @@ async def register_hotel(
         return RedirectResponse(url="/auth", status_code=303)
     
     if situ.lower() != "ativa":
-        add_flash_message(request, "CNPJ com situação irregular")
+        add_flash_message(request, "CNPJ com situação irregular", "danger")
         return RedirectResponse(url='/auth', status_code=303)
 
     hashed_password = bcrypt.hash(password)
@@ -173,37 +168,44 @@ async def register_hotel(
     db.refresh(new_hotel)
     return RedirectResponse(url="/", status_code=303)
 
-@router.get("/login", response_class=HTMLResponse, include_in_schema=False)
-def get_login_form(request: Request):
-    csrf_token = generate_csrf_token()
-    return templates.TemplateResponse("/auth/login.html", {"request": request, "csrf_token": csrf_token})
-
 @router.post("/login")
-def login(
+async def login(
     request: Request,
-    csrf_token: str = Form(...),
     login: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db),
-):
+):    
+    form = await request.form()
+    csrf_token = form.get("csrf_token") or request.headers.get("X-CSRF-Token")
     if validate_csrf_token(csrf_token):
         hotel = db.query(Hotel).filter(Hotel.login == login).first()
         if not hotel:
-            hotel = db.query(Hotel).filter(Hotel.cnpj == login).first()
+            cnpj_digits = only_digits(login)
+            hotel = db.query(Hotel).filter(Hotel.cnpj == cnpj_digits).first()
             if not hotel:
-                raise HTTPException(status_code=400, detail="Login ou CNPJ não encontrado")
-        elif hotel and not verify_password(password, hotel.password):
-            raise HTTPException(status_code=400, detail="Senha incorreta")
+                add_flash_message(request, "Login ou CNPJ não encontrado.", "warning")
+                return RedirectResponse(url="/auth", status_code=303)
     else:
-        raise HTTPException(status_code=400, detail="Invalid CSRF token")
+        add_flash_message(request, "Token de segurança inválido, tente novamente", "warning")
+        return RedirectResponse(url="/auth", status_code=303)
+    
+    if not verify_password(password, hotel.password):
+        add_flash_message(request, "Senha incorreta.", "warning")
+        return RedirectResponse(url="/auth", status_code=303)
+    
+    if not hotel.is_active:
+        add_flash_message(request, "O hotel está desativado no sistema", "warning")
+        return RedirectResponse(url="/auth", status_code=303)
     
     request.session['hotel_id'] = hotel.id
     request.session['hotel_name'] = hotel.name
 
+    add_flash_message(request, "Login bem-sucedido,", "success")
     response = RedirectResponse(url="/dashboard", status_code=302)
     return response
 
 @router.get("/logout", include_in_schema=False)
 def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse(url="/auth/login", status_code=302)
+    request.session.pop("hotel_id", None)
+    request.session.pop("hotel_name", None)
+    return RedirectResponse(url="/auth", status_code=303)

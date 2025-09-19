@@ -1,6 +1,5 @@
 from __future__ import annotations
 import httpx
-from typing import Optional
 
 CNPJ_WS_PUBLIC = "https://publica.cnpj.ws/cnpj/{cnpj}"
 

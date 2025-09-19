@@ -17,8 +17,9 @@ class HotelCreate(HotelBase):
 
 class HotelOut(HotelBase):
     id: int
-    created_at: str
-    updated_at: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    is_active: bool
 
 class RegisterHotelStep1In(BaseModel):
     email: EmailStr
