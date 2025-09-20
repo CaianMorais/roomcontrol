@@ -8,6 +8,8 @@ from passlib.hash import bcrypt
 
 from app.utils.flash import render
 from app.utils.session_guard import require_session
+from app.schemas.rooms import RoomOut, RoomCreate, RoomsBase
+from app.models.rooms import Rooms
 
 router = APIRouter(
     prefix="/dashboard",
@@ -24,6 +26,24 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@api_router.get("/get_rooms", response_model=List[RoomOut])
+def get_rooms(
+    hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Rooms)
+
+    if hotel_id:
+        query = query.filter(Rooms.hotel_id == hotel_id)
+
+    rooms = query.all()
+
+    if not rooms:
+        raise HTTPException(status_code=404, detail="Nenhum quarto encontrado")
+    
+    return rooms
+
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def dashboard(request: Request):

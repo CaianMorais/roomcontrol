@@ -24,7 +24,6 @@ class Rooms(Base):
     hotel_id = Column(Integer, ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False)
     room_number = Column(String(20), nullable=False)
     type = Column(String(50), nullable=False)
-    address = Column(Integer, nullable=True)
     capacity_adults = Column(Integer, nullable=True)
     capacity_children = Column(Integer, nullable=True)
     capacity_total = Column(Integer, nullable=True)

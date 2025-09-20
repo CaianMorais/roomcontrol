@@ -1,5 +1,5 @@
 import datetime
-from pydantic import BaseModel, Field,
+from pydantic import BaseModel, Field
 
 class RoomsBase(BaseModel):
     hotel_id: str = Field(..., example="1")
