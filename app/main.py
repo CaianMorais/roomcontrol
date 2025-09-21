@@ -30,6 +30,7 @@ def get_db():
 
 app.include_router(auth.api_router)
 app.include_router(guest.api_router)
+app.include_router(dashboard.api_router)
 app.include_router(auth.router)
 app.include_router(guest.router)
 app.include_router(dashboard.router)
