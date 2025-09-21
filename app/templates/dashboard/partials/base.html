@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard</title>
+    <title>{% block title %}Dashboard - RoomControl{% endblock %}</title>
     <link rel="shortcut icon" type="image/png" href="{{ url_for('dashboard', path='images/logos/favicon.png') }}" />
     <link rel="stylesheet" href="{{ url_for('dashboard', path='css/styles.min.css') }}" />
 </head>
@@ -73,7 +73,7 @@
                             <span class="hide-menu">Cadastro Geral</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="./ui-buttons.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ url_for('rooms') }}" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-article"></i>
                                 </span>
@@ -155,9 +155,9 @@
                             </a>
                         </li>
                     </ul>
-                    {% if hotel_id %}
+                    {% if current_hotel %}
                     <div>
-                        <p class="m-0 p-0">Painel <strong>{{ hotel_name }}</strong></p>
+                        <p class="m-0 p-0">Painel <strong>{{ current_hotel.name }}</strong></p>
                     </div>
                     {% endif %}
                     <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
