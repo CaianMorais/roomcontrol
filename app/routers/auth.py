@@ -46,6 +46,8 @@ def get_hotels(
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def get_registration_form(request: Request):
+    if request.session.get("hotel_id"):
+        return RedirectResponse(url="/dashboard", status_code=303)
     csrf_token = generate_csrf_token()
     return render(
         templates,

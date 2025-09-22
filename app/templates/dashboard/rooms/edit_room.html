@@ -11,12 +11,12 @@
                 <h5 class="card-title fw-semibold mb-4">Novo Quarto</h5>
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ url_for('create_room') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ url_for('update_room', room_id=room.id) }}" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <div class="row">
                                 <div class="mb-3 col-4">
                                     <label for="room_number" class="form-label">Número do quarto</label>
-                                    <input type="text" class="form-control" id="room_number" name="room_number" required>
+                                    <input type="text" class="form-control" id="room_number" name="room_number" value="{{ room.room_number if room else '' }}">
                                 </div>
                                 <div class="mb-3 col-8">
                                     <label for="room_type" class="form-label">Tipo do quarto
@@ -28,22 +28,22 @@
                                         </a>
                                     </label>
                                     <select class="form-select" required name="room_type" id="room_type">
-                                        <option value="">Selecione o tipo do quarto</option>
+                                        <option value="">Selecione o tipo de quarto</option>
                                         <optgroup label="1 cama">
                                             <option value="1" {% if room and room.type == "1" %}selected{% endif %}>Solteiro</option>
                                         </optgroup>
                                         <optgroup label="2 camas">
-                                            <option value="2">Duplo - Duas camas de solteiro (1 adulto, 1 criança)</option>
-                                            <option value="3">Duplo - Duas camas de solteiro (2 adultos)</option>
-                                            <option value="4">Casal - Uma cama de casal (2 adultos)</option>
+                                            <option value="2" {% if room and room.type == "2" %}selected{% endif %}>Duplo - Duas camas de solteiro (1 adulto, 1 criança)</option>
+                                            <option value="3" {% if room and room.type == "3" %}selected{% endif %}>Duplo - Duas camas de solteiro (2 adultos)</option>
+                                            <option value="4" {% if room and room.type == "4" %}selected{% endif %}>Casal - Uma cama de casal (2 adultos)</option>
                                         </optgroup>
                                         <optgroup label="3 camas">
-                                            <option value="5">Triplo - Três camas de solteiro (1 adulto, 2 crianças)</option>
-                                            <option value="6">Triplo - Três camas de solteiro (2 adultos, 1 criança)</option>
-                                            <option value="7">Triplo - Três camas de solteiro (3 adultos)</option>
-                                            <option value="8">Triplo (com casal) - (1 casal, 1 criança)</option>
+                                            <option value="5" {% if room and room.type == "5" %}selected{% endif %}>Triplo - Três camas de solteiro (1 adulto, 2 crianças)</option>
+                                            <option value="6" {% if room and room.type == "6" %}selected{% endif %}>Triplo - Três camas de solteiro (2 adultos, 1 criança)</option>
+                                            <option value="7" {% if room and room.type == "7" %}selected{% endif %}>Triplo - Três camas de solteiro (3 adultos)</option>
+                                            <option value="8" {% if room and room.type == "8" %}selected{% endif %}>Triplo (com casal) - (1 casal, 1 criança)</option>
                                         </optgroup>
-                                            <option value="9">Personalizado - Quarto adaptatível para 4 ou mais pessoas</option>
+                                            <option value="9" {% if room and room.type == "9" %}selected{% endif %}>Personalizado - Quarto adaptatível para 4 ou mais pessoas</option>
                                     </select>
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                                             <i class="ti ti-info-circle"></i>
                                         </a>
                                     </label>
-                                    <input type="number" class="form-control" id="capacity_adults" name="capacity_adults" readonly required>
+                                    <input type="number" class="form-control" id="capacity_adults" name="capacity_adults" required value="{{ room.capacity_adults if room else '' }}">
                                 </div>
                                 <div class="mb-3 col-4">
                                     <label for="capacity_children" class="form-label">Crianças (até 17 anos)
@@ -68,7 +68,7 @@
                                             <i class="ti ti-info-circle"></i>
                                         </a>
                                     </label>
-                                    <input type="number" class="form-control" id="capacity_children" name="capacity_children" readonly required>
+                                    <input type="number" class="form-control" id="capacity_children" name="capacity_children" required value="{{ room.capacity_children if room else '' }}">
                                 </div>
                                 <div class="mb-3 col-4">
                                     <label for="capacity_total" class="form-label">Total
@@ -79,25 +79,31 @@
                                             <i class="ti ti-info-circle"></i>
                                         </a>
                                     </label>
-                                    <input type="number" class="form-control" id="capacity_total" name="capacity_total" readonly required>
+                                    <input type="number" class="form-control" id="capacity_total" name="capacity_total" required value="{{ room.capacity_total if room else '' }}">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="mb-3 col-6">
                                     <label for="price" class="form-label">Preço (diária)</label>
-                                    <input type="text" class="form-control" id="price" name="price">
+                                    <input type="text" class="form-control" id="price" name="price" value="{{ '%.2f'|format(room.price)|replace('.', ',') }}">
                                 </div>
                                 <div class="mb-3 col-6 align-items-end justify-content-start d-flex">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="" id="is_active" name="is_active" checked>
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if room.is_active %}checked{% endif %}>
                                         <label class="form-check-label" for="is_active">
                                             Quarto ativo
                                         </label>
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary">Adicionar</button>
-                            <a href="{{ url_for('rooms') }}" class="btn btn-outline-danger ms-2">Voltar</a>
+                            <div class="row">
+                                <div class="mb-3 col-12">
+                                    <label for="comments" class="form-label">Observações (o hóspede pode ver as observações do quarto no painel de hóspedes)</label>
+                                    <textarea class="form-control" id="comments" name="comments" placeholder="Ex.: 'Controle da televisão dentro da gaveta da mesa de cabeceira.'">{{ room.comments if room.comments else '' }}</textarea>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Editar</button>
+                            <a href="{{ url_for('rooms') }}" class="btn btn-outline-danger">Voltar</a>
                         </form>
                     </div>
                 </div>
@@ -150,9 +156,9 @@
     if (type === "9") { 
       adultsInput.readOnly = false;
       childrenInput.readOnly = false;
-      adultsInput.value = "";
-      childrenInput.value = "";
-      totalInput.value = "";
+      adultsInput.value = "{{ room.capacity_adults if room else '' }}";
+      childrenInput.value = "{{ room.capacity_children if room else '' }}";
+      totalInput.value = "{{ room.capacity_total if room else '' }}";
     } else if (roomCapacities[type]) {
       const [adults, children] = roomCapacities[type];
       adultsInput.value = adults;
@@ -179,7 +185,6 @@
   adultsInput.addEventListener("input", updateTotal);
   childrenInput.addEventListener("input", updateTotal);
 
-  updateCapacity();
 })();
 </script>
 
