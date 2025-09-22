@@ -1,6 +1,6 @@
 {% extends "dashboard/partials/base.html" %}
 
-{% block title %}Dashboard - RoomControl{% endblock %}
+{% block title %}Dashboard - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
 
 {% block content %}
 

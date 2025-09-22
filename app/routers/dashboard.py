@@ -32,6 +32,6 @@ def dashboard(request: Request):
     return render(
         templates,
         request,
-        "/dashboard/index.html"
+        "dashboard/index.html"
     )
 

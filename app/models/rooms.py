@@ -29,7 +29,7 @@ class Rooms(Base):
     capacity_total = Column(Integer, nullable=True)
     price = Column(Float, nullable=True)
     status = Column(Enum('available', 'occupied', 'maintenance'), nullable=False, server_default='available')
-    comments = Column(Text, nullable=False)
+    comments = Column(Text, nullable=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)

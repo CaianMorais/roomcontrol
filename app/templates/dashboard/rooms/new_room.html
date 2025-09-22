@@ -1,0 +1,172 @@
+{% extends "dashboard/partials/base.html" %}
+
+{% block title %}Novo Quarto - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title fw-semibold mb-4">Novo Quarto</h5>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="{{ url_for('create_room') }}" method="POST" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="mb-3 col-4">
+                                    <label for="room_number" class="form-label">Número do quarto</label>
+                                    <input type="text" class="form-control" id="room_number" name="room_number">
+                                </div>
+                                <div class="mb-3 col-8">
+                                    <label for="room_type" class="form-label">Tipo do quarto
+                                        <a type="button" class=""
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip"
+                                            data-bs-title="Se for personalizado, defina a quantidade de adultos e crianças manualmente.">
+                                            <i class="ti ti-info-circle"></i>
+                                        </a>
+                                    </label>
+                                    <select class="form-select" required name="room_type" id="room_type">
+                                        <option value="" selected>Selecione o tipo de quarto</option>
+                                        <option value="1">Solteiro - Uma cama de solteiro</option>
+                                        <option value="2">Duplo - Duas camas de solteiro</option>
+                                        <option value="3">Casal - Uma cama de casal</option>
+                                        <option value="4">Triplo - Três camas de solteiro</option>
+                                        <option value="5">Triplo (com casal) - Uma cama de casal + uma de solteiro</option>
+                                        <option value="6">Personalizado - Quarto adaptatível para 4 ou mais pessoas</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="mb-3 col-4">
+                                    <label for="capacity_adults" class="form-label">Adultos 
+                                        <a type="button" class=""
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip"
+                                            data-bs-title="Campo dinâmico, exceto para quartos de tipo personalizado.">
+                                            <i class="ti ti-info-circle"></i>
+                                        </a>
+                                    </label>
+                                    <input type="number" class="form-control" id="capacity_adults" name="capacity_adults" readonly>
+                                </div>
+                                <div class="mb-3 col-4">
+                                    <label for="capacity_children" class="form-label">Crianças (até 17 anos)
+                                        <a type="button" class=""
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip"
+                                            data-bs-title="Campo dinâmico, exceto para quartos de tipo personalizado.">
+                                            <i class="ti ti-info-circle"></i>
+                                        </a>
+                                    </label>
+                                    <input type="number" class="form-control" id="capacity_children" name="capacity_children" readonly>
+                                </div>
+                                <div class="mb-3 col-4">
+                                    <label for="capacity_total" class="form-label">Total
+                                        <a type="button" class=""
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip"
+                                            data-bs-title="Campo automático, soma de adultos e crianças.">
+                                            <i class="ti ti-info-circle"></i>
+                                        </a>
+                                    </label>
+                                    <input type="number" class="form-control" id="capacity_total" name="capacity_total" readonly>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="mb-3 col-6">
+                                    <label for="price" class="form-label">Preço (diária)</label>
+                                    <input type="text" class="form-control" id="price" name="price">
+                                </div>
+                                <div class="mb-3 col-6 align-items-end justify-content-start d-flex">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="is_active" name="is_active" checked>
+                                        <label class="form-check-label" for="is_active">
+                                            Quarto ativo
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Adicionar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('dashboard', path='libs/jquery/dist/jquery.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js" integrity="sha512-F5Ul1uuyFlGnIT1dk2c4kB4DBdi5wnBJjVhL7gQlGh46Xn0VhvD8kgxLtjdZ5YN83gybk/aASUAlpdoWUjRR3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    $("#price").inputmask({
+        alias: "decimal",
+        radixPoint: ",",
+        groupSeparator: ".",
+        prefix: 'R$ ',
+        digits: 2,
+        digitsOptional: false,
+        rightAlign: false,
+        removeMaskOnSubmit: true,
+        unmaskAsNumber: true,
+    });
+</script>
+<script src="{{ url_for('dashboard', path='libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+<script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
+<script>
+(() => {
+  const roomType = document.getElementById("room_type");
+  const adultsInput = document.getElementById("capacity_adults");
+  const childrenInput = document.getElementById("capacity_children");
+  const totalInput = document.getElementById("capacity_total");
+
+  const roomCapacities = {
+    "1": [1, 0],
+    "2": [2, 0],
+    "3": [2, 0],
+    "4": [3, 0],
+    "5": [2, 1],
+  };
+
+  function updateCapacity() {
+    const type = roomType.value;
+
+    if (type === "6") { 
+      adultsInput.readOnly = false;
+      childrenInput.readOnly = false;
+      adultsInput.value = "";
+      childrenInput.value = "";
+      totalInput.value = "";
+    } else if (roomCapacities[type]) {
+      const [adults, children] = roomCapacities[type];
+      adultsInput.value = adults;
+      childrenInput.value = children;
+      adultsInput.readOnly = true;
+      childrenInput.readOnly = true;
+      totalInput.value = adults + children;
+    } else {
+      adultsInput.value = "";
+      childrenInput.value = "";
+      totalInput.value = "";
+      adultsInput.readOnly = true;
+      childrenInput.readOnly = true;
+    }
+  }
+
+  function updateTotal() {
+    const adults = parseInt(adultsInput.value) || 0;
+    const children = parseInt(childrenInput.value) || 0;
+    totalInput.value = adults + children;
+  }
+
+  roomType.addEventListener("change", updateCapacity);
+  adultsInput.addEventListener("input", updateTotal);
+  childrenInput.addEventListener("input", updateTotal);
+
+  updateCapacity();
+})();
+</script>
+
+{% endblock %}

@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from app.routers import dashboard
+from app.routers import dashboard, dashboard_rooms
 from app.utils.flash import add_flash_message, render
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -11,7 +11,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import SessionLocal
 from app.models.guest import Guest
-from app.routers import auth, guest, dashboard, dashboard_rooms
+from app.routers import auth, guest, dashboard
 
 app = FastAPI(title="Hotel Management API")
 
