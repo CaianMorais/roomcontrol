@@ -52,7 +52,7 @@
                             <span class="hide-menu">Principal</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="./index.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ url_for('dashboard') }}" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-layout-dashboard"></i>
                                 </span>
@@ -64,7 +64,7 @@
                             <span class="hide-menu">Operacional</span>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="./authentication-login.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ url_for('reservations') }}" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-login"></i>
                                 </span>
@@ -80,11 +80,11 @@
                             </a>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="./authentication-register.html" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ url_for('guests') }}" aria-expanded="false">
                                 <span>
                                     <i class="ti ti-user-plus"></i>
                                 </span>
-                                <span class="hide-menu">Gerenciar</span>
+                                <span class="hide-menu">Hóspedes</span>
                             </a>
                         </li>
                         <li class="nav-small-cap">

@@ -1,6 +1,6 @@
 {% extends "dashboard/partials/base.html" %}
 
-{% block title %}Novo Hóspede - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
+{% block title %}Nova Reserva - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
 
 {% block content %}
 
@@ -8,35 +8,26 @@
     <div class="container-fluid">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title fw-semibold mb-4">Novo Hóspede</h5>
+                <h5 class="card-title fw-semibold mb-4">Nova Reserva</h5>
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ url_for('create_guest') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ url_for('create_reservation') }}" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <div class="row">
                                 <div class="mb-3 col-8">
                                     <label for="name" class="form-label">Nome e sobrenome do hóspede</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <input type="text" class="form-control" value="{{ guest.name if guest else '' }}" {% if guest %} readonly {% endif %} id="name" name="name" required>
                                 </div>
                                 <div class="mb-3 col-4">
                                     <label for="cpf" class="form-label">CPF do hóspede</label>
-                                    <input type="text" class="form-control" id="cpf" name="cpf" required>
+                                    <input type="text" class="form-control" value="{{ guest.cpf if guest else '' }}" {% if guest %} readonly {% endif %} id="cpf" name="cpf" required>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="mb-3 col-8">
-                                    <label for="email" class="form-label">E-mail do hóspede</label>
-                                    <input type="email" class="form-control" id="email" name="email"> 
-                                </div>
-                                <div class="mb-3 col-4">
-                                    <label for="phone_number" class="form-label">Telefone do hóspede</label>
-                                    <input type="text" class="form-control" id="phone_number" name="phone_number"> 
-                                </div>
-                            </div>
-                            {# <div class="row">
                                 <div class="mb-3 col-12">
-                                    <label for="select-room" class="form-label">Quarto</label>
-                                    <select class="form-select select-room" name="room" id="select-room" required>
+                                    <label for="room_id" class="form-label">Quarto</label>
+                                    <select class="form-select select-room" name="room_id" id="room_id" required>
+                                        <option value="" selected>Selecione o quarto</option>
                                         {% for room in rooms %}
                                         <option value="{{ room.id }}">
                                             Quarto: 
@@ -65,9 +56,19 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                            </div> #}
-                            <button type="submit" class="btn btn-primary">Adicionar e continuar para a reserva</button>
-                            <a href="{{ url_for('guests') }}" class="btn btn-outline-danger ms-2">Cancelar</a>
+                            </div>
+                            <div class="row">
+                                <div class="mb-3 col-6">
+                                    <label for="check_in" class="form-label">Data de check-in</label>
+                                    <input type="datetime-local" class="form-control" id="check_in" name="check_in" required>
+                                </div>
+                                <div class="mb-3 col-6">
+                                    <label for="check_out" class="form-label">Data de check-out (previsto)</label>
+                                    <input type="datetime-local" class="form-control" id="check_out" name="check_out" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Gravar reserva</button>
+                            <a href="{{ url_for('reservations') }}" class="btn btn-outline-danger ms-2">Cancelar</a>
                         </form>
                     </div>
                 </div>
@@ -81,13 +82,6 @@
 <script>
     $("#cpf").inputmask({
         mask: ['999.999.999-99'],
-        keepStatic: true,
-        rightAlign: false,
-        removeMaskOnSubmit: true,
-        unmaskAsNumber: true,
-    });
-    $("#phone_number").inputmask({
-        mask: ['(99) 99999-9999', '(99) 9999-9999'],
         keepStatic: true,
         rightAlign: false,
         removeMaskOnSubmit: true,

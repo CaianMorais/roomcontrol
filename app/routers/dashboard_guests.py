@@ -13,6 +13,7 @@ from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 from app.schemas.guest import GuestOut, GuestCreate, GuestBase
 from app.models.guest import Guest
+from app.models.reservations import Reservations
 
 router = APIRouter(
     prefix="/dashboard_guests",
@@ -53,11 +54,25 @@ def get_guests(
 
     return guests
 
+
+@router.get("/", response_class=HTMLResponse, include_in_schema=False)
+def guests(request: Request, db: Session = Depends(get_db)):
+    hotel_id = request.session.get("hotel_id")
+    guests = db.query(Guest).filter(Guest.hotel_id == hotel_id).all()
+    reservation = db.query(Reservations) #concluir consultas das reservas pra tabela de hospedes
+    return render(
+        templates,
+        request,
+        "dashboard/guests/guests.html",
+        {
+            "request": request,
+            "guests": guests
+        }
+    )
+
 @router.get("/new", response_class=HTMLResponse, include_in_schema=False)
 def new_guest(request: Request, db: Session = Depends(get_db)):
     csrf_token = generate_csrf_token()
-    hotel_id = request.session.get("hotel_id")
-    rooms = db.query(Rooms).filter(Rooms.hotel_id == hotel_id).filter(Rooms.status == 'available').all()
     return render(
         templates,
         request,
@@ -65,6 +80,42 @@ def new_guest(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "csrf_token": csrf_token,
-            "rooms": rooms
         }
+    )
+
+@router.post("/create_guest", response_class=HTMLResponse, include_in_schema=False)
+def create_guest(
+    request: Request,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    cpf: str = Form(...),
+    email: str = Form(...),
+    phone_number: str = Form(...),
+    csrf_token: str = Form(...)
+):
+    if not validate_csrf_token(csrf_token):
+        add_flash_message(request, "Token de segurança inválido", "danger")
+        return RedirectResponse(url="/dashboard_guests/new", status_code=status.HTTP_303_SEE_OTHER)
+
+    hotel_id = request.session.get("hotel_id")
+
+    if db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id).first():
+        add_flash_message(request, "CPF já cadastrado no seu hotel", "danger")
+        return RedirectResponse(url="/dashboard_guests/new", status_code=status.HTTP_303_SEE_OTHER)
+    
+    new_guest = Guest(
+        name=name,
+        cpf=cpf,
+        email=email,
+        phone_number=phone_number,
+        hotel_id=hotel_id
+    )
+
+    db.add(new_guest)
+    db.commit()
+    db.refresh(new_guest)
+    add_flash_message(request, "Hóspede cadastrado com sucesso, continue com a reserva", "success")
+    return RedirectResponse(
+        url=f"/dashboard_reservations/new?guest_id={new_guest.id}",
+        status_code=303,
     )
