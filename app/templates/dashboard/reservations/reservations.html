@@ -104,7 +104,12 @@
                             {% if has_filter %}
                                 <a class="btn btn-outline-warning mb-4" href="{{ url_for('rooms') }}">Limpar Filtros</a>
                             {% endif %}
-                        <a class="btn btn-primary mb-4" href="">Nova Reserva</a>
+                        <a class="btn btn-success mb-4" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                            data-bs-title="Se o hóspede já estiver cadastrado você pode ir direto pra reserva."
+                            href="{{ url_for('new_reservation') }}">Nova Reserva</a>
+                        <a class="btn btn-primary mb-4" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                            data-bs-title="É necessário cadastrar o hóspede antes de fazer a reserva."
+                            href="{{ url_for('new_guest') }}">Novo Hóspede</a>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -172,6 +177,12 @@
         </div>
     </div>
 </div>
+
+<script src="{{ url_for('dashboard', path='libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+<script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
 
 <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

@@ -1,10 +1,12 @@
+import datetime
 from decimal import Decimal
 from app.core.config import SessionLocal
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from sqlalchemy import cast, DateTime, outerjoin
+from sqlalchemy.orm import Session, aliased
 from passlib.hash import bcrypt
 
 from app.core.security import generate_csrf_token, validate_csrf_token
@@ -58,8 +60,29 @@ def get_guests(
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
 def guests(request: Request, db: Session = Depends(get_db)):
     hotel_id = request.session.get("hotel_id")
-    guests = db.query(Guest).filter(Guest.hotel_id == hotel_id).all()
-    reservation = db.query(Reservations) #concluir consultas das reservas pra tabela de hospedes
+    # guests = db.query(Guest, Reservations.check_in, Rooms.room_number) \
+    #     .join(Reservations, Reservations.guest_id == Guest.id) \
+    #     .join(Rooms, Rooms.hotel_id == hotel_id) \
+    #     .filter(Guest.hotel_id == hotel_id) \
+    #     .all()
+    ReservationAlias = aliased(Reservations)
+    RoomAlias = aliased(Rooms)
+
+    guests = (
+        db.query(
+            Guest,
+            ReservationAlias.check_in,
+            RoomAlias.room_number
+        )
+        .outerjoin(
+            ReservationAlias, ReservationAlias.guest_id == Guest.id
+        )
+        .outerjoin(
+            RoomAlias, RoomAlias.id == ReservationAlias.room_id
+        )
+        .filter(Guest.hotel_id == hotel_id)
+        .all()
+    )
     return render(
         templates,
         request,
@@ -119,3 +142,5 @@ def create_guest(
         url=f"/dashboard_reservations/new?guest_id={new_guest.id}",
         status_code=303,
     )
+
+##CRIAR ROTA DE EDITAR E DELETAR HOSPEDES!

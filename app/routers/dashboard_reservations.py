@@ -6,6 +6,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 
@@ -88,14 +89,24 @@ def new_reservation(
     db: Session = Depends(get_db),
     guest_id: Optional[int] = Query(None, description="ID do hóspede para pré-seleção")
 ):
+    # if db.query(Reservations.guest_id == guest_id).filter(Reservations.status == 'booked' or Reservations.status == 'checked_in').first():
+    #     add_flash_message("Esse hóspede tem uma reserva agendada ou ativa.")
+    #     return RedirectResponse(url="/dashboard_reservations", status_code=303)
     hotel_id = request.session.get("hotel_id")
-
+    if not hotel_id:
+        add_flash_message(request, "Hotel não selecionado.", "danger")
+        return RedirectResponse(url="/dashboard", status_code=303)
+    
     if guest_id:
-        guest = db.query(Guest).filter(Guest.id == guest_id).filter(Guest.hotel_id == hotel_id).first()
+        guest = db.query(Guest).filter(Guest.hotel_id == hotel_id).filter(Guest.id == guest_id).first()
+        if not guest:
+            add_flash_message(request, "Esse hóspede não existe em seu hotel", "danger")
+            return RedirectResponse(url="/dashboard_reservations", status_code=303)
     else:
-        guest = None
+        guest = []
 
-    rooms = db.query(Rooms).filter(Rooms.hotel_id == hotel_id).filter(Rooms.status == 'available').all()
+    rooms = []
+
     csrf_token = generate_csrf_token()
     print(datetime.datetime.now())
     return render(
@@ -109,6 +120,74 @@ def new_reservation(
             "rooms": rooms
         }
     )
+
+@router.get("/check_availability")
+def check_availability(
+    request: Request,
+    db: Session = Depends(get_db),
+    check_in: datetime.datetime = Query(...),
+    check_out: datetime.datetime = Query(...),
+    guest_id: Optional[int] = Query(None),
+):
+    hotel_id = request.session.get("hotel_id")
+
+    # Hóspede específico
+    guest_conflict = None
+    if guest_id:
+        guest_conflict = db.query(Reservations).filter(
+            Reservations.guest_id == guest_id,
+            Reservations.check_in < check_out,
+            Reservations.check_out > check_in
+        ).first()
+        print(bool(guest_conflict))
+        available_guests = []
+    else:
+        # Hóspedes disponíveis
+        reserved_guest_ids = db.query(Reservations.guest_id).filter(
+            Reservations.check_in < check_out,
+            Reservations.check_out > check_in
+        ).subquery()
+
+        available_guests = db.query(Guest).filter(
+            Guest.hotel_id == hotel_id,
+            ~Guest.id.in_(reserved_guest_ids)
+        ).all()
+
+    # Quartos disponíveis
+    reserved_room_ids = db.query(Reservations.room_id).filter(
+        Reservations.status.in_(["booked", "checked_in"]),
+        Reservations.check_in < check_out,
+        Reservations.check_out > check_in
+    ).subquery()
+
+    available_rooms = db.query(Rooms).filter(
+        Rooms.hotel_id == hotel_id,
+        Rooms.status == "available",
+        ~Rooms.id.in_(reserved_room_ids)
+    ).all()
+
+    return {
+        "guest_conflict": bool(guest_conflict),
+        "available_guests": [
+            {
+                "id": g.id,
+                "name": g.name,
+                "cpf": g.cpf,
+                "email": g.email,
+                "phone_number": g.phone_number
+            } for g in available_guests
+        ],
+        "available_rooms": [
+            {
+                "id": r.id,
+                "room_number": r.room_number,
+                "type": r.type,
+                "capacity_adults": r.capacity_adults,
+                "capacity_children": r.capacity_children,
+                "price": r.price
+            } for r in available_rooms
+        ]
+    }
 
 @router.post("/create", response_class=HTMLResponse, include_in_schema=False)
 def create_reservation(

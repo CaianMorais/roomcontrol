@@ -135,35 +135,35 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for guest in guests %}
+                                {% for guest, check_in, room_number in guests %}
                                     <tr class="align-items-center">
                                         <td class="border-bottom-0">
                                             <p class="fw-semibold mb-0">{{ guest.name }}</p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="fw-semibold mb-0">{{ guest.cpf }}</p>
+                                            <p class="fw-semibold mb-0">{{ guest.cpf[:3] + "." + guest.cpf[3:6] + "." + guest.cpf[6:9] + "." + guest.cpf[9:] }}</p>
                                             {# <span class="fw-normal">Web Designer</span> #}
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="mb-0 fw-normal">{{ guest.email }}</p>
+                                            <p class="mb-0 fw-normal">{{ guest.email if guest.email else 'Não informado' }}</p>
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">
-                                                {{ guest.phone_number }}
+                                                {{ guest.phone_number if guest.phone_number else 'Não informado' }}
                                             </p>
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">
-                                                reservation.room_id
+                                                {{ room_number if room_number else 'Sem reserva' }}
                                             </p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="fw-semibold mb-0 fs-4"> reservation.check_in </p>
+                                            <p class="mb-0 fw-normal">{{ check_in.strftime("%d/%m/%Y %H:%M") if check_in else 'Sem reserva' }}</p>
                                         </td>
                                         <td class="border-bottom-0">
                                             <div class="d-flex align-items-center gap-3 fs-6">
-                                                {# <a href="{{ url_for('edit_room', room_id=room.id) }}" class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="" data-bs-original-title="Editar" aria-label="Editar"><i class="ti ti-pencil"></i></a>
-                                                <a href="{{ url_for('delete_room', room_id=room.id) }}" class="text-danger btn-delete-room" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Deletar" data-bs-original-title="Deletar" aria-label="Deletar"><i class="ti ti-trash"></i></a> #}
+                                                <a href="/dashboard_reservations/new?guest_id={{ guest.id }}" class="text-primary" title="Reservar esse hóspede"><i class="ti ti-calendar-plus"></i></a>
+                                                {# <a href="{{ url_for('delete_room', room_id=room.id) }}" class="text-danger btn-delete-room" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Deletar" data-bs-original-title="Deletar" aria-label="Deletar"><i class="ti ti-trash"></i></a> #}
                                             </div>
                                         </td>
                                     </tr>
