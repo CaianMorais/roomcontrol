@@ -1,0 +1,108 @@
+{% extends "dashboard/partials/base.html" %}
+
+{% block title %}Novo Hóspede - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title fw-semibold mb-4">Novo Hóspede</h5>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <div class="row">
+                                <div class="mb-3 col-8">
+                                    <label for="name" class="form-label">Nome e sobrenome do hóspede</label>
+                                    <input type="text" class="form-control" id="name" name="name" readonly required value="{{ guest.name }}">
+                                    <div class="form-text text-warning">Inalterável</div>
+                                </div>
+                                <div class="mb-3 col-4">
+                                    <label for="cpf" class="form-label">CPF do hóspede</label>
+                                    <input type="text" class="form-control" id="cpf" name="cpf" readonly required value="{{ guest.cpf }}">
+                                    <div class="form-text text-warning">Inalterável</div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="mb-3 col-8">
+                                    <label for="email" class="form-label">E-mail do hóspede</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ guest.email }}"> 
+                                </div>
+                                <div class="mb-3 col-4">
+                                    <label for="phone_number" class="form-label">Telefone do hóspede</label>
+                                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ guest.phone_number }}"> 
+                                </div>
+                            </div>
+                            {# <div class="row">
+                                <div class="mb-3 col-12">
+                                    <label for="select-room" class="form-label">Quarto</label>
+                                    <select class="form-select select-room" name="room" id="select-room" required>
+                                        {% for room in rooms %}
+                                        <option value="{{ room.id }}">
+                                            Quarto: 
+                                            {{ room.room_number }} > 
+                                            {% if room.type == '1' %} 
+                                                Solteiro
+                                            {% elif room.type == '2' %}
+                                                Duplo
+                                            {% elif room.type == '3' %}
+                                                Duplo
+                                            {% elif room.type == '4' %}
+                                                Casal
+                                            {% elif room.type == '5' %}
+                                                Triplo
+                                            {% elif room.type == '6' %}
+                                                Triplo
+                                            {% elif room.type == '7' %}
+                                                Triplo
+                                            {% elif room.type == '8' %}
+                                                Triplo (com casal)
+                                            {% elif room.type == '9' %}
+                                                Personalizado
+                                            {% endif %} > 
+                                            {{ room.capacity_adults }} adultos, {{ room.capacity_children }} crianças > 
+                                            R${{ '%.2f'|format(room.price)|replace('.', ',') }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div> #}
+                            <button type="submit" class="btn btn-primary">Editar</button>
+                            <a href="{{ url_for('guests') }}" class="btn btn-outline-danger ms-2">Cancelar</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('dashboard', path='libs/jquery/dist/jquery.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js" integrity="sha512-F5Ul1uuyFlGnIT1dk2c4kB4DBdi5wnBJjVhL7gQlGh46Xn0VhvD8kgxLtjdZ5YN83gybk/aASUAlpdoWUjRR3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    $("#cpf").inputmask({
+        mask: ['999.999.999-99'],
+        keepStatic: true,
+        rightAlign: false,
+        removeMaskOnSubmit: true,
+        unmaskAsNumber: true,
+    });
+    $("#phone_number").inputmask({
+        mask: ['(99) 99999-9999', '(99) 9999-9999'],
+        keepStatic: true,
+        rightAlign: false,
+        removeMaskOnSubmit: true,
+        unmaskAsNumber: true,
+    });
+</script>
+<script src="{{ url_for('dashboard', path='libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+<script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $('.select-room').select2();
+</script>
+{% endblock %}

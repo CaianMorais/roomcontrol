@@ -53,6 +53,10 @@ def get_guests(
 
     if not guests:
         raise HTTPException(status_code=404, detail="Nenhum hóspede encontrado")
+    
+    # for g in guests:
+    #     if g.email == "":
+    #         g.email = None
 
     return guests
 
@@ -143,4 +147,48 @@ def create_guest(
         status_code=303,
     )
 
-##CRIAR ROTA DE EDITAR E DELETAR HOSPEDES!
+@router.get('/edit/{guest_id}', response_class=HTMLResponse, include_in_schema=False)
+def edit_guest(guest_id: int, request: Request, db: Session = Depends(get_db)):
+    guest = db.query(Guest).filter_by(id=guest_id, hotel_id=request.session.get("hotel_id")).first()
+    if guest.hotel_id != request.session.get("hotel_id"):
+        add_flash_message(request, "Hóspede não encontrado.", "warning")
+        return RedirectResponse(url="/dashboard_guests", status_code=303)
+    if not guest:
+        add_flash_message(request, "Hóspede não encontrado.", "warning")
+        return RedirectResponse(url="/dashboard_guests", status_code=303)
+    csrf_token = generate_csrf_token()
+    return render(
+        templates,
+        request,
+        "dashboard/guests/edit_guest.html",
+        {
+            "guest": guest,
+            "csrf_token": csrf_token
+        }
+    )
+
+@router.post('/edit/{guest_id}', response_class=HTMLResponse, include_in_schema=False)
+def update_guest(
+    request: Request,
+    guest_id: int,
+    email: str = Form(...),
+    phone_number: str = Form(...),
+    csrf_token: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    if not validate_csrf_token(csrf_token):
+        add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
+        return RedirectResponse(url="/auth", status_code=303)
+
+    guest = db.query(Guest).filter_by(id=guest_id, hotel_id=request.session.get("hotel_id")).first()
+
+    guest.email = email
+    guest.phone_number = phone_number
+
+    db.commit()
+    db.refresh(guest)
+
+    add_flash_message(request, f"Cadastro de {guest.name} editado com sucesso!", "success")
+    return RedirectResponse(url="/dashboard_guests", status_code=303)
+
+## criar rota de deletar hospede (verificando se tem reserva ativa ou agendada)

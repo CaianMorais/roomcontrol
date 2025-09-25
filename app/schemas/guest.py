@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 class GuestBase(BaseModel):
     name: str
-    email: EmailStr | None = None
+    email: str | None = None
     phone_number: str | None = None
     cpf: str
 

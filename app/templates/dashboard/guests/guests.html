@@ -161,9 +161,9 @@
                                             <p class="mb-0 fw-normal">{{ check_in.strftime("%d/%m/%Y %H:%M") if check_in else 'Sem reserva' }}</p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <div class="d-flex align-items-center gap-3 fs-6">
+                                            <div class="d-flex align-items-center justify-content-start gap-3 fs-6">
                                                 <a href="/dashboard_reservations/new?guest_id={{ guest.id }}" class="text-primary" title="Reservar esse hóspede"><i class="ti ti-calendar-plus"></i></a>
-                                                {# <a href="{{ url_for('delete_room', room_id=room.id) }}" class="text-danger btn-delete-room" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Deletar" data-bs-original-title="Deletar" aria-label="Deletar"><i class="ti ti-trash"></i></a> #}
+                                                <a href="{{ url_for('edit_guest', guest_id=guest.id) }}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Deletar" data-bs-original-title="Deletar" aria-label="Deletar"><i class="ti ti-pencil"></i></a>
                                             </div>
                                         </td>
                                     </tr>
