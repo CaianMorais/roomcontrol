@@ -62,6 +62,11 @@ def get_reservations(
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def reservations(request: Request, db: Session = Depends(get_db)):
+
+
+    ###### DESENVOLVER A FILTRAGEM DAS RESERVAS
+
+
     hotel_id = request.session.get("hotel_id")
     if not hotel_id:
         add_flash_message(request, "Hotel não selecionado.", "danger")
@@ -89,9 +94,6 @@ def new_reservation(
     db: Session = Depends(get_db),
     guest_id: Optional[int] = Query(None, description="ID do hóspede para pré-seleção")
 ):
-    # if db.query(Reservations.guest_id == guest_id).filter(Reservations.status == 'booked' or Reservations.status == 'checked_in').first():
-    #     add_flash_message("Esse hóspede tem uma reserva agendada ou ativa.")
-    #     return RedirectResponse(url="/dashboard_reservations", status_code=303)
     hotel_id = request.session.get("hotel_id")
     if not hotel_id:
         add_flash_message(request, "Hotel não selecionado.", "danger")

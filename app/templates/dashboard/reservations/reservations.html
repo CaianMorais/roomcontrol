@@ -159,7 +159,15 @@
                                             <p class="mb-0 fw-normal">{{ reservation.check_out.strftime("%d/%m/%Y %H:%M") }}</p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="mb-0 fw-normal">{{ reservation.status }}</p>
+                                            {% if reservation.status == "booked" %}
+                                            <p class="mb-0 fw-normal">Reservado</p>
+                                            {% elif reservation.status == "checked_in" %}
+                                            <p class="mb-0 fw-normal text-success">Entrada</p>
+                                            {% elif reservation.status == "checked_out" %}
+                                            <p class="mb-0 fw-normal text-danger">Saída</p>
+                                            {% elif reservation.status == "canceled" %}
+                                            <p class="mb-0 fw-normal text-warning">Cancelado</p>
+                                            {% endif %}
                                         </td>
                                         <td class="border-bottom-0">
                                             <div class="d-flex align-items-center gap-3 fs-6">

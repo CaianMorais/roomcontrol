@@ -10,88 +10,31 @@
         <div class="col-lg-12 d-flex align-items-stretch">
             <div class="card w-100 shadow-lg">
                 <div class="card-body py-0 px-2">
-                    {# <p class="d-inline-flex gap-1">
+                    <p class="d-inline-flex gap-1">
                         <h4 class="text-center">
-                            <a class="" data-bs-toggle="collapse" href="#filtros_quartos" role="button" aria-expanded="false"
-                                aria-controls="filtros_quartos">
+                            <a class="" data-bs-toggle="collapse" href="#filtros" role="button" aria-expanded="false"
+                                aria-controls="filtros">
                                 Filtros
                             </a>
                         </h4>
                     </p>
-                    <div class="collapse" id="filtros_quartos">
+                    <div class="collapse" id="filtros">
                         <div class="card card-body">
-                            <form action="{{ url_for('rooms') }}" method="GET">
+                            <form action="{{ url_for('guests') }}" method="GET">
                                 <div class="row">
                                     <div class="mb-3 col-6">
-                                        <label for="criteria" class="form-label">Critério</label>
-                                        <select class="form-select" name="criteria" id="criteria">
-                                            <option value="">Selecione o critério do filtro</option>
-                                            <option value="room_number">Número do quarto</option>
-                                            <option value="price">Preço (diária)</option>
-                                            <option value="capacity_adults">Capacidade de Adultos</option>
-                                            <option value="capacity_children">Capacidade de Crianças</option>
-                                            <option value="capacity_total">Capacidade Total</option>
-                                        </select>
+                                        <label for="name" class="form-label">Nome do hóspede</label>
+                                        <input type="text" class="form-control" id="name" name="name" minlength="3" placeholder="Min. 3 caracteres">
                                     </div>
                                     <div class="mb-3 col-6">
-                                        <label for="order" class="form-label">Ordem</label>
-                                        <select class="form-select" name="order" id="order">
-                                            <option value="">Selecione a ordem</option>
-                                            <option value="cres">Crescente</option>
-                                            <option value="decres">Decrescente</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row mb-4">
-                                    <div class="col-6">
-                                        <label class="form-label">Tipo</label>
-                                        <div class="row">
-                                            <div class="form-check col-6">
-                                                <input class="form-check-input" type="checkbox" id="solteiro" name="solteiro">
-                                                <label class="form-check-label" for="solteiro">Solteiro</label>
-                                            </div>
-                                            <div class="form-check col-6">
-                                                <input class="form-check-input" type="checkbox" id="duplo" name="duplo">
-                                                <label class="form-check-label" for="duplo">Duplo</label>
-                                            </div>
-                                            <div class="form-check col-6">
-                                                <input class="form-check-input" type="checkbox" id="casal" name="casal">
-                                                <label class="form-check-label" for="casal">Casal</label>
-                                            </div>
-                                            <div class="form-check col-6">
-                                                <input class="form-check-input" type="checkbox" id="triplo" name="triplo">
-                                                <label class="form-check-label" for="triplo">Triplo</label>
-                                            </div>
-                                            <div class="form-check col-6">
-                                                <input class="form-check-input" type="checkbox" id="triplo_com_casal" name="triplo_com_casal">
-                                                <label class="form-check-label" for="triplo_com_casal">Triplo (com casal)</label>
-                                            </div>
-                                            <div class="form-check col-6">
-                                                <input class="form-check-input" type="checkbox" id="personalizado" name="personalizado">
-                                                <label class="form-check-label" for="personalizado">Personalizado</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label">Situação</label>
-                                        <div class="form-check col-4">
-                                            <input class="form-check-input" type="checkbox" id="available" name="available">
-                                            <label class="form-check-label text-success" for="available">Disponível</label>
-                                        </div>
-                                        <div class="form-check col-4">
-                                            <input class="form-check-input" type="checkbox" id="occupied" name="occupied">
-                                            <label class="form-check-label text-danger" for="occupied">Ocupado</label>
-                                        </div>
-                                        <div class="form-check col-4">
-                                            <input class="form-check-input" type="checkbox" id="maintenance" name="maintenance">
-                                            <label class="form-check-label text-secondary" for="maintenance">Manutenção</label>
-                                        </div>
+                                        <label for="cpf" class="form-label">CPF do hóspede</label>
+                                        <input type="text" class="form-control" id="cpf" name="cpf" maxlength="11" placeholder="Sem pontuação">
                                     </div>
                                 </div>
                                 <button class="btn btn-success" type="submit">Aplicar</button>
                             </form>
                         </div>
-                    </div> #}
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,7 +45,7 @@
                         <h5 class="card-title fw-semibold mb-4">Hóspedes</h5>
                         <div>
                             {% if has_filter %}
-                                <a class="btn btn-outline-warning mb-4" href="{{ url_for('rooms') }}">Limpar Filtros</a>
+                                <a class="btn btn-outline-warning mb-4" href="{{ url_for('guests') }}">Limpar Filtros</a>
                             {% endif %}
                         <a class="btn btn-primary mb-4" href="{{ url_for('new_guest') }}">Novo Hóspede</a>
                         </div>
@@ -135,7 +78,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for guest, check_in, room_number in guests %}
+                                {% for guest, check_in, status, room_number in guests %}
                                     <tr class="align-items-center">
                                         <td class="border-bottom-0">
                                             <p class="fw-semibold mb-0">{{ guest.name }}</p>
@@ -149,21 +92,31 @@
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">
-                                                {{ guest.phone_number if guest.phone_number else 'Não informado' }}
+                                                {{ "(" + guest.phone_number[:2] + ") " + guest.phone_number[2:] if guest.phone_number else 'Não informado' }}
                                             </p>
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">
-                                                {{ room_number if room_number else 'Sem reserva' }}
+                                                {% if status != 'checked_out' and status != 'canceled' %}
+                                                    {{ room_number if room_number else 'Sem reserva' }}
+                                                {% else %}
+                                                    Sem reserva
+                                                {% endif %}
                                             </p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="mb-0 fw-normal">{{ check_in.strftime("%d/%m/%Y %H:%M") if check_in else 'Sem reserva' }}</p>
+                                            <p class="mb-0 fw-normal">
+                                                {% if status != 'checked_out' and status != 'canceled' %}
+                                                    {{ check_in.strftime("%d/%m/%Y %H:%M") if check_in else 'Sem reserva' }}
+                                                {% else %}
+                                                    Sem reserva
+                                                {% endif %}
+                                            </p>
                                         </td>
                                         <td class="border-bottom-0">
                                             <div class="d-flex align-items-center justify-content-start gap-3 fs-6">
                                                 <a href="/dashboard_reservations/new?guest_id={{ guest.id }}" class="text-primary" title="Reservar esse hóspede"><i class="ti ti-calendar-plus"></i></a>
-                                                <a href="{{ url_for('edit_guest', guest_id=guest.id) }}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Deletar" data-bs-original-title="Deletar" aria-label="Deletar"><i class="ti ti-pencil"></i></a>
+                                                <a href="{{ url_for('edit_guest', guest_id=guest.id, guest_cpf=guest.cpf) }}" class="text-success" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Deletar" data-bs-original-title="Deletar" aria-label="Deletar"><i class="ti ti-pencil"></i></a>
                                             </div>
                                         </td>
                                     </tr>

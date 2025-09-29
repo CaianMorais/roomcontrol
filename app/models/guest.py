@@ -1,5 +1,5 @@
 from xmlrpc.client import DateTime
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Boolean
 from app.core.config import Base
 
 class Guest(Base):
@@ -13,3 +13,4 @@ class Guest(Base):
     hotel_id = Column(Integer, ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False)

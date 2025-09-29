@@ -53,22 +53,18 @@ def get_guests(
 
     if not guests:
         raise HTTPException(status_code=404, detail="Nenhum hóspede encontrado")
-    
-    # for g in guests:
-    #     if g.email == "":
-    #         g.email = None
 
     return guests
 
 
-@router.get("/", response_class=HTMLResponse, include_in_schema=False)
-def guests(request: Request, db: Session = Depends(get_db)):
+@router.get("", response_class=HTMLResponse, include_in_schema=False)
+def guests(
+    request: Request,
+    db: Session = Depends(get_db),
+    name: Optional[str] = Query("", description="Nome do hóspede"),
+    cpf: Optional[str] = Query("", description="CPF do hóspede")
+    ):
     hotel_id = request.session.get("hotel_id")
-    # guests = db.query(Guest, Reservations.check_in, Rooms.room_number) \
-    #     .join(Reservations, Reservations.guest_id == Guest.id) \
-    #     .join(Rooms, Rooms.hotel_id == hotel_id) \
-    #     .filter(Guest.hotel_id == hotel_id) \
-    #     .all()
     ReservationAlias = aliased(Reservations)
     RoomAlias = aliased(Rooms)
 
@@ -76,6 +72,7 @@ def guests(request: Request, db: Session = Depends(get_db)):
         db.query(
             Guest,
             ReservationAlias.check_in,
+            ReservationAlias.status,
             RoomAlias.room_number
         )
         .outerjoin(
@@ -84,16 +81,28 @@ def guests(request: Request, db: Session = Depends(get_db)):
         .outerjoin(
             RoomAlias, RoomAlias.id == ReservationAlias.room_id
         )
-        .filter(Guest.hotel_id == hotel_id)
-        .all()
+        .filter(
+            Guest.hotel_id == hotel_id,
+            Guest.is_deleted == False,)
+        .order_by(Guest.name)
     )
+
+    if name:
+        guests = guests.filter(Guest.name.ilike(f"%{name}%"))
+        add_flash_message(request, f"Filtro aplicado", "success")
+    if cpf:
+        guests = guests.filter(Guest.cpf.like(f"%{cpf}%"))
+        add_flash_message(request, f"Filtro aplicado", "success")
+
     return render(
         templates,
         request,
         "dashboard/guests/guests.html",
         {
             "request": request,
-            "guests": guests
+            "guests": guests.all(),
+            "has_filter": True if (name or cpf) else False,
+            "now": datetime.datetime.now()
         }
     )
 
@@ -126,33 +135,43 @@ def create_guest(
 
     hotel_id = request.session.get("hotel_id")
 
-    if db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id).first():
+    if db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id, Guest.is_deleted == False).first():
         add_flash_message(request, "CPF já cadastrado no seu hotel", "danger")
         return RedirectResponse(url="/dashboard_guests/new", status_code=status.HTTP_303_SEE_OTHER)
-    
-    new_guest = Guest(
-        name=name,
-        cpf=cpf,
-        email=email,
-        phone_number=phone_number,
-        hotel_id=hotel_id
-    )
+    elif db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id, Guest.is_deleted == True).first():
+        guest = db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id, Guest.is_deleted == True).first()
+        guest.name = name
+        guest.email = email
+        guest.phone_number = phone_number
+        guest.is_deleted = False
 
-    db.add(new_guest)
-    db.commit()
-    db.refresh(new_guest)
-    add_flash_message(request, "Hóspede cadastrado com sucesso, continue com a reserva", "success")
-    return RedirectResponse(
-        url=f"/dashboard_reservations/new?guest_id={new_guest.id}",
-        status_code=303,
-    )
+        db.commit()
+        db.refresh(guest)
+        add_flash_message(request, "Hóspede cadastrado com sucesso, continue com a reserva", "success")
+        return RedirectResponse(
+            url=f"/dashboard_reservations/new?guest_id={guest.id}",
+            status_code=303,
+        )
+    else:
+        new_guest = Guest(
+            name=name,
+            cpf=cpf,
+            email=email,
+            phone_number=phone_number,
+            hotel_id=hotel_id
+        )
+        db.add(new_guest)
+        db.commit()
+        db.refresh(new_guest)
+        add_flash_message(request, "Hóspede cadastrado com sucesso, continue com a reserva", "success")
+        return RedirectResponse(
+            url=f"/dashboard_reservations/new?guest_id={new_guest.id}",
+            status_code=303,
+        )
 
-@router.get('/edit/{guest_id}', response_class=HTMLResponse, include_in_schema=False)
+@router.get('/edit/{guest_id}/{guest_cpf}', response_class=HTMLResponse, include_in_schema=False)
 def edit_guest(guest_id: int, request: Request, db: Session = Depends(get_db)):
-    guest = db.query(Guest).filter_by(id=guest_id, hotel_id=request.session.get("hotel_id")).first()
-    if guest.hotel_id != request.session.get("hotel_id"):
-        add_flash_message(request, "Hóspede não encontrado.", "warning")
-        return RedirectResponse(url="/dashboard_guests", status_code=303)
+    guest = db.query(Guest).filter_by(id=guest_id, hotel_id=request.session.get("hotel_id"), is_deleted=False).first()
     if not guest:
         add_flash_message(request, "Hóspede não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_guests", status_code=303)
@@ -167,7 +186,7 @@ def edit_guest(guest_id: int, request: Request, db: Session = Depends(get_db)):
         }
     )
 
-@router.post('/edit/{guest_id}', response_class=HTMLResponse, include_in_schema=False)
+@router.post('/edit/{guest_id}/{guest_cpf}', response_class=HTMLResponse, include_in_schema=False)
 def update_guest(
     request: Request,
     guest_id: int,
@@ -191,4 +210,23 @@ def update_guest(
     add_flash_message(request, f"Cadastro de {guest.name} editado com sucesso!", "success")
     return RedirectResponse(url="/dashboard_guests", status_code=303)
 
-## criar rota de deletar hospede (verificando se tem reserva ativa ou agendada)
+@router.get("/delete/{guest_id}/{guest_cpf}", response_class=HTMLResponse, include_in_schema=False)
+def delete_guest(
+    guest_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    hotel = request.session.get("hotel_id")
+    guest = db.query(Guest).filter_by(id=guest_id, hotel_id=hotel).first()
+    reservations = db.query(Reservations).filter_by(guest_id=guest.id).all()
+    for res in reservations:
+        if res.check_out > datetime.datetime.now():
+            add_flash_message(request, "Esse hóspede tem uma reserva ativa ou agendada no momento, não é possível apaga-lo")
+            return RedirectResponse(url="/dashboard_guests", status_code=303)
+    
+    guest.is_deleted = True
+    db.commit()
+    add_flash_message(request, f"O hóspede {guest.name} foi removido.")
+    return RedirectResponse(url="/dashboard_guests", status_code=303)
+    
+
