@@ -36,10 +36,10 @@
                                 {% else %}
                                     <div class="mb-3 col-12">
                                         <label for="name_select2" class="form-label">Hóspede</label>
-                                        <select class="form-select name_select2" name="name_select2" id="name_select2" required>
+                                        <select class="form-select name_select2" name="cpf" id="name_select2" required>
                                             <option value="" selected>Insira as datas para selecionar o hóspede</option>
                                             {% for g in guest %}
-                                            <option value="{{ g.id }}">
+                                            <option value="{{ g.cpf }}">
                                                 {{ g.name }} -> {{ g.cpf[:3] + "." + g.cpf[3:6] + "." + g.cpf[6:9] + "." + g.cpf[9:] }}
                                             </option>
                                             {% endfor %}
@@ -180,7 +180,7 @@ async function updateAvailability() {
         if (guestSelect) {
             guestSelect.innerHTML = `<option value="" selected>Pesquise e selecione o hóspede</option>`;
             data.available_guests.forEach(g => {
-                guestSelect.innerHTML += `<option value="${g.id}">${g.name} -> ${g.cpf.slice(0,3)}.${g.cpf.slice(3,6)}.${g.cpf.slice(6,9)}.${g.cpf.slice(9,)}</option>`;
+                guestSelect.innerHTML += `<option value="${g.cpf}">${g.name} -> ${g.cpf.slice(0,3)}.${g.cpf.slice(3,6)}.${g.cpf.slice(6,9)}.${g.cpf.slice(9,)}</option>`;
             });
         }
 

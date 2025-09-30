@@ -31,9 +31,13 @@ def get_db():
 
 @api_router.get("/get_rooms", response_model=List[RoomOut])
 def get_rooms(
+    request: Request,
     hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel"),
     db: Session = Depends(get_db)
 ):
+    if request.session.get("Hotel_id"):
+        if request.session.get("Hotel_id") != hotel_id:
+            return HTTPException(status_code=404, detail="Erro!")
     query = db.query(Rooms)
 
     if hotel_id:

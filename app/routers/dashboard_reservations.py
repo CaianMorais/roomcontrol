@@ -61,22 +61,56 @@ def get_reservations(
     return reservations
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
-def reservations(request: Request, db: Session = Depends(get_db)):
-
-
-    ###### DESENVOLVER A FILTRAGEM DAS RESERVAS
-
+def reservations(
+    request: Request,
+    db: Session = Depends(get_db),
+    room: Optional[str] = Query(None, description="ID do quarto"),
+    status: Optional[str] = Query("", description="Situação da reserva"),
+    interval_in: Optional[str] = Query("", description="Intervalo do check-in"),
+    check_in: Optional[str] = Query(None, description="Data do check-in"),
+    interval_out: Optional[str] = Query("", description="Intervalo do check-out"),
+    check_out: Optional[str] = Query(None, description="Data do check-out")
+):
 
     hotel_id = request.session.get("hotel_id")
     if not hotel_id:
         add_flash_message(request, "Hotel não selecionado.", "danger")
         return RedirectResponse(url="/dashboard", status_code=303)
     
-    reservations = db.query(Reservations, Rooms.room_number, Guest.name) \
+    query = db.query(Reservations, Rooms.room_number, Guest.name) \
         .join(Rooms, Rooms.id == Reservations.room_id) \
         .join(Guest, Guest.id == Reservations.guest_id) \
         .filter(Rooms.hotel_id == hotel_id) \
-        .all()
+        
+    if room:
+        query = query.filter(Rooms.id == room)
+        add_flash_message(request, "Filtro aplicado", "success")
+    if status:
+        query = query.filter(Reservations.status == status)
+        add_flash_message(request, "Filtro aplicado", "success")
+    if interval_in and check_in:
+        try:
+            check_in = datetime.strptime(check_in, "%Y-%m-%dT%H:%M")
+            if interval_in == 'before':
+                query = query.filter(Reservations.check_in >= check_in)
+            elif interval_in == 'after':
+                query = query.filter(Reservations.check_in <= check_in)
+            add_flash_message(request, "Filtro aplicado", "success")
+        except ValueError as e:
+            add_flash_message(request, f"Erro: {e}", "danger")
+    if interval_out and check_out:
+        try:
+            check_out = datetime.strptime(check_out, "%Y-%m-%dT%H:%M")
+            if interval_out == 'before':
+                query = query.filter(Reservations.check_out >= check_out)
+            elif interval_out == 'after':
+                query = query.filter(Reservations.check_out <= check_out)
+            add_flash_message(request, "Filtro aplicado", "success")
+        except ValueError as e:
+            add_flash_message(request, f"Erro: {e}", "danger")
+            
+    
+    reservations = query.all()
     
     return render(
         templates,
@@ -84,7 +118,9 @@ def reservations(request: Request, db: Session = Depends(get_db)):
         "dashboard/reservations/reservations.html",
         {
             "request": request,
-            "reservations": reservations
+            "reservations": reservations,
+            "hotel_id": hotel_id,
+            "has_filter": True if (room or status or (interval_in and check_in) or (interval_out and check_out)) else False
         }
     )
 
@@ -195,7 +231,7 @@ def check_availability(
 def create_reservation(
     request: Request,
     db: Session = Depends(get_db),
-    name: str = Form(...),
+    name: Optional[str] = Query(""),
     cpf: str = Form(...),
     room_id: int = Form(...),
     check_in: datetime.datetime = Form(...),
