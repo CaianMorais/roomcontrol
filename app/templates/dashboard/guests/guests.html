@@ -18,7 +18,7 @@
                             </a>
                         </h4>
                     </p>
-                    <div class="collapse" id="filtros">
+                    <div class="collapse show" id="filtros">
                         <div class="card card-body">
                             <form action="{{ url_for('guests') }}" method="GET">
                                 <div class="row">
@@ -67,7 +67,12 @@
                                         <h6 class="fw-semibold mb-0">Telefone</h6>
                                     </th>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Quarto</h6>
+                                        <h6 class="fw-semibold mb-0">Nº reserva <a type="button" class=""
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            data-bs-custom-class="custom-tooltip"
+                                            data-bs-title='Somente reservas de situação "Reservado" ou "Entrada"'>
+                                            <i class="ti ti-info-circle"></i>
+                                        </a></h6>
                                     </th>
                                     <th class="border-bottom-0">
                                         <h6 class="fw-semibold mb-0">Check-in</h6>
@@ -78,7 +83,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for guest, check_in, status, room_number in guests %}
+                                {% for guest, check_in, status, id, room_number in guests %}
                                     <tr class="align-items-center">
                                         <td class="border-bottom-0">
                                             <p class="fw-semibold mb-0">{{ guest.name }}</p>
@@ -98,14 +103,14 @@
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">
                                                 {% if status != 'checked_out' and status != 'canceled' %}
-                                                    {{ room_number if room_number else 'Sem reserva' }}
+                                                    {{ id if room_number else 'Sem reserva' }}
                                                 {% else %}
                                                     Sem reserva
                                                 {% endif %}
                                             </p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="mb-0 fw-normal">
+                                            <p class="mb-0 fw-normal {{ 'text-success' if status == 'checked_in' }} {{ 'text-info' if status == 'booked' }}">
                                                 {% if status != 'checked_out' and status != 'canceled' %}
                                                     {{ check_in.strftime("%d/%m/%Y %H:%M") if check_in else 'Sem reserva' }}
                                                 {% else %}
@@ -129,6 +134,10 @@
         </div>
     </div>
 </div>
+<script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+</script>
 
 <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

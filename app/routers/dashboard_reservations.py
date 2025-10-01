@@ -6,7 +6,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import or_, and_
+from sqlalchemy import case
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 
@@ -84,34 +84,43 @@ def reservations(
         
     if room:
         query = query.filter(Rooms.id == room)
-        add_flash_message(request, "Filtro aplicado", "success")
     if status:
         query = query.filter(Reservations.status == status)
-        add_flash_message(request, "Filtro aplicado", "success")
     if interval_in and check_in:
         try:
-            check_in = datetime.strptime(check_in, "%Y-%m-%dT%H:%M")
+            check_in_dt = datetime.datetime.strptime(check_in, '%Y-%m-%dT%H:%M')
             if interval_in == 'before':
-                query = query.filter(Reservations.check_in >= check_in)
+                query = query.filter(Reservations.check_in < check_in_dt)
             elif interval_in == 'after':
-                query = query.filter(Reservations.check_in <= check_in)
-            add_flash_message(request, "Filtro aplicado", "success")
+                query = query.filter(Reservations.check_in > check_in_dt)
         except ValueError as e:
             add_flash_message(request, f"Erro: {e}", "danger")
     if interval_out and check_out:
         try:
-            check_out = datetime.strptime(check_out, "%Y-%m-%dT%H:%M")
+            check_out_dt = datetime.datetime.strptime(check_out, "%Y-%m-%dT%H:%M")
             if interval_out == 'before':
-                query = query.filter(Reservations.check_out >= check_out)
+                query = query.filter(Reservations.check_out < check_out_dt)
             elif interval_out == 'after':
-                query = query.filter(Reservations.check_out <= check_out)
-            add_flash_message(request, "Filtro aplicado", "success")
+                query = query.filter(Reservations.check_out > check_out_dt)
         except ValueError as e:
             add_flash_message(request, f"Erro: {e}", "danger")
             
+    reservations = query.order_by(
+        case(
+            (Reservations.status == "booked", 1),
+            (Reservations.status == "checked_in", 2),
+            (Reservations.status == "checked_out", 3),
+            (Reservations.status == "canceled", 4),
+        ),
+        Reservations.check_in
+    ).all()
     
-    reservations = query.all()
-    
+    if len(reservations) == 0:
+        add_flash_message(request, 'Nenhuma reserva encontrada com os filtros aplicados.', "warning")
+        return RedirectResponse(url='/dashboard_reservations', status_code=303)
+    elif len(reservations and (room or status or (interval_in and check_in) or (interval_out and check_out))) > 0:
+        add_flash_message(request, "Filtro aplicado", "success")
+             
     return render(
         templates,
         request,
@@ -159,7 +168,7 @@ def new_reservation(
         }
     )
 
-@router.get("/check_availability")
+@router.get("/check_availability", include_in_schema=False)
 def check_availability(
     request: Request,
     db: Session = Depends(get_db),
@@ -282,3 +291,5 @@ def create_reservation(
 
     add_flash_message(request, "Reserva criada com sucesso!", "success")
     return RedirectResponse(url="/dashboard_reservations", status_code=303)
+
+## DESENVOLVER ROTAS QUE ALTERAM A SITUAÇÃO DA RESERVA DINAMICAMENTE (JS)

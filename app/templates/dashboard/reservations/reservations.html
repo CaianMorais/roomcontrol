@@ -152,15 +152,52 @@
                                     </td>
                                     <td class="border-bottom-0">
                                         <div class="d-flex align-items-center gap-3 fs-6">
-                                            {# <a href="{{ url_for('edit_room', room_id=room.id) }}"
-                                                class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom"
-                                                title="" data-bs-original-title="Editar" aria-label="Editar"><i
-                                                    class="ti ti-pencil"></i></a>
-                                            <a href="{{ url_for('delete_room', room_id=room.id) }}"
-                                                class="text-danger btn-delete-room" data-bs-toggle="tooltip"
-                                                data-bs-placement="bottom" title="Deletar"
-                                                data-bs-original-title="Deletar" aria-label="Deletar"><i
-                                                    class="ti ti-trash"></i></a> #}
+                                            {% if reservation.status == 'booked' %}
+                                            <a href=""
+                                                class="text-success" data-bs-toggle="tooltip" 
+                                                data-bs-placement="bottom" title=""
+                                                data-bs-original-title="Fazer check-in"
+                                                aria-label="Fazer check-in">
+                                                <i class="ti ti-check"></i>
+                                            </a>
+                                            <a href=""
+                                                class="text-dark" data-bs-toggle="tooltip"
+                                                data-bs-placement="bottom" title=""
+                                                data-bs-original-title="Cancelar reserva" 
+                                                aria-label="Cancelar reserva">
+                                                <i class="ti ti-circle-x"></i>
+                                            </a>
+                                            {% elif reservation.status == 'checked_in' %}
+                                            <a href=""
+                                                class="text-danger" data-bs-toggle="tooltip" 
+                                                data-bs-placement="bottom" title=""
+                                                data-bs-original-title="Fazer check-out"
+                                                aria-label="Fazer check-out">
+                                                <i class="ti ti-door-exit"></i>
+                                            </a>
+                                            <a href=""
+                                                class="text-dark" data-bs-toggle="tooltip"
+                                                data-bs-placement="bottom" title=""
+                                                data-bs-original-title="Cancelar reserva" 
+                                                aria-label="Cancelar reserva">
+                                                <i class="ti ti-circle-x"></i>
+                                            </a>
+                                            {% elif reservation.status == 'checked_out' %}
+                                            <a href=""
+                                                class="text-info" data-bs-toggle="tooltip" 
+                                                data-bs-placement="bottom" title=""
+                                                data-bs-original-title="Ver hóspede"
+                                                aria-label="Ver hóspede">
+                                                <i class="ti ti-user"></i>
+                                            </a>
+                                            <a href=""
+                                                class="text-success" data-bs-toggle="tooltip"
+                                                data-bs-placement="bottom" title=""
+                                                data-bs-original-title="Reservar este hóspede novamente" 
+                                                aria-label="Reservar este hóspede novamente">
+                                                <i class="ti ti-calendar-plus"></i>
+                                            </a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -188,8 +225,6 @@
             const url = `/api/get_rooms?hotel_id=${hotel_id}`;
             const res = await fetch(url);
             const data = await res.json();
-            console.log(res);
-            console.log(data);
 
             roomInput.innerHTML = `<option value="" selected>Selecione o quarto</option>`;
             data.forEach(r => {

@@ -73,6 +73,7 @@ def guests(
             Guest,
             ReservationAlias.check_in,
             ReservationAlias.status,
+            ReservationAlias.id,
             RoomAlias.room_number
         )
         .outerjoin(
