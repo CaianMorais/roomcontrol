@@ -115,11 +115,12 @@ def reservations(
         Reservations.check_in
     ).all()
     
-    if len(reservations) == 0:
-        add_flash_message(request, 'Nenhuma reserva encontrada com os filtros aplicados.', "warning")
-        return RedirectResponse(url='/dashboard_reservations', status_code=303)
-    elif len(reservations and (room or status or (interval_in and check_in) or (interval_out and check_out))) > 0:
-        add_flash_message(request, "Filtro aplicado", "success")
+    if room or status or (interval_in and check_in) or (interval_out and check_out):
+        if len(reservations) == 0:
+            add_flash_message(request, 'Nenhuma reserva encontrada com os filtros aplicados.', "warning")
+            return RedirectResponse(url='/dashboard_reservations', status_code=303)
+        elif len(reservations and (room or status or (interval_in and check_in) or (interval_out and check_out))) > 0:
+            add_flash_message(request, "Filtro aplicado", "success")
              
     return render(
         templates,

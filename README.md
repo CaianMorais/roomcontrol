@@ -1,0 +1,1 @@
+RoomControl é um sistema de gerenciamento de hotéis, desenvolvido com FastAPI no backend e Jinja2 para templates HTML.
