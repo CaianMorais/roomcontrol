@@ -7,7 +7,7 @@ import urllib.parse
 load_dotenv()
 
 DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = urllib.parse.quote_plus(os.getenv("DB_PASSWORD", "M@rais2024"))
+DB_PASSWORD = urllib.parse.quote_plus(os.getenv("DB_PASSWORD", "password"))
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_NAME = os.getenv("DB_NAME", "roomcontrol")
 
