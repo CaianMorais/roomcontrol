@@ -270,6 +270,11 @@ def create_reservation(
         add_flash_message(request, "Data de check-out deve ser posterior à data de check-in.", "danger")
         return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
     
+    if check_out < datetime.datetime.now():
+        add_flash_message(request, "O horário de check-out não pode ser menor que o horário atual.", "danger")
+        return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
+
+    
     if check_in > datetime.datetime.now():
         status= 'booked'
     elif check_in <= datetime.datetime.now():

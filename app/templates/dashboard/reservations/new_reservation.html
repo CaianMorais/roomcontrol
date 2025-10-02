@@ -158,7 +158,6 @@ async function updateAvailability() {
         const res = await fetch(url);
         const data = await res.json();
 
-        // 1️⃣ Hóspede específico já tem reserva
         if (data.guest_conflict) {
             Swal.fire({
                 icon: "error",
@@ -170,13 +169,11 @@ async function updateAvailability() {
             checkOutInput.value = '';
         }
 
-        // 2️⃣ Atualiza select de quartos
         roomSelect.innerHTML = `<option value="" selected>Pesquise e selecione o quarto</option>`;
         data.available_rooms.forEach(r => {
             roomSelect.innerHTML += `<option value="${r.id}">Quarto: ${r.room_number} - ${r.capacity_adults} adultos, ${r.capacity_children} crianças - R$ ${r.price.toFixed(2).replace('.', ',')}</option>`;
         });
 
-        // 3️⃣ Atualiza select de hóspedes disponíveis
         if (guestSelect) {
             guestSelect.innerHTML = `<option value="" selected>Pesquise e selecione o hóspede</option>`;
             data.available_guests.forEach(g => {

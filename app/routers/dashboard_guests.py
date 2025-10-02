@@ -142,8 +142,8 @@ def create_guest(
     elif db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id, Guest.is_deleted == True).first():
         guest = db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id, Guest.is_deleted == True).first()
         guest.name = name
-        guest.email = email
-        guest.phone_number = phone_number
+        guest.email = email if email else None
+        guest.phone_number = phone_number if phone_number else None
         guest.is_deleted = False
 
         db.commit()
@@ -157,8 +157,8 @@ def create_guest(
         new_guest = Guest(
             name=name,
             cpf=cpf,
-            email=email,
-            phone_number=phone_number,
+            email=email if email else None,
+            phone_number=phone_number if phone_number else None,
             hotel_id=hotel_id
         )
         db.add(new_guest)

@@ -7,7 +7,7 @@ class Guest(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, index=True, nullable=True)
+    email = Column(String(100), index=True, nullable=True)
     phone_number = Column(String(20), index=True, nullable=True)
     cpf = Column(String(14), unique=True, index=True, nullable=False)
     hotel_id = Column(Integer, ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False)
