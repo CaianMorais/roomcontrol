@@ -77,7 +77,7 @@ def reservations(
         add_flash_message(request, "Hotel não selecionado.", "danger")
         return RedirectResponse(url="/dashboard", status_code=303)
     
-    query = db.query(Reservations, Rooms.room_number, Guest.name) \
+    query = db.query(Reservations, Rooms.room_number, Guest.name, Guest.id) \
         .join(Rooms, Rooms.id == Reservations.room_id) \
         .join(Guest, Guest.id == Reservations.guest_id) \
         .filter(Rooms.hotel_id == hotel_id) \
@@ -299,3 +299,49 @@ def create_reservation(
     return RedirectResponse(url="/dashboard_reservations", status_code=303)
 
 ## DESENVOLVER ROTAS QUE ALTERAM A SITUAÇÃO DA RESERVA DINAMICAMENTE (JS)
+
+@router.post("/update/{reservation_id}", include_in_schema=False)
+def update_reservation(
+    request: Request,
+    reservation_id: int,
+    db: Session = Depends(get_db),
+):
+    
+    hotel_id = request.session.get('hotel_id')
+    reservation = db.query(Reservations).filter(Reservations.id == reservation_id).first()
+    if not reservation:
+        raise HTTPException(status_code=404, detail="Reserva não encontrada")
+    
+    room = db.query(Rooms).filter(Rooms.id == reservation.room_id).first()
+    if not room or room.hotel_id != hotel_id:
+        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+    
+    guest = db.query(Guest).filter(Guest.id == reservation.guest_id) \
+    .filter(Guest.hotel_id == hotel_id) \
+    .first()
+    
+    # Agendada -> Check-in
+    if reservation.status == 'booked' and room.status == 'available':
+        reservation.status = 'checked_in'
+        reservation.check_in = datetime.datetime.now()
+        room.status = 'occupied'
+    # Check-in -> Check-out
+    elif reservation.status == 'checked_in' and room.status == 'occupied':
+        reservation.status = 'checked_out'
+        reservation.check_out = datetime.datetime.now()
+        room.status = 'available'
+    else:
+        return {
+            "message": f"Não foi possível modificar essa reserva."
+        }
+
+    db.commit()
+    db.refresh(reservation)
+    db.refresh(room)
+    
+    return {
+        "id": reservation.id,
+        "status": reservation.status,
+        "guest" : guest.id if guest else None,
+        "message": f"Reserva {reservation.id} atualizada."
+    }

@@ -119,7 +119,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for reservation, room_number, name in reservations %}
+                                {% for reservation, room_number, name, guest_id in reservations %}
                                 <tr class="align-items-center">
                                     <td class="border-bottom-0">
                                         <p class="fw-semibold mb-0">{{ reservation.id }}</p>
@@ -153,44 +153,27 @@
                                     <td class="border-bottom-0">
                                         <div class="d-flex align-items-center gap-3 fs-6">
                                             {% if reservation.status == 'booked' %}
-                                            <a href=""
-                                                class="text-success" data-bs-toggle="tooltip" 
-                                                data-bs-placement="bottom" title=""
+                                            <a href="#"
+                                                class="text-success btn-res-1" data-bs-toggle="tooltip" 
+                                                data-bs-placement="bottom" title="Fazer check-in"
                                                 data-bs-original-title="Fazer check-in"
-                                                aria-label="Fazer check-in">
+                                                aria-label="Fazer check-in"
+                                                data-id="{{ reservation.id }}" data-name="{{ name }}"
+                                                data-text="in">
                                                 <i class="ti ti-check"></i>
                                             </a>
-                                            <a href=""
-                                                class="text-dark" data-bs-toggle="tooltip"
-                                                data-bs-placement="bottom" title=""
-                                                data-bs-original-title="Cancelar reserva" 
-                                                aria-label="Cancelar reserva">
-                                                <i class="ti ti-circle-x"></i>
-                                            </a>
                                             {% elif reservation.status == 'checked_in' %}
-                                            <a href=""
-                                                class="text-danger" data-bs-toggle="tooltip" 
+                                            <a href="#"
+                                                class="text-danger btn-res-1" data-bs-toggle="tooltip" 
                                                 data-bs-placement="bottom" title=""
                                                 data-bs-original-title="Fazer check-out"
-                                                aria-label="Fazer check-out">
+                                                aria-label="Fazer check-out"
+                                                data-id="{{ reservation.id }}" data-name="{{ name }}"
+                                                data-text="out">
                                                 <i class="ti ti-door-exit"></i>
                                             </a>
-                                            <a href=""
-                                                class="text-warning" data-bs-toggle="tooltip"
-                                                data-bs-placement="bottom" title=""
-                                                data-bs-original-title="Gerenciar reserva" 
-                                                aria-label="Gerenciar reserva">
-                                                <i class="ti ti-brand-asana"></i>
-                                            </a>
                                             {% elif reservation.status == 'checked_out' %}
-                                            <a href=""
-                                                class="text-info" data-bs-toggle="tooltip" 
-                                                data-bs-placement="bottom" title=""
-                                                data-bs-original-title="Ver hóspede"
-                                                aria-label="Ver hóspede">
-                                                <i class="ti ti-user"></i>
-                                            </a>
-                                            <a href=""
+                                            <a href="#"
                                                 class="text-success" data-bs-toggle="tooltip"
                                                 data-bs-placement="bottom" title=""
                                                 data-bs-original-title="Reservar este hóspede novamente" 
@@ -198,6 +181,13 @@
                                                 <i class="ti ti-calendar-plus"></i>
                                             </a>
                                             {% endif %}
+                                            <a href="#"
+                                                class="text-dark" data-bs-toggle="tooltip"
+                                                data-bs-placement="bottom" title=""
+                                                data-bs-original-title="Gerenciar reserva" 
+                                                aria-label="Gerenciar reserva">
+                                                <i class="ti ti-settings-2"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -242,33 +232,111 @@
 
 </script>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const deleteLinks = document.querySelectorAll(".btn-delete-room");
+            function attachReservationButtons() {
+                const btnRes1 = document.querySelectorAll(".btn-res-1");
+                const btnRes2 = document.querySelectorAll(".btn-res-2");
+                btnRes1.forEach(link => {
+                    // remove listeners duplicados
+                    link.removeEventListener("click", handleClick);
+                    link.addEventListener("click", handleClick);
+                });
+            }
 
-        deleteLinks.forEach(link => {
-            link.addEventListener("click", function (e) {
+            
+
+            async function handleClick(e) {
                 e.preventDefault();
 
-                const url = this.href;
+                const link = this;
+                const reservationId = link.dataset.id;
+                const name = link.dataset.name;
+                const check = link.dataset.text; // 'in' ou 'out'
 
                 Swal.fire({
-                    title: "Você tem certeza?",
-                    text: "Essa ação é irreversível.",
-                    icon: "warning",
+                    title: `Confirmar check-${check} de ${name}?`,
+                    text: `Não há como desfazer o check-${check}.`,
+                    icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
-                    confirmButtonText: "Sim, deletar!"
-                }).then((result) => {
+                    confirmButtonText: "Confirmar",
+                    cancelButtonText: "Não"
+                }).then(async (result) => {
                     if (result.isConfirmed) {
-                        window.location.href = url;
+                        try {
+                            const res = await fetch(`/dashboard_reservations/update/${reservationId}`, {
+                                method: "POST",
+                                headers: { "X-Requested-With": "XMLHttpRequest" }
+                            });
+                            const data = await res.json();
+
+                            if (data.status) {
+                                // Atualiza o status na tabela
+                                const row = link.closest('tr');
+                                const statusCell = link.closest('tr').querySelector("td:nth-child(6) p");
+                                if (data.status === "checked_in") {
+                                    statusCell.textContent = "Entrada";
+                                    statusCell.className = "mb-0 fw-normal text-success";
+
+                                    // Remove o botão antigo e cria botão de check-out
+                                    const newBtn = document.createElement("a");
+                                    newBtn.href = "#";
+                                    newBtn.className = "text-danger btn-res-1";
+                                    newBtn.dataset.id = reservationId;
+                                    newBtn.dataset.name = name;
+                                    newBtn.dataset.text = "out";
+                                    newBtn.innerHTML = '<i class="ti ti-door-exit"></i>';
+
+                                    link.replaceWith(newBtn);
+                                    const cancelBtn = row.querySelector(".btn-res-2");
+                                    if (cancelBtn) cancelBtn.remove();
+                                    attachReservationButtons(); // reanexa o listener
+                                }
+                                else if (data.status === "checked_out") {
+                                    statusCell.textContent = "Saída";
+                                    statusCell.className = "mb-0 fw-normal text-danger";
+
+                                    // Remove botão antigo
+                                    link.remove();
+                                    // Cria botão de "Reservar novamente"
+                                    const repeatBtn = document.createElement("a");
+                                    repeatBtn.href = `/dashboard_reservations/new?guest_id=${data.guest}`;
+                                    repeatBtn.className = "text-success";
+                                    repeatBtn.dataset.name = name;
+                                    repeatBtn.dataset.guestId = guestId;
+                                    repeatBtn.dataset.bsToggle = "tooltip";
+                                    repeatBtn.dataset.bsPlacement = "bottom";
+                                    repeatBtn.dataset.bsTitle = "Reservar este hóspede novamente";
+                                    repeatBtn.setAttribute("aria-label", "Reservar este hóspede novamente");
+                                    repeatBtn.innerHTML = '<i class="ti ti-calendar-plus"></i>';
+
+                                    // Insere o novo botão no mesmo container dos botões
+                                    const actionsDiv = row.querySelector("td:last-child .d-flex") || row.querySelector("td:last-child");
+                                    const manageBtn = actionsDiv.querySelector("a:last-child");
+                                    actionsDiv.insertBefore(repeatBtn, manageBtn);
+
+                                    // Inicializa tooltip
+                                    new bootstrap.Tooltip(repeatBtn);
+                                }
+
+                                Swal.fire("Sucesso", data.message, "success");
+                            } else {
+                                Swal.fire("Erro", data.message, "error");
+                            }
+                        } catch (err) {
+                            Swal.fire("Erro", "Não foi possível atualizar a reserva.", "error");
+                            console.error(err);
+                        }
                     }
                 });
-            });
+            }
+
+            attachReservationButtons();
         });
-    });
-</script> -->
+
+</script>
 
 {% endblock %}

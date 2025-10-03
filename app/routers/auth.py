@@ -91,7 +91,7 @@ def register_step2_partial(request: Request, email: str, cnpj: str):
     return templates.TemplateResponse("/auth/partials/register_step2.html", {"request": request, "csrf_token": csrf_token, "email": email, "cnpj": cnpj})
 
 
-@router.post("/register", response_model=HotelOut)
+@router.post("/register", response_model=HotelOut, include_in_schema=False)
 async def register_hotel(
     request: Request,
     name: str = Form(...),
@@ -170,7 +170,7 @@ async def register_hotel(
     db.refresh(new_hotel)
     return RedirectResponse(url="/", status_code=303)
 
-@router.post("/login")
+@router.post("/login", include_in_schema=False)
 async def login(
     request: Request,
     login: str = Form(...),
