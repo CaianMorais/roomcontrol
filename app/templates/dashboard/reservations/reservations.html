@@ -20,6 +20,10 @@
                         <div class="card card-body">
                             <form action="{{ url_for('reservations') }}" method="GET">
                                 <div class="row mb-4">
+                                    <div class="col-12">
+                                        <label for="search" class="form-label">Nº da reserva ou Nome do Hóspede</label>
+                                        <input type="text" class="form-control" name="search" id="search">
+                                    </div>
                                     <div class="col-6">
                                         <label for="room" class="form-label">Quarto</label>
                                         <select class="form-select" name="room" id="room">
@@ -235,25 +239,25 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+            // função que anexa os listeners no botao
             function attachReservationButtons() {
                 const btnRes1 = document.querySelectorAll(".btn-res-1");
-                const btnRes2 = document.querySelectorAll(".btn-res-2");
                 btnRes1.forEach(link => {
-                    // remove listeners duplicados
+                    // remove os listeners duplicados
                     link.removeEventListener("click", handleClick);
                     link.addEventListener("click", handleClick);
                 });
             }
 
-            
-
             async function handleClick(e) {
+                //evita que a pagina recarregue
                 e.preventDefault();
 
+                // captura os dados para o alert e para o fetch
                 const link = this;
                 const reservationId = link.dataset.id;
                 const name = link.dataset.name;
-                const check = link.dataset.text; // 'in' ou 'out'
+                const check = link.dataset.text;
 
                 Swal.fire({
                     title: `Confirmar check-${check} de ${name}?`,
@@ -271,61 +275,107 @@
                                 method: "POST",
                                 headers: { "X-Requested-With": "XMLHttpRequest" }
                             });
+                            // resposta do fetch
                             const data = await res.json();
 
                             if (data.status) {
-                                // Atualiza o status na tabela
+                                // se tiver o data.status, significa que a reserva foi atualizada
+                                // muda a tabela dinamicamente (sem recarregar a pagina)
                                 const row = link.closest('tr');
+                                // captura o elemento <p> na 6º coluna da tabela
                                 const statusCell = link.closest('tr').querySelector("td:nth-child(6) p");
+                                // se foi feito check-in:
                                 if (data.status === "checked_in") {
                                     statusCell.textContent = "Entrada";
                                     statusCell.className = "mb-0 fw-normal text-success";
 
-                                    // Remove o botão antigo e cria botão de check-out
+                                    // cria o botão do check-out
                                     const newBtn = document.createElement("a");
                                     newBtn.href = "#";
                                     newBtn.className = "text-danger btn-res-1";
                                     newBtn.dataset.id = reservationId;
                                     newBtn.dataset.name = name;
                                     newBtn.dataset.text = "out";
+                                    newBtn.dataset.bsToggle = "tooltip";
+                                    newBtn.dataset.bsPlacement = "bottom";
+                                    newBtn.dataset.bsTitle = "Fazer check-out";
+                                    newBtn.setAttribute("aria-label", "Fazer check-out");
                                     newBtn.innerHTML = '<i class="ti ti-door-exit"></i>';
 
                                     link.replaceWith(newBtn);
-                                    const cancelBtn = row.querySelector(".btn-res-2");
-                                    if (cancelBtn) cancelBtn.remove();
-                                    attachReservationButtons(); // reanexa o listener
+                                    
+                                    // inicia o tooltip com o bootstrap
+                                    new bootstrap.Tooltip(newBtn);
+
+                                    // reanexa o listener no novo botão
+                                    attachReservationButtons();
                                 }
+                                // se foi feito check-out:
                                 else if (data.status === "checked_out") {
                                     statusCell.textContent = "Saída";
                                     statusCell.className = "mb-0 fw-normal text-danger";
 
-                                    // Remove botão antigo
+                                    // remove botão antigo
                                     link.remove();
-                                    // Cria botão de "Reservar novamente"
+                                    // cria botão de reservar novamente
                                     const repeatBtn = document.createElement("a");
                                     repeatBtn.href = `/dashboard_reservations/new?guest_id=${data.guest}`;
                                     repeatBtn.className = "text-success";
                                     repeatBtn.dataset.name = name;
-                                    repeatBtn.dataset.guestId = guestId;
+                                    repeatBtn.dataset.guestId = data.guest;
                                     repeatBtn.dataset.bsToggle = "tooltip";
                                     repeatBtn.dataset.bsPlacement = "bottom";
                                     repeatBtn.dataset.bsTitle = "Reservar este hóspede novamente";
                                     repeatBtn.setAttribute("aria-label", "Reservar este hóspede novamente");
                                     repeatBtn.innerHTML = '<i class="ti ti-calendar-plus"></i>';
 
-                                    // Insere o novo botão no mesmo container dos botões
+                                    // anexa o botao na tabela e ajusta a posição dele
                                     const actionsDiv = row.querySelector("td:last-child .d-flex") || row.querySelector("td:last-child");
                                     const manageBtn = actionsDiv.querySelector("a:last-child");
                                     actionsDiv.insertBefore(repeatBtn, manageBtn);
 
-                                    // Inicializa tooltip
+                                    // inicia o tooltip
                                     new bootstrap.Tooltip(repeatBtn);
                                 }
-
-                                Swal.fire("Sucesso", data.message, "success");
+                                // se der tudo certo, alerta com timer
+                                Swal.fire({
+                                    title: "Sucesso",
+                                    text: data.message,
+                                    icon: "success",
+                                    timer: 1000,
+                                    timerProgressBar: true,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                        const timer = Swal.getPopup().querySelector("b");
+                                        timerInterval = setInterval(() => {
+                                            timer.textContent = `${Swal.getTimerLeft()}`;
+                                        }, 100);
+                                    },
+                                    willClose: () => {
+                                        clearInterval(timerInterval);
+                                    }
+                                });
+                                // alerta com timer dando erro: caiu na condicional no back-end
                             } else {
-                                Swal.fire("Erro", data.message, "error");
+                                Swal.fire({
+                                    title: "Erro",
+                                    text: data.message,
+                                    icon: "error",
+                                    timer: 1000,
+                                    timerProgressBar: true,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                        const timer = Swal.getPopup().querySelector("b");
+                                        timerInterval = setInterval(() => {
+                                            timer.textContent = `${Swal.getTimerLeft()}`;
+                                        }, 100);
+                                    },
+                                    willClose: () => {
+                                        clearInterval(timerInterval);
+                                    }
+                                });
                             }
+                        // alerta sem timer dando erro: problema ao fazer a requisição
                         } catch (err) {
                             Swal.fire("Erro", "Não foi possível atualizar a reserva.", "error");
                             console.error(err);
@@ -333,7 +383,7 @@
                     }
                 });
             }
-
+            // anexa os listeners ao carregar a página
             attachReservationButtons();
         });
 

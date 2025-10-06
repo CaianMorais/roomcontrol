@@ -6,7 +6,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import case
+from sqlalchemy import case, or_
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 
@@ -64,6 +64,7 @@ def get_reservations(
 def reservations(
     request: Request,
     db: Session = Depends(get_db),
+    search: Optional[str] = Query("", description="Reserva ou Hóspede"),
     room: Optional[str] = Query(None, description="ID do quarto"),
     status: Optional[str] = Query("", description="Situação da reserva"),
     interval_in: Optional[str] = Query("", description="Intervalo do check-in"),
@@ -82,6 +83,13 @@ def reservations(
         .join(Guest, Guest.id == Reservations.guest_id) \
         .filter(Rooms.hotel_id == hotel_id) \
         
+    if search:
+        query = query.filter(
+            or_(
+                Reservations.id == search,
+                Guest.name.ilike(f"%{search}%")
+            )
+        )
     if room:
         query = query.filter(Rooms.id == room)
     if status:
@@ -115,7 +123,7 @@ def reservations(
         Reservations.check_in
     ).all()
     
-    if room or status or (interval_in and check_in) or (interval_out and check_out):
+    if search or room or status or (interval_in and check_in) or (interval_out and check_out):
         if len(reservations) == 0:
             add_flash_message(request, 'Nenhuma reserva encontrada com os filtros aplicados.', "warning")
             return RedirectResponse(url='/dashboard_reservations', status_code=303)
@@ -130,7 +138,7 @@ def reservations(
             "request": request,
             "reservations": reservations,
             "hotel_id": hotel_id,
-            "has_filter": True if (room or status or (interval_in and check_in) or (interval_out and check_out)) else False
+            "has_filter": True if (search or room or status or (interval_in and check_in) or (interval_out and check_out)) else False
         }
     )
 
