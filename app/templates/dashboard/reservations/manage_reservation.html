@@ -1,0 +1,169 @@
+{% extends "dashboard/partials/base.html" %}
+
+{% block title %}Gerenciamento da Reserva - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="container-fluid row">
+        <div class="card col-12 col-md-6">
+            <h5 class="card-title fw-semibold mb-4 p-4">Dados da Reserva #{{ reservation.Reservations.id }}</h5>
+            <div class="card-body">
+                <ul>
+                    <li class="d-flex justify-content-between">
+                        <strong>Hóspede: </strong>{{ reservation.Guest.name }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Nº do quarto: </strong>{{ reservation.room_number }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    {% if reservation.Reservations.status == 'booked' %}
+                    <li class="d-flex justify-content-between">
+                        <strong>Situação: </strong>Reservado
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-in (previsto): </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-out (previsto): </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    {% elif reservation.Reservations.status == 'checked_in' %}
+                    <li class="d-flex justify-content-between">
+                        <strong>Situação: </strong><p class="text-success m-0">Entrada</p>
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-in: </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-out (previsto): </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    {% elif reservation.Reservations.status == 'checked_out' %}
+                    <li class="d-flex justify-content-between">
+                        <strong>Situação: </strong><p class="text-danger m-0">Saída</p>
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-in: </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-out: </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    {% elif reservation.Reservations.status == 'canceled' %}
+                    <li class="d-flex justify-content-between">
+                        <strong>Situação: </strong><p class="text-warning m-0">Cancelado</p>
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-in: </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-out: </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+                    </li>
+                    <hr class="mx-0 my-2">
+                    {% else %}
+                    <li class="d-flex justify-content-between">
+                        <strong>Situação: </strong><p class="text-dark m-0">Não identificado</p>
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-in: </strong>Sem informações
+                    </li>
+                    <hr class="mx-0 my-2">
+                    <li class="d-flex justify-content-between">
+                        <strong>Check-out: </strong>Sem informações
+                    </li>
+                    <hr class="mx-0 my-2">
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="card col-12 col-md-6">
+            <h5 class="card-title fw-semibold mb-4 p-4">Ações da Reserva #{{ reservation.Reservations.id }}</h5>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if reservation.Reservations.status == 'booked' %}
+                        <a type="button" class="btn btn-outline-success btn-update-reservation">Fazer check-in</a>
+                        <a type="button" class="btn btn-outline-warning">Cancelar reserva</a>
+                        <a type="button" class="btn btn-outline-dark">Gerenciar hóspede</a>
+                    {% elif reservation.Reservations.status == 'checked_in' %}
+                        <a type="button" class="btn btn-outline-danger btn-update-reservation">Fazer check-out</a>
+                        <a type="button" class="btn btn-outline-warning">Cancelar reserva</a>
+                        <a type="button" class="btn btn-outline-dark">Gerenciar hóspede</a>
+                    {% elif reservation.Reservations.status == 'checked_out' %}
+                        <a type="button" class="btn btn-outline-dark">Gerenciar hóspede</a>
+                    {% elif reservation.Reservations.status == 'canceled' %}
+                        <a type="button" class="btn btn-outline-dark">Gerenciar hóspede</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card col-12">
+            <h5 class="card-title fw-semibold mb-4 p-4">Dados do hóspede da reserva</h5>
+            <div class="card-body">
+                <div class="row">
+                    <div class="mb-3 col-8">
+                        <label for="name" class="form-label">Nome e sobrenome do hóspede</label>
+                        <input type="text" class="form-control" id="name" readonly value="{{ reservation.Guest.name }}">
+                    </div>
+                    <div class="mb-3 col-4">
+                        <label for="cpf" class="form-label">CPF do hóspede</label>
+                        <input type="text" class="form-control" id="cpf" readonly value="{{ reservation.Guest.cpf }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="mb-3 col-8">
+                        <label for="email" class="form-label">E-mail do hóspede</label>
+                        <input type="email" class="form-control" id="email" readonly value="{{ reservation.Guest.email if reservation.Guest.email else 'Não informado' }}"> 
+                    </div>
+                    <div class="mb-3 col-4">
+                        <label for="phone_number" class="form-label">Telefone do hóspede</label>
+                        <input type="text" class="form-control" id="phone_number" readonly value="{{ reservation.Guest.phone_number if reservation.Guest.phone_number else 'Não informado' }}"> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const updateBtn = document.querySelectorAll(".btn-update-reservation");
+
+        updateBtn.forEach(link => {
+            link.addEventListener("click", function (e) {
+                e.preventDefault();
+                // CONFIGURAÇÃO DOS ALERTAS DE CHECK-IN, OUT E CANCELAMENTO DE RESERVA
+
+                const url = this.href;
+
+                Swal.fire({
+                    title: "Você tem certeza?",
+                    text: "Essa ação é irreversível.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Sim!"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+
+{% endblock %}

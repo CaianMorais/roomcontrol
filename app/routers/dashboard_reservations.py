@@ -164,7 +164,6 @@ def new_reservation(
     rooms = []
 
     csrf_token = generate_csrf_token()
-    print(datetime.datetime.now())
     return render(
         templates,
         request,
@@ -353,3 +352,35 @@ def update_reservation(
         "guest" : guest.id if guest else None,
         "message": f"Reserva {reservation.id} atualizada."
     }
+
+@router.get('/manage/{reservation_id}')
+def manage_reservation(
+    request: Request,
+    reservation_id: int,
+    db: Session = Depends(get_db)
+):
+    hotel_id = request.session.get('hotel_id')
+
+    reservation = db.query(Reservations, Rooms.room_number, Guest) \
+        .join(Rooms, Rooms.id == Reservations.room_id) \
+        .join(Guest, Guest.id == Reservations.guest_id) \
+        .filter(Reservations.id == reservation_id) \
+        .filter(Rooms.hotel_id == hotel_id) \
+        .first()
+
+    if not reservation:
+        add_flash_message(request, "Reserva não encontrada", "warning")
+        return RedirectResponse(url='/dashboard_reservations', status_code=303)
+    
+    csrf_token=generate_csrf_token()
+    
+    return render(
+        templates,
+        request,
+        "dashboard/reservations/manage_reservation.html",
+        {
+            "request": request,
+            "reservation": reservation,
+            "csrf_token": csrf_token,
+        }
+    )

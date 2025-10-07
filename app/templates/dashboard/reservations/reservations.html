@@ -185,7 +185,7 @@
                                                 <i class="ti ti-calendar-plus"></i>
                                             </a>
                                             {% endif %}
-                                            <a href="#"
+                                            <a href="{{ url_for('manage_reservation', reservation_id=reservation.id) }}"
                                                 class="text-dark" data-bs-toggle="tooltip"
                                                 data-bs-placement="bottom" title=""
                                                 data-bs-original-title="Gerenciar reserva" 
