@@ -177,7 +177,7 @@
                                                 <i class="ti ti-door-exit"></i>
                                             </a>
                                             {% elif reservation.status == 'checked_out' %}
-                                            <a href="#"
+                                            <a href="/dashboard_reservations/new?guest_id={{ guest_id }}"
                                                 class="text-success" data-bs-toggle="tooltip"
                                                 data-bs-placement="bottom" title=""
                                                 data-bs-original-title="Reservar este hóspede novamente" 

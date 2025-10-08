@@ -171,7 +171,12 @@ def create_guest(
         )
 
 @router.get('/edit/{guest_id}/{guest_cpf}', response_class=HTMLResponse, include_in_schema=False)
-def edit_guest(guest_id: int, request: Request, db: Session = Depends(get_db)):
+def edit_guest(
+    guest_id: int,
+    request: Request,
+    next: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
     guest = db.query(Guest).filter_by(id=guest_id, hotel_id=request.session.get("hotel_id"), is_deleted=False).first()
     if not guest:
         add_flash_message(request, "Hóspede não encontrado.", "warning")
@@ -183,7 +188,8 @@ def edit_guest(guest_id: int, request: Request, db: Session = Depends(get_db)):
         "dashboard/guests/edit_guest.html",
         {
             "guest": guest,
-            "csrf_token": csrf_token
+            "csrf_token": csrf_token,
+            "next": next
         }
     )
 
@@ -194,6 +200,7 @@ def update_guest(
     email: str = Form(...),
     phone_number: str = Form(...),
     csrf_token: str = Form(...),
+    next: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     if not validate_csrf_token(csrf_token):
@@ -209,6 +216,10 @@ def update_guest(
     db.refresh(guest)
 
     add_flash_message(request, f"Cadastro de {guest.name} editado com sucesso!", "success")
+    print(next)
+    if next:
+        print(next)
+        return RedirectResponse(url=next, status_code=303)
     return RedirectResponse(url="/dashboard_guests", status_code=303)
 
 @router.get("/delete/{guest_id}/{guest_cpf}", response_class=HTMLResponse, include_in_schema=False)

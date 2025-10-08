@@ -1,6 +1,6 @@
 {% extends "dashboard/partials/base.html" %}
 
-{% block title %}Novo Hóspede - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
+{% block title %}Editar Hóspede - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
 
 {% block content %}
 
@@ -13,6 +13,9 @@
                     <div class="card-body">
                         <form action="{{ url_for('update_guest', guest_id=guest.id, guest_cpf=guest.cpf) }}" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            {% if next %}
+                                <input type="hidden" name="next" value="{{ next }}">
+                            {% endif %}
                             <div class="row">
                                 <div class="mb-3 col-8">
                                     <label for="name" class="form-label">Nome e sobrenome do hóspede</label>
@@ -70,8 +73,8 @@
                             </div> #}
                             <button type="submit" class="btn btn-primary">Editar</button>
                             <a href="{{ url_for('delete_guest', guest_id=guest.id, guest_cpf=guest.cpf) }}" class="btn btn-warning ms-2 btn-delete-guest"><i class="ti ti-trash"></i> Apagar</a>
-                            <a href="/dashboard_reservations/new?guest_id={{ guest.id }}" class="btn btn-secondary ms-2"><i class="ti ti-calendar-plus"></i> Reservar</a>
-                            <a href="{{ url_for('guests') }}" class="btn btn-outline-danger ms-2">Voltar</a>
+                            <a href="{{ url_for('new_reservation') }}?guest_id={{ guest.id }}" class="btn btn-secondary ms-2"><i class="ti ti-calendar-plus"></i> Reservar</a>
+                            <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
                         </form>
                     </div>
                 </div>

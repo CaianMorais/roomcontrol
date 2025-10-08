@@ -1,6 +1,6 @@
 {% extends "dashboard/partials/base.html" %}
 
-{% block title %}Novo Quarto - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
+{% block title %}Editar Quarto - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
 
 {% block content %}
 
@@ -102,8 +102,12 @@
                                     <textarea class="form-control" id="comments" name="comments" placeholder="Ex.: 'Controle da televisão dentro da gaveta da mesa de cabeceira.'">{{ room.comments if room.comments else '' }}</textarea>
                                 </div>
                             </div>
+                            {% if room.status != 'occupied' %}
                             <button type="submit" class="btn btn-primary">Editar</button>
-                            <a href="{{ url_for('rooms') }}" class="btn btn-outline-danger">Voltar</a>
+                            {% else %}
+                            <a class="btn btn-primary opacity-25 me-1" style="cursor: not-allowed;">Editar</button>
+                            {% endif %}
+                            <a href="javascript:history.back()" class="btn btn-outline-danger">Voltar</a>
                         </form>
                     </div>
                 </div>

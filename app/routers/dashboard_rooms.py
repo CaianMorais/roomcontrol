@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
+from sqlalchemy import case
 
 from app.core.security import generate_csrf_token, validate_csrf_token
 from app.utils.flash import add_flash_message, render
@@ -76,7 +77,7 @@ def rooms(
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
     # inicia a query
-    query = db.query(Rooms).filter_by(hotel_id=hotel_id)
+    query = db.query(Rooms).filter_by(hotel_id=hotel_id).order_by(Rooms.is_active)
     if not query.first():
         return render(
             templates,
@@ -297,6 +298,10 @@ def update_room(
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
+    if room.status == 'occupied':
+        add_flash_message(request, "O quarto não pode ser modificado enquanto ele estiver ocupado", 'warning')
+        return RedirectResponse(url="/dashboard_rooms", status_code=303)
+    
     # define a capacidade com base no tipo do quarto (pra não depender dos dados do form)
     room_capacities = {
         "1": [1, 0],
@@ -350,6 +355,9 @@ def delete_room(room_id: int, request: Request, db: Session = Depends(get_db
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     if room.hotel_id != request.session.get("hotel_id"):
         add_flash_message(request, "Quarto não encontrado.", "warning")
+        return RedirectResponse(url="/dashboard_rooms", status_code=303)
+    if room.status == 'occupied':
+        add_flash_message(request, "O quarto não pode ser modificado enquanto ele estiver ocupado", 'warning')
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
     db.delete(room)

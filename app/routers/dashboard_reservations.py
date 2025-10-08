@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import case, or_
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
+from math import ceil
 
 from app.core.security import generate_csrf_token, validate_csrf_token
 from app.models.rooms import Rooms
@@ -217,7 +218,7 @@ def check_availability(
 
     available_rooms = db.query(Rooms).filter(
         Rooms.hotel_id == hotel_id,
-        Rooms.status == "available",
+        Rooms.status != "maintenance",
         ~Rooms.id.in_(reserved_room_ids)
     ).all()
 
@@ -353,27 +354,63 @@ def update_reservation(
         "message": f"Reserva {reservation.id} atualizada."
     }
 
-@router.get('/manage/{reservation_id}')
+@router.get('/manage/{reservation_id}', include_in_schema=False)
 def manage_reservation(
     request: Request,
     reservation_id: int,
+    check_in: Optional[bool] = Query(False),
+    check_out: Optional[bool] = Query(False),
+    cancel: Optional[bool] = Query(False),
     db: Session = Depends(get_db)
 ):
     hotel_id = request.session.get('hotel_id')
 
-    reservation = db.query(Reservations, Rooms.room_number, Guest) \
+    reservation = db.query(Reservations, Rooms.room_number, Guest, Rooms) \
         .join(Rooms, Rooms.id == Reservations.room_id) \
         .join(Guest, Guest.id == Reservations.guest_id) \
         .filter(Reservations.id == reservation_id) \
         .filter(Rooms.hotel_id == hotel_id) \
         .first()
-
+    
     if not reservation:
         add_flash_message(request, "Reserva não encontrada", "warning")
         return RedirectResponse(url='/dashboard_reservations', status_code=303)
     
-    csrf_token=generate_csrf_token()
+    days = reservation.Reservations.check_out - reservation.Reservations.check_in
+    total_days = ceil(days.total_seconds() / (24 * 3600))
+    price = reservation.Rooms.price * total_days
     
+    if check_in and reservation.Reservations.status != 'checked_in':
+        reservation.Reservations.status = 'checked_in'
+        reservation.Reservations.check_in = datetime.datetime.now()
+        reservation.Rooms.status = 'occupied'
+        db.commit()
+        db.refresh(reservation.Reservations)
+        db.refresh(reservation.Rooms)
+        add_flash_message(request, "Reserva atualizada com sucesso!", 'success')
+
+    if check_out and reservation.Reservations.status != 'checked_out':
+        reservation.Reservations.status = 'checked_out'
+        reservation.Reservations.check_out = datetime.datetime.now()
+        reservation.Rooms.status = 'available'
+        db.commit()
+        db.refresh(reservation.Reservations)
+        db.refresh(reservation.Rooms)
+        add_flash_message(request, "Reserva atualizada com sucesso!", 'success')
+
+    if cancel and reservation.Reservations.status == 'canceled':
+        add_flash_message(request, "A reserva já está cancelada", 'warning')
+    elif cancel and reservation.Reservations.status == 'checked_out':
+        add_flash_message(request, "A reserva já foi encerrada", 'warning')
+    elif cancel and (reservation.Reservations.status == 'booked' or reservation.Reservations.status == 'checked_in'):
+        reservation.Reservations.status = 'canceled'
+        reservation.Rooms.status = 'available'
+        db.commit()
+        db.refresh(reservation.Reservations)
+        db.refresh(reservation.Rooms)
+        add_flash_message(request, "A reserva foi cancelada com sucesso", 'success')
+
+        
     return render(
         templates,
         request,
@@ -381,6 +418,6 @@ def manage_reservation(
         {
             "request": request,
             "reservation": reservation,
-            "csrf_token": csrf_token,
+            "price": price,
         }
     )
