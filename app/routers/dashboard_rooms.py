@@ -77,7 +77,7 @@ def rooms(
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
     # inicia a query
-    query = db.query(Rooms).filter_by(hotel_id=hotel_id).order_by(Rooms.is_active)
+    query = db.query(Rooms).filter_by(hotel_id=hotel_id)
     if not query.first():
         return render(
             templates,
@@ -150,7 +150,7 @@ def rooms(
             query = query.order_by(Rooms.price.desc())
 
     # executa a query
-    rooms = query.all()
+    rooms = query.order_by(Rooms.is_active.desc()).all()
     if not rooms:
         add_flash_message(request, "Nenhum quarto encontrado com esses filtros.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
@@ -255,6 +255,8 @@ def create_room(
 @router.get("/edit/{room_id}", response_class=HTMLResponse, include_in_schema=False)
 def edit_room(room_id: int, request: Request, db: Session = Depends(get_db)):
     room = db.query(Rooms).filter_by(id=room_id, hotel_id=request.session.get("hotel_id")).first()
+    if room.status == 'occupied':
+        add_flash_message(request, "Apenas visualização, não é possível alterar quartos ocupados.", 'secondary')
     if room.hotel_id != request.session.get("hotel_id"):
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
