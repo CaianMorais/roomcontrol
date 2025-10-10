@@ -27,9 +27,7 @@ const guestSelect = document.getElementById("name_select2");
 async function updateAvailability() {
     const checkIn = checkInInput.value;
     const checkOut = checkOutInput.value;
-    const guest_id = guestSelect
-        ? guestSelect.value || "{{ guest.id if guest else '' }}"
-        : "{{ guest.id if guest else '' }}";
+    const guest_id = guestSelect ? guestSelect.value || GUEST_ID : GUEST_ID;
 
     if (!checkIn || !checkOut) return;
 
