@@ -1,0 +1,109 @@
+<div class="d-flex align-items-center justify-content-between">
+    <h5 class="card-title fw-semibold mb-4">Reservas</h5>
+    <div>
+        {% if has_filter %}
+        <a class="btn btn-outline-warning mb-4" href="{{ url_for('reservations') }}">Limpar Filtros</a>
+        {% endif %}
+        <a class="btn btn-success mb-4" data-bs-toggle="tooltip" data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="Se o hóspede já estiver cadastrado você pode ir direto pra reserva."
+            href="{{ url_for('new_reservation') }}">Nova Reserva</a>
+        <a class="btn btn-primary mb-4" data-bs-toggle="tooltip" data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="É necessário cadastrar o hóspede antes de fazer a reserva."
+            href="{{ url_for('new_guest') }}">Novo Hóspede</a>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table text-nowrap mb-0 align-middle">
+        <thead class="text-dark fs-4">
+            <tr>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Nº Reserva</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Nº Quarto</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Nome do Hóspede</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Check-in</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Check-out</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Situação</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Ações</h6>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reservation, room_number, name, guest_id in reservations %}
+            <tr class="align-items-center">
+                <td class="border-bottom-0">
+                    <p class="fw-semibold mb-0">{{ reservation.id }}</p>
+                </td>
+                <td class="border-bottom-0">
+                    <p class="fw-semibold mb-0">{{ room_number }}</p>
+                </td>
+                <td class="border-bottom-0">
+                    <p class="fw-semibold mb-0">{{ name }}</p>
+                    {# <span class="fw-normal">Web Designer</span> #}
+                </td>
+                <td class="border-bottom-0">
+                    <p class="mb-0 fw-normal">{{ reservation.check_in.strftime("%d/%m/%Y %H:%M") }}
+                    </p>
+                </td>
+                <td class="border-bottom-0">
+                    <p class="mb-0 fw-normal">{{ reservation.check_out.strftime("%d/%m/%Y %H:%M") }}
+                    </p>
+                </td>
+                <td class="border-bottom-0">
+                    {% if reservation.status == "booked" %}
+                    <p class="mb-0 fw-normal">Reservado</p>
+                    {% elif reservation.status == "checked_in" %}
+                    <p class="mb-0 fw-normal text-success">Entrada</p>
+                    {% elif reservation.status == "checked_out" %}
+                    <p class="mb-0 fw-normal text-danger">Saída</p>
+                    {% elif reservation.status == "canceled" %}
+                    <p class="mb-0 fw-normal text-warning">Cancelado</p>
+                    {% endif %}
+                </td>
+                <td class="border-bottom-0">
+                    <div class="d-flex align-items-center gap-3 fs-6">
+                        {% if reservation.status == 'booked' %}
+                        <a href="#" class="text-success btn-res-1" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                            title="Fazer check-in" data-bs-original-title="Fazer check-in" aria-label="Fazer check-in"
+                            data-id="{{ reservation.id }}" data-name="{{ name }}" data-text="in">
+                            <i class="ti ti-check"></i>
+                        </a>
+                        {% elif reservation.status == 'checked_in' %}
+                        <a href="#" class="text-danger btn-res-1" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                            title="" data-bs-original-title="Fazer check-out" aria-label="Fazer check-out"
+                            data-id="{{ reservation.id }}" data-name="{{ name }}" data-text="out">
+                            <i class="ti ti-door-exit"></i>
+                        </a>
+                        {% elif reservation.status == 'checked_out' %}
+                        <a href="/dashboard_reservations/new?guest_id={{ guest_id }}" class="text-success"
+                            data-bs-toggle="tooltip" data-bs-placement="bottom" title=""
+                            data-bs-original-title="Reservar este hóspede novamente"
+                            aria-label="Reservar este hóspede novamente">
+                            <i class="ti ti-calendar-plus"></i>
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('manage_reservation', reservation_id=reservation.id) }}" class="text-dark"
+                            data-bs-toggle="tooltip" data-bs-placement="bottom" title=""
+                            data-bs-original-title="Gerenciar reserva" aria-label="Gerenciar reserva">
+                            <i class="ti ti-settings-2"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

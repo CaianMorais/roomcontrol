@@ -1,0 +1,22 @@
+<div class="row">
+    <div class="mb-3 col-8">
+        <label for="name" class="form-label">Nome e sobrenome do hóspede</label>
+        <input type="text" class="form-control" id="name" readonly value="{{ reservation.Guest.name }}">
+    </div>
+    <div class="mb-3 col-4">
+        <label for="cpf" class="form-label">CPF do hóspede</label>
+        <input type="text" class="form-control" id="cpf" readonly value="{{ reservation.Guest.cpf }}">
+    </div>
+</div>
+<div class="row">
+    <div class="mb-3 col-8">
+        <label for="email" class="form-label">E-mail do hóspede</label>
+        <input type="email" class="form-control" id="email" readonly
+            value="{{ reservation.Guest.email if reservation.Guest.email else 'Não informado' }}">
+    </div>
+    <div class="mb-3 col-4">
+        <label for="phone_number" class="form-label">Telefone do hóspede</label>
+        <input type="text" class="form-control" id="phone_number" readonly
+            value="{{ reservation.Guest.phone_number if reservation.Guest.phone_number else 'Não informado' }}">
+    </div>
+</div>

@@ -1,0 +1,81 @@
+<h5 class="card-title fw-semibold mb-4">Nova Reserva</h5>
+<div class="card">
+    <div class="card-body">
+        <form action="{{ url_for('create_reservation') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="row">
+                <div class="mb-3 col-6">
+                    <label for="check_in" class="form-label">Data de check-in</label>
+                    <input type="datetime-local" class="form-control" id="check_in" name="check_in" required>
+                </div>
+                <div class="mb-3 col-6">
+                    <label for="check_out" class="form-label">Data de check-out (previsto)</label>
+                    <input type="datetime-local" class="form-control" id="check_out" name="check_out" required>
+                </div>
+            </div>
+            <div class="row">
+                {% if guest.name and guest.cpf %}
+                <div class="mb-3 col-8">
+                    <label for="name" class="form-label">Nome e sobrenome do hóspede</label>
+                    <input type="text" class="form-control" value="{{ guest.name if guest else '' }}" {% if guest %}
+                        readonly {% endif %} id="name" name="name" required>
+                </div>
+                <div class="mb-3 col-4">
+                    <label for="cpf" class="form-label">CPF do hóspede</label>
+                    <input type="text" class="form-control" value="{{ guest.cpf if guest else '' }}" {% if guest %}
+                        readonly {% endif %} id="cpf" name="cpf" required>
+                </div>
+                {% else %}
+                <div class="mb-3 col-12">
+                    <label for="name_select2" class="form-label">Hóspede</label>
+                    <select class="form-select name_select2" name="cpf" id="name_select2" required>
+                        <option value="" selected>Insira as datas para selecionar o hóspede</option>
+                        {% for g in guest %}
+                        <option value="{{ g.cpf }}">
+                            {{ g.name }} -> {{ g.cpf[:3] + "." + g.cpf[3:6] + "." + g.cpf[6:9] + "." + g.cpf[9:] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+            </div>
+            <div class="row">
+                <div class="mb-3 col-12">
+                    <label for="room_id" class="form-label">Quarto</label>
+                    <select class="form-select select-room" name="room_id" id="room_id" required>
+                        <option value="" selected>Insira as datas para selecionar o quarto</option>
+                        {% for room in rooms %}
+                        <option value="{{ room.id }}">
+                            Quarto:
+                            {{ room.room_number }} >
+                            {% if room.type == '1' %}
+                            Solteiro
+                            {% elif room.type == '2' %}
+                            Duplo
+                            {% elif room.type == '3' %}
+                            Duplo
+                            {% elif room.type == '4' %}
+                            Casal
+                            {% elif room.type == '5' %}
+                            Triplo
+                            {% elif room.type == '6' %}
+                            Triplo
+                            {% elif room.type == '7' %}
+                            Triplo
+                            {% elif room.type == '8' %}
+                            Triplo (com casal)
+                            {% elif room.type == '9' %}
+                            Personalizado
+                            {% endif %} >
+                            {{ room.capacity_adults }} adultos, {{ room.capacity_children }} crianças >
+                            R${{ '%.2f'|format(room.price)|replace('.', ',') }} diária</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Gravar reserva</button>
+            <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Cancelar</a>
+        </form>
+    </div>
+</div>

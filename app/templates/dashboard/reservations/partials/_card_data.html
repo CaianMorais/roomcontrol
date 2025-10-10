@@ -1,0 +1,92 @@
+<ul>
+    <li class="d-flex justify-content-between">
+        <strong>Hóspede: </strong>{{ reservation.Guest.name }}
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Nº do quarto: </strong>{{ reservation.room_number }}
+    </li>
+    <hr class="mx-0 my-2">
+    {% if reservation.Reservations.status == 'booked' %}
+    <li class="d-flex justify-content-between">
+        <strong>Situação: </strong>Reservado
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-in (previsto): </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-out (previsto): </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+    </li>
+    <hr class="mx-0 my-2">
+    {% elif reservation.Reservations.status == 'checked_in' %}
+    <li class="d-flex justify-content-between">
+        <strong>Situação: </strong>
+        <p class="text-success m-0">Entrada</p>
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-in: </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-out (previsto): </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+    </li>
+    <hr class="mx-0 my-2">
+    {% elif reservation.Reservations.status == 'checked_out' %}
+    <li class="d-flex justify-content-between">
+        <strong>Situação: </strong>
+        <p class="text-danger m-0">Saída</p>
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-in: </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-out: </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+    </li>
+    <hr class="mx-0 my-2">
+    {% elif reservation.Reservations.status == 'canceled' %}
+    <li class="d-flex justify-content-between">
+        <strong>Situação: </strong>
+        <p class="text-warning m-0">Cancelado</p>
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-in: </strong>{{ reservation.Reservations.check_in.strftime("%d/%m/%Y %H:%M") if
+        reservation.Reservations.check_in else 'Sem dados' }}
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-out: </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") if
+        reservation.Reservations.check_out else 'Sem dados' }}
+    </li>
+    <hr class="mx-0 my-2">
+    {% else %}
+    <li class="d-flex justify-content-between">
+        <strong>Situação: </strong>
+        <p class="text-dark m-0">Não identificado</p>
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-in: </strong>Sem informações
+    </li>
+    <hr class="mx-0 my-2">
+    <li class="d-flex justify-content-between">
+        <strong>Check-out: </strong>Sem informações
+    </li>
+    <hr class="mx-0 my-2">
+    {% endif %}
+    <li class="d-flex justify-content-between">
+        <strong>
+            <a type="button" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+                data-bs-custom-class="custom-tooltip"
+                data-bs-title="{{ 'Preço da diária x Número de dias reservados' if price != 0 else 'Valor da diária do quarto não informado' }}">
+                <i class="ti ti-info-circle"></i>
+            </a>
+            Preço: </strong>R$ {{ '%.2f'|format(price)|replace('.', ',') if price != 0 else '-' }}
+    </li>
+    <hr class="mx-0 my-2">
+</ul>

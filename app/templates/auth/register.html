@@ -39,7 +39,7 @@
                     <img src="{{ url_for('dashboard', path='images/logos/dark-logo.svg') }}" width="200" alt="">
                 </a>
                 <!-- LOGIN -->
-                <div id="login-card" class="col-5 card shadow-lg p-4">
+                <div id="login-card" class="col-12 col-lg-5 card shadow-lg p-4">
                   <p class="text-center"><strong>Entrar</strong> no seu hotel</p>
                   <form id="login-form" action="{{ url_for('login') }}" method="post" enctype="multipart/form-data">
                     {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}

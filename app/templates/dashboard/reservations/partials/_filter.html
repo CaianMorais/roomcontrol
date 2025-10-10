@@ -1,0 +1,57 @@
+<div class="collapse" id="filtro_reservas">
+    <div class="card card-body">
+        <form action="{{ url_for('reservations') }}" method="GET">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label for="search" class="form-label">Nº da reserva ou Nome do Hóspede</label>
+                    <input type="text" class="form-control" name="search" id="search">
+                </div>
+                <div class="col-6">
+                    <label for="room" class="form-label">Quarto</label>
+                    <select class="form-select" name="room" id="room">
+                        <option value="">Selecione o quarto</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label for="status" class="form-label">Situação</label>
+                    <select class="form-select" name="status" id="status">
+                        <option value="">Selecione a situação</option>
+                        <option value="booked">Reservado</option>
+                        <option value="checked_in">Entrada</option>
+                        <option value="checked_out">Saída</option>
+                        <option value="canceled">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-6">
+                    <label for="interval_in" class="form-label">Intervalo do check-in</label>
+                    <select class="form-select" name="interval_in" id="interval_in">
+                        <option value="">Selecione o intervalo</option>
+                        <option value="before">Antes de</option>
+                        <option value="after">Depois de</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label for="check_in" class="form-label">Data de check-in</label>
+                    <input type="datetime-local" class="form-control" id="check_in" name="check_in">
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="mb-3 col-6">
+                    <label for="interval_out" class="form-label">Intervalo do check-out</label>
+                    <select class="form-select" name="interval_out" id="interval_out">
+                        <option value="">Selecione o intervalo</option>
+                        <option value="before">Antes de</option>
+                        <option value="after">Depois de</option>
+                    </select>
+                </div>
+                <div class="mb-3 col-6">
+                    <label for="check_out" class="form-label">Data de check-out</label>
+                    <input type="datetime-local" class="form-control" id="check_out" name="check_out">
+                </div>
+            </div>
+            <button class="btn btn-success" type="submit">Aplicar</button>
+        </form>
+    </div>
+</div>
