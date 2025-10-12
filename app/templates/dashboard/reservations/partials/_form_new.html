@@ -30,11 +30,6 @@
                     <label for="name_select2" class="form-label">Hóspede</label>
                     <select class="form-select name_select2" name="cpf" id="name_select2" required>
                         <option value="" selected>Insira as datas para selecionar o hóspede</option>
-                        {% for g in guest %}
-                        <option value="{{ g.cpf }}">
-                            {{ g.name }} -> {{ g.cpf[:3] + "." + g.cpf[3:6] + "." + g.cpf[6:9] + "." + g.cpf[9:] }}
-                        </option>
-                        {% endfor %}
                     </select>
                 </div>
                 {% endif %}
@@ -45,36 +40,10 @@
                     <label for="room_id" class="form-label">Quarto</label>
                     <select class="form-select select-room" name="room_id" id="room_id" required>
                         <option value="" selected>Insira as datas para selecionar o quarto</option>
-                        {% for room in rooms %}
-                        <option value="{{ room.id }}">
-                            Quarto:
-                            {{ room.room_number }} >
-                            {% if room.type == '1' %}
-                            Solteiro
-                            {% elif room.type == '2' %}
-                            Duplo
-                            {% elif room.type == '3' %}
-                            Duplo
-                            {% elif room.type == '4' %}
-                            Casal
-                            {% elif room.type == '5' %}
-                            Triplo
-                            {% elif room.type == '6' %}
-                            Triplo
-                            {% elif room.type == '7' %}
-                            Triplo
-                            {% elif room.type == '8' %}
-                            Triplo (com casal)
-                            {% elif room.type == '9' %}
-                            Personalizado
-                            {% endif %} >
-                            {{ room.capacity_adults }} adultos, {{ room.capacity_children }} crianças >
-                            R${{ '%.2f'|format(room.price)|replace('.', ',') }} diária</option>
-                        {% endfor %}
                     </select>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Gravar reserva</button>
+            <button type="submit" class="btn btn-primary">Reservar</button>
             <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Cancelar</a>
         </form>
     </div>

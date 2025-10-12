@@ -1,8 +1,6 @@
-// ATIVAÇÃO DO TOOLTIP
-const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+import { showAlert } from '../alerts.js';
 
-// FUNÇÃO DE ATUALIZAR QUARTOS UTILIZANDO A API
+// FUNÇÃO DE ATUALIZAR QUARTOS DO FILTRO UTILIZANDO A API
 const roomInput = document.getElementById("room");
 async function updateRooms(hotel_id) {
 
@@ -21,36 +19,8 @@ async function updateRooms(hotel_id) {
 }
 
 roomInput.addEventListener("focus", function () {
-    updateRooms("{{ request.session.get('hotel_id') }}");
+    updateRooms(hotel_id);
 });
-
-function showAlert(title, text, icon, timer = false) {
-    const options = {
-        title: title,
-        text: text,
-        icon: icon
-    };
-    
-    if (timer) {
-        ;
-        options.timer = 1000;
-        options.timerProgressBar = true;
-        options.didOpen = () => {
-            Swal.showLoading();
-        };
-        options.willClose = () => {
-            clearInterval(options.timerInterval);
-        };
-    } else {
-        options.showCancelButton = true;
-        options.confirmButtonColor = "#3085d6";
-        options.cancelButtonColor = "#d33";
-        options.confirmButtonText = "Confirmar";
-        options.cancelButtonText = "Não";
-    }
-
-    return Swal.fire(options);
-}
 
 function changeTable(link, status, reservationId, name, guest, reservationStatus, handleClick) {
     if (reservationStatus === "checked_in") {

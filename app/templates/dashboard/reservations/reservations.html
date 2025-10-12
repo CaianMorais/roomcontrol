@@ -35,6 +35,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('dashboard', path='js/reservations/reservations.js') }}"></script>
+<script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
+<script src="{{ url_for('dashboard', path='js/tooltip.js') }}"></script>
+<script>
+    const hotel_id = "{{ request.session.get('hotel_id') }}";
+</script>
+<script src="{{ url_for('dashboard', path='js/reservations/reservations.js') }}" type="module"></script>
 
 {% endblock %}

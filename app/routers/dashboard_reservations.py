@@ -201,7 +201,8 @@ def check_availability(
         # Hóspedes disponíveis
         reserved_guest_ids = db.query(Reservations.guest_id).filter(
             Reservations.check_in < check_out,
-            Reservations.check_out > check_in
+            Reservations.check_out > check_in,
+            Reservations.status.in_(["booked", "checked_in"])
         ).subquery()
 
         available_guests = db.query(Guest).filter(

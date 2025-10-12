@@ -1,23 +1,14 @@
+import { showAlert } from "../alerts.js";
+import Inputmask from "https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/inputmask.es6.min.js";
+
 // MASCARA DO INPUT CPF
-$("#cpf").inputmask({
+Inputmask({
     mask: ['999.999.999-99'],
     keepStatic: true,
     rightAlign: false,
     removeMaskOnSubmit: true,
     unmaskAsNumber: true,
-});
-
-// funções de atualizar a disponibilidade
-
-function formatDate(datetimeStr) {
-    const dt = new Date(datetimeStr);
-    const day = String(dt.getDate()).padStart(2, '0');
-    const month = String(dt.getMonth() + 1).padStart(2, '0'); // meses começam do 0
-    const year = dt.getFullYear();
-    const hours = String(dt.getHours()).padStart(2, '0');
-    const minutes = String(dt.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
-}
+}).mask("#cpf");
 
 const checkInInput = document.getElementById("check_in");
 const checkOutInput = document.getElementById("check_out");
@@ -32,15 +23,12 @@ async function updateAvailability() {
     if (!checkIn || !checkOut) return;
 
     if (checkIn > checkOut) {
-        Swal.fire({
-            icon: "error",
-            title: "Opa...",
-            text: "O check-out deve ser posterior ao check-in",
-        });
-        checkInInput.value = '';
-        checkOutInput.value = '';
+        showAlert("Opa...", "O check-out deve ser posterior ao check-in", "error", true, 2000);
+        checkInInput.value = ''; checkOutInput.value = '';
+        return;
     }
 
+    // calcula o número de dias da reserva (arredondando pra +)
     const daysReservation = new Date(checkOut) - new Date(checkIn)
     const totalDays = Math.ceil(daysReservation / (1000 * 60 * 60 * 24));
 
@@ -50,14 +38,8 @@ async function updateAvailability() {
         const data = await res.json();
 
         if (data.guest_conflict) {
-            Swal.fire({
-                icon: "error",
-                title: "Opa...",
-                text: "Esse hóspede tem uma reserva ativa nesse período!",
-                footer: 'Período entre: <strong>' + formatDate(checkIn) + "</strong> e <strong>" + formatDate(checkOut) + "</strong>"
-            });
-            checkInInput.value = '';
-            checkOutInput.value = '';
+            showAlert('Opa...', "Esse hóspede tem uma reserva ativa nesse período!", "error", true, 1500)
+            checkInInput.value = ''; checkOutInput.value = '';
         }
 
         roomSelect.innerHTML = `<option value="" selected>Pesquise e selecione o quarto</option>`;
@@ -81,4 +63,4 @@ async function updateAvailability() {
 // Eventos para disparar a verificação
 checkInInput.addEventListener("change", updateAvailability);
 checkOutInput.addEventListener("change", updateAvailability);
-if (guestSelect) guestSelect.addEventListener("change", updateAvailability);
+//if (guestSelect) guestSelect.addEventListener("change", updateAvailability);
