@@ -1,4 +1,78 @@
 import { showAlert } from '../alerts.js';
+import { checkoutButton, reservationButton } from './change_buttons.js';
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    // função que anexa os listeners no botao
+    function attachReservationButtons() {
+        const btnRes = document.querySelectorAll(".btn-res-1");
+        btnRes.forEach(link => {
+            // remove os listeners duplicados
+            link.removeEventListener("click", handleClick);
+            link.addEventListener("click", handleClick);
+        });
+    }
+    
+    async function handleClick(e) {
+        //evita que a pagina recarregue
+        e.preventDefault();
+
+        // captura os dados para o alert e para o fetch
+        const link = this;
+        const reservationId = link.dataset.id;
+        const name = link.dataset.name;
+        const check = link.dataset.text;
+
+        showAlert(
+            `Confirmar check-${check} de ${name}?`,
+            `Não há como desfazer o check-${check}.`,
+            'warning'
+        )
+        .then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/dashboard_reservations/update/${reservationId}`, {
+                        method: "POST",
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    });
+
+                    const data = await res.json();
+
+                    if (data.status) {
+                        // se tiver o data.status, significa que a reserva foi atualizada
+                        // muda a tabela dinamicamente
+                        const status = link.closest('tr').querySelector(".status-cell p");
+                        changeTable(link, status, reservationId, name, data.guest, data.status, handleClick)
+                        // se der tudo certo, alerta com timer
+                        showAlert(
+                            `Sucesso`,
+                            data.message,
+                            'success',
+                            true
+                        )
+                    // alerta com timer dando erro: caiu na condicional no back-end
+                    } else {
+                        showAlert(
+                            `Erro`,
+                            data.message,
+                            'error',
+                            true
+                        )
+                    }
+                // alerta sem timer dando erro: problema ao fazer a requisição
+                } catch (err) {
+                    showAlert(
+                        `Erro ao atualizar a reserva`,
+                        `${err}`,
+                        'error'
+                    );
+                }
+            }
+        });
+    }
+    // anexa os listeners ao carregar a página
+    attachReservationButtons();
+});
 
 // FUNÇÃO DE ATUALIZAR QUARTOS DO FILTRO UTILIZANDO A API
 const roomInput = document.getElementById("room");
@@ -22,125 +96,11 @@ roomInput.addEventListener("focus", function () {
     updateRooms(hotel_id);
 });
 
+// FUNÇÃO DE ALTERAR A TABELA AO ATUALIZAR A RESERVA
 function changeTable(link, status, reservationId, name, guest, reservationStatus, handleClick) {
     if (reservationStatus === "checked_in") {
-        status.textContent = "Entrada";
-        status.className = "mb-0 fw-normal text-success";
-
-        // cria o botão do check-out
-        const checkoutButton = document.createElement("a");
-        checkoutButton.href = "#";
-        checkoutButton.className = "text-danger btn-res-1";
-        checkoutButton.dataset.id = reservationId;
-        checkoutButton.dataset.name = name;
-        checkoutButton.dataset.text = "out";
-        checkoutButton.dataset.bsToggle = "tooltip";
-        checkoutButton.dataset.bsPlacement = "bottom";
-        checkoutButton.dataset.bsTitle = "Fazer check-out";
-        checkoutButton.setAttribute("aria-label", "Fazer check-out");
-        checkoutButton.innerHTML = '<i class="ti ti-door-exit"></i>';
-
-        link.replaceWith(checkoutButton);
-        
-        // inicia o tooltip com o bootstrap
-        new bootstrap.Tooltip(checkoutButton);
-
-        // adiciona o listener diretamente
-        checkoutButton.addEventListener("click", handleClick);
-
+        checkoutButton(status, reservationId, name, link, handleClick);
     } else if (reservationStatus === "checked_out") {
-        status.textContent = "Saída";
-        status.className = "mb-0 fw-normal text-danger";
-
-        // cria botão de reservar novamente
-        const repeatBtn = document.createElement("a");
-        repeatBtn.href = `/dashboard_reservations/new?guest_id=${guest}`;
-        repeatBtn.className = "text-success";
-        repeatBtn.dataset.name = name;
-        repeatBtn.dataset.guestId = guest;
-        repeatBtn.dataset.bsToggle = "tooltip";
-        repeatBtn.dataset.bsPlacement = "bottom";
-        repeatBtn.dataset.bsTitle = "Reservar este hóspede novamente";
-        repeatBtn.setAttribute("aria-label", "Reservar este hóspede novamente");
-        repeatBtn.innerHTML = '<i class="ti ti-calendar-plus"></i>';
-
-        link.replaceWith(repeatBtn);
-
-        // inicia o tooltip
-        new bootstrap.Tooltip(repeatBtn);
+        reservationButton(status, name, guest, link);
     }
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-    // função que anexa os listeners no botao
-    function attachReservationButtons() {
-        const btnRes1 = document.querySelectorAll(".btn-res-1");
-        btnRes1.forEach(link => {
-            // remove os listeners duplicados
-            link.removeEventListener("click", handleClick);
-            link.addEventListener("click", handleClick);
-        });
-    }
-
-    async function handleClick(e) {
-        //evita que a pagina recarregue
-        e.preventDefault();
-
-        // captura os dados para o alert e para o fetch
-        const link = this;
-        const reservationId = link.dataset.id;
-        const name = link.dataset.name;
-        const check = link.dataset.text;
-
-        showAlert(
-            `Confirmar check-${check} de ${name}?`,
-            `Não há como desfazer o check-${check}.`,
-            'warning'
-        )
-        .then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const res = await fetch(`/dashboard_reservations/update/${reservationId}`, {
-                        method: "POST",
-                        headers: { "X-Requested-With": "XMLHttpRequest" }
-                    });
-                    // resposta do fetch
-
-                    const data = await res.json();
-
-                    if (data.status) {
-                        // se tiver o data.status, significa que a reserva foi atualizada
-                        // muda a tabela dinamicamente (sem recarregar a pagina)
-                        // captura o elemento <p> na 6º coluna da tabela
-                        const status = link.closest('tr').querySelector("td:nth-child(6) p");
-                        changeTable(link, status, reservationId, name, data.guest, data.status, handleClick)
-                        // se der tudo certo, alerta com timer
-                        showAlert(
-                            `Sucesso`,
-                            data.message,
-                            icon='success',
-                            true
-                        )
-                    // alerta com timer dando erro: caiu na condicional no back-end
-                    } else {
-                        showAlert(
-                            `Erro`,
-                            data.message,
-                            'error',
-                            true
-                        )
-                    }
-                // alerta sem timer dando erro: problema ao fazer a requisição
-                } catch (err) {
-                    showAlert(
-                        `Erro`,
-                        "Não foi possível atualizar aa reserva.",
-                        icon='error'
-                    );
-                }
-            }
-        });
-    }
-    // anexa os listeners ao carregar a página
-    attachReservationButtons();
-});
