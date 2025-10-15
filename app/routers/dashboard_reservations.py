@@ -18,6 +18,8 @@ from app.utils.session_guard import require_session
 from app.schemas.reservations import ReservationBase, ReservationCreate, ReservationOut
 from app.models.reservations import Reservations
 from app.models.guest import Guest
+from app.helpers.verify_guest import verify_guest
+from app.helpers.verify_room import verify_room
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -73,11 +75,7 @@ def reservations(
     interval_out: Optional[str] = Query("", description="Intervalo do check-out"),
     check_out: Optional[str] = Query(None, description="Data do check-out")
 ):
-
     hotel_id = request.session.get("hotel_id")
-    if not hotel_id:
-        add_flash_message(request, "Hotel não selecionado.", "danger")
-        return RedirectResponse(url="/dashboard", status_code=303)
     
     query = db.query(Reservations, Rooms.room_number, Guest.name, Guest.id) \
         .join(Rooms, Rooms.id == Reservations.room_id) \
@@ -155,10 +153,7 @@ def new_reservation(
         return RedirectResponse(url="/dashboard", status_code=303)
     
     if guest_id:
-        guest = db.query(Guest).filter(Guest.hotel_id == hotel_id).filter(Guest.id == guest_id).first()
-        if not guest:
-            add_flash_message(request, "Esse hóspede não existe em seu hotel", "danger")
-            return RedirectResponse(url="/dashboard_reservations", status_code=303)
+        guest = verify_guest(request, guest_id, hotel_id, db)
     else:
         guest = []
 
@@ -267,13 +262,8 @@ def create_reservation(
     guest = db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id).first()
     room = db.query(Rooms).filter(Rooms.id == room_id).filter(Rooms.hotel_id == hotel_id).first()
 
-    if not guest:
-        add_flash_message(request, "Hóspede não encontrado.", "danger")
-        return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
-
-    if not room:
-        add_flash_message(request, "Quarto não encontrado ou indisponível.", "danger")
-        return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
+    verify_guest(request, guest.id, hotel_id, db)
+    verify_room(request, room.id, hotel_id, db)
     
     if check_out <= check_in:
         add_flash_message(request, "Data de check-out deve ser posterior à data de check-in.", "danger")
@@ -307,8 +297,6 @@ def create_reservation(
     add_flash_message(request, "Reserva criada com sucesso!", "success")
     return RedirectResponse(url="/dashboard_reservations", status_code=303)
 
-## DESENVOLVER ROTAS QUE ALTERAM A SITUAÇÃO DA RESERVA DINAMICAMENTE (JS)
-
 @router.post("/update/{reservation_id}", include_in_schema=False)
 def update_reservation(
     request: Request,
@@ -322,8 +310,7 @@ def update_reservation(
         raise HTTPException(status_code=404, detail="Reserva não encontrada")
     
     room = db.query(Rooms).filter(Rooms.id == reservation.room_id).first()
-    if not room or room.hotel_id != hotel_id:
-        raise HTTPException(status_code=404, detail="Quarto não encontrado")
+    verify_room(request, room.id, hotel_id, db)
     
     guest = db.query(Guest).filter(Guest.id == reservation.guest_id) \
     .filter(Guest.hotel_id == hotel_id) \
@@ -377,20 +364,22 @@ def manage_reservation(
         add_flash_message(request, "Reserva não encontrada", "warning")
         return RedirectResponse(url='/dashboard_reservations', status_code=303)
     
-    days = reservation.Reservations.check_out - reservation.Reservations.check_in
-    total_days = ceil(days.total_seconds() / (24 * 3600))
-    price = reservation.Rooms.price * total_days
-    
-    if check_in and reservation.Reservations.status != 'checked_in':
+    if check_in and reservation.Reservations.status == 'booked':
         reservation.Reservations.status = 'checked_in'
-        reservation.Reservations.check_in = datetime.datetime.now()
+        check_in_now = datetime.datetime.now()
+        reservation.Reservations.check_in = check_in_now
+        if check_in_now > reservation.Reservations.check_out:
+            reservation.Reservations.check_out = check_in_now + datetime.timedelta(days=1)
+            add_flash_message(request, "Devido ao conflito de datas, a previsão do check-out foi alterada automaticamente.", "warning")
         reservation.Rooms.status = 'occupied'
         db.commit()
         db.refresh(reservation.Reservations)
         db.refresh(reservation.Rooms)
         add_flash_message(request, "Reserva atualizada com sucesso!", 'success')
+    elif check_in and reservation.Reservations.status != 'booked': 
+        return RedirectResponse(url=f'/dashboard_reservations/manage/{reservation_id}', status_code=303)
 
-    if check_out and reservation.Reservations.status != 'checked_out':
+    if check_out and reservation.Reservations.status == 'checked_in':
         reservation.Reservations.status = 'checked_out'
         reservation.Reservations.check_out = datetime.datetime.now()
         reservation.Rooms.status = 'available'
@@ -398,6 +387,8 @@ def manage_reservation(
         db.refresh(reservation.Reservations)
         db.refresh(reservation.Rooms)
         add_flash_message(request, "Reserva atualizada com sucesso!", 'success')
+    elif check_out and reservation.Reservations.status != 'checked_in': 
+        return RedirectResponse(url=f'/dashboard_reservations/manage/{reservation_id}', status_code=303)
 
     if cancel and reservation.Reservations.status == 'canceled':
         add_flash_message(request, "A reserva já está cancelada", 'warning')
@@ -410,6 +401,10 @@ def manage_reservation(
         db.refresh(reservation.Reservations)
         db.refresh(reservation.Rooms)
         add_flash_message(request, "A reserva foi cancelada com sucesso", 'success')
+
+    days = reservation.Reservations.check_out - reservation.Reservations.check_in
+    total_days = ceil(days.total_seconds() / (24 * 3600))
+    price = reservation.Rooms.price * total_days
 
         
     return render(

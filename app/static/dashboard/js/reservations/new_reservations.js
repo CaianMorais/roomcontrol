@@ -60,7 +60,6 @@ async function updateAvailability() {
     }
 }
 
-// Eventos para disparar a verificação
 checkInInput.addEventListener("change", updateAvailability);
 checkOutInput.addEventListener("change", updateAvailability);
 //if (guestSelect) guestSelect.addEventListener("change", updateAvailability);

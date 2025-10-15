@@ -27,11 +27,12 @@
     </div>
     <a href="{{ url_for('reservations') }}" class="btn btn-primary">Voltar para as reservas</a>
 </div>
-<script src="{{ url_for('dashboard', path='libs/jquery/dist/jquery.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js" integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js" integrity="sha512-F5Ul1uuyFlGnIT1dk2c4kB4DBdi5wnBJjVhL7gQlGh46Xn0VhvD8kgxLtjdZ5YN83gybk/aASUAlpdoWUjRR3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="{{ url_for('dashboard', path='js/tooltip.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="{{ url_for('dashboard', path='js/reservations/manage_reservations.js') }}"></script>
+<script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
+<script src="{{ url_for('dashboard', path='js/reservations/manage_reservations.js') }}" type="module"></script>
 
 
 {% endblock %}

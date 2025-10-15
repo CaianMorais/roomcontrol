@@ -195,7 +195,7 @@
                                             <i class="ti ti-list-check fs-6"></i>
                                             <p class="mb-0 fs-3">My Task</p>
                                         </a>
-                                        <a href="./authentication-login.html"
+                                        <a href="{{ url_for('logout') }}"
                                             class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
                                     </div>
                                 </div>
@@ -214,13 +214,12 @@
 
 
     </div>
-    <script src="{{ url_for('dashboard', path='libs/jquery/dist/jquery.min.js') }}"></script>
-    <!-- <script src="{{ url_for('dashboard', path='libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js" integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="{{ url_for('dashboard', path='js/sidebarmenu.js') }}"></script>
     <script src="{{ url_for('dashboard', path='js/app.min.js') }}"></script>
-    <script src="{{ url_for('dashboard', path='libs/apexcharts/dist/apexcharts.min.js') }}"></script>
-    <script src="{{ url_for('dashboard', path='libs/simplebar/dist/simplebar.js') }}"></script>
-    <script src="{{ url_for('dashboard', path='js/dashboard.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.36.2/apexcharts.min.js" integrity="sha512-YwMWovbODpJxF5IN8vZI3F6v+t/Q0UBrgfeyJUEJYl00uOVWqtWWOIfpplNy88ZL2ZYb5LywrKz2aD0ZtlFU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplebar/5.3.6/simplebar.js" integrity="sha512-u8Av8DfXNJ/VVZfRY81cEXWJGk3JiVydaJNL1PiFe42YmlLs9tx9nR/OlYOnecdwQsM15TwCEtmrYbd70uQfnw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- <script src="{{ url_for('dashboard', path='js/dashboard.js') }}"></script> -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
         const toastEls = document.querySelectorAll('.toast');
