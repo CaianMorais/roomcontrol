@@ -60,7 +60,7 @@
     </li>
     <hr class="mx-0 my-2">
     <li class="d-flex justify-content-between">
-        <strong>Check-out: </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") if
+        <strong>Data do cancelamento: </strong>{{ reservation.Reservations.check_out.strftime("%d/%m/%Y %H:%M") if
         reservation.Reservations.check_out else 'Sem dados' }}
     </li>
     <hr class="mx-0 my-2">
@@ -83,7 +83,7 @@
         <strong>
             <a type="button" class="" data-bs-toggle="tooltip" data-bs-placement="top"
                 data-bs-custom-class="custom-tooltip"
-                data-bs-title="{{ 'Preço da diária x Número de dias reservados' if price != 0 else 'Valor da diária do quarto não informado' }}">
+                data-bs-title="{{ 'Preço da diária x Número de dias reservados' if price != 0 else 'Não foi possível calcular' }}">
                 <i class="ti ti-info-circle"></i>
             </a>
             Preço: </strong>R$ {{ '%.2f'|format(price)|replace('.', ',') if price != 0 else '-' }}

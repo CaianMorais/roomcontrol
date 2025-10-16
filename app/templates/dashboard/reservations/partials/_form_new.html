@@ -5,7 +5,14 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="row">
                 <div class="mb-3 col-6">
-                    <label for="check_in" class="form-label">Data de check-in</label>
+                    <label for="check_in" class="form-label">
+                        Data de check-in
+                        <a type="button" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+                            data-bs-custom-class="custom-tooltip"
+                            data-bs-title="Se a data de check-in for inferior ao horário atual, será feito check-in ao reservar.">
+                            <i class="ti ti-info-circle"></i>
+                        </a>
+                    </label>
                     <input type="datetime-local" class="form-control" id="check_in" name="check_in" required>
                 </div>
                 <div class="mb-3 col-6">

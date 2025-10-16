@@ -12,7 +12,7 @@ def get_db():
 
 
 def verify_room(request, room_id, hotel_id, db):
-    room = db.query(Rooms).filter(Rooms.hotel_id == hotel_id).filter(Rooms.id == room_id).first()
+    room = db.query(Rooms).filter(Rooms.id == room_id).filter(Rooms.hotel_id == hotel_id).first()
     if not room:
         add_flash_message(request, "Quarto inexistente", "danger")
         raise HTTPException(status_code=303, headers={"Location": "/dashboard"})

@@ -15,4 +15,7 @@
     <a type="button"
         href="{{ url_for('edit_guest', guest_id=reservation.Guest.id, guest_cpf=reservation.Guest.cpf ) }}?next={{ request.path }}"
         class="btn btn-dark">Gerenciar hóspede</a>
+    <a type="button"
+        href="{{ url_for('edit_room', room_id=reservation.Rooms.id) }}?next={{ request.path }}"
+        class="btn btn-dark">Gerenciar quarto</a>
 </div>

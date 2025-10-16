@@ -65,34 +65,31 @@ def guests(
     cpf: Optional[str] = Query("", description="CPF do hóspede")
     ):
     hotel_id = request.session.get("hotel_id")
-    ReservationAlias = aliased(Reservations)
-    RoomAlias = aliased(Rooms)
+    subquery = db.query(
+        Reservations.guest_id,
+        Reservations.check_in.label('reservation_check_in'),
+        Reservations.status.label('reservation_status'),
+        Reservations.id.label('reservation_id')
+    ).filter(
+        Reservations.status.in_(['booked', 'checked_in']),
+        Reservations.guest_id == Guest.id
+    ).order_by(Reservations.check_in)
+    subquery = subquery.subquery()
 
-    guests = (
-        db.query(
-            Guest,
-            ReservationAlias.check_in,
-            ReservationAlias.status,
-            ReservationAlias.id,
-            RoomAlias.room_number
-        )
-        .outerjoin(
-            ReservationAlias, ReservationAlias.guest_id == Guest.id
-        )
-        .outerjoin(
-            RoomAlias, RoomAlias.id == ReservationAlias.room_id
-        )
-        .filter(
-            Guest.hotel_id == hotel_id,
-            Guest.is_deleted == False,)
-        .order_by(Guest.name)
-    )
+    query = db.query(
+        Guest,
+        subquery.c.reservation_check_in,
+        subquery.c.reservation_status,
+        subquery.c.reservation_id
+    ) \
+        .outerjoin(subquery, Guest.id == subquery.c.guest_id) \
+        .filter(Guest.hotel_id == hotel_id, Guest.is_deleted == False)
 
     if name:
-        guests = guests.filter(Guest.name.ilike(f"%{name}%"))
+        query = query.filter(Guest.name.ilike(f"%{name}%"))
         add_flash_message(request, f"Filtro aplicado", "success")
     if cpf:
-        guests = guests.filter(Guest.cpf.like(f"%{cpf}%"))
+        query = query.filter(Guest.cpf.like(f"%{cpf}%"))
         add_flash_message(request, f"Filtro aplicado", "success")
 
     return render(
@@ -101,7 +98,7 @@ def guests(
         "dashboard/guests/guests.html",
         {
             "request": request,
-            "guests": guests.all(),
+            "guests": query.all(),
             "has_filter": True if (name or cpf) else False,
             "now": datetime.datetime.now()
         }

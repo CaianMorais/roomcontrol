@@ -88,36 +88,36 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for guest, check_in, status, id, room_number in guests %}
+                                {% for guest in guests %}
                                     <tr class="align-items-center">
                                         <td class="border-bottom-0">
-                                            <p class="fw-semibold mb-0">{{ guest.name }}</p>
+                                            <p class="fw-semibold mb-0">{{ guest.Guest.name }}</p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="fw-semibold mb-0">{{ guest.cpf[:3] + "." + guest.cpf[3:6] + "." + guest.cpf[6:9] + "." + guest.cpf[9:] }}</p>
+                                            <p class="fw-semibold mb-0">{{ guest.Guest.cpf[:3] + "." + guest.Guest.cpf[3:6] + "." + guest.Guest.cpf[6:9] + "." + guest.Guest.cpf[9:] }}</p>
                                             {# <span class="fw-normal">Web Designer</span> #}
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="mb-0 fw-normal">{{ guest.email if guest.email else 'Não informado' }}</p>
+                                            <p class="mb-0 fw-normal">{{ guest.Guest.email if guest.Guest.email else 'Não informado' }}</p>
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">
-                                                {{ "(" + guest.phone_number[:2] + ") " + guest.phone_number[2:] if guest.phone_number else 'Não informado' }}
+                                                {{ "(" + guest.Guest.phone_number[:2] + ") " + guest.Guest.phone_number[2:] if guest.Guest.phone_number else 'Não informado' }}
                                             </p>
                                         </td>
                                         <td class="border-bottom-0">
                                             <p class="mb-0 fw-normal">
-                                                {% if status != 'checked_out' and status != 'canceled' %}
-                                                    {{ id if room_number else 'Sem reserva' }}
+                                                {% if guest.reservation_id %}
+                                                    {{ guest.reservation_id }}
                                                 {% else %}
                                                     Sem reserva
                                                 {% endif %}
                                             </p>
                                         </td>
                                         <td class="border-bottom-0">
-                                            <p class="mb-0 fw-normal {{ 'text-success' if status == 'checked_in' }} {{ 'text-info' if status == 'booked' }}">
-                                                {% if status != 'checked_out' and status != 'canceled' %}
-                                                    {{ check_in.strftime("%d/%m/%Y %H:%M") if check_in else 'Sem reserva' }}
+                                            <p class="mb-0 fw-normal {{ 'text-success' if guest.reservation_status == 'checked_in' }} {{ 'text-info' if guest.reservation_status == 'booked' }}">
+                                                {% if guest.reservation_check_in %}
+                                                    {{ guest.reservation_check_in.strftime("%d/%m/%Y %H:%M") }}
                                                 {% else %}
                                                     Sem reserva
                                                 {% endif %}
@@ -125,8 +125,12 @@
                                         </td>
                                         <td class="border-bottom-0">
                                             <div class="d-flex align-items-center justify-content-start gap-3 fs-6">
-                                                <a href="{{ url_for('new_reservation') }}?guest_id={{ guest.id }}" class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Reservar este hóspede" data-bs-original-title="Reservar este hóspede" aria-label="Reservar este hóspede"><i class="ti ti-calendar-plus"></i></a>
-                                                <a href="{{ url_for('edit_guest', guest_id=guest.id, guest_cpf=guest.cpf) }}" class="text-success"><i class="ti ti-pencil"></i></a>
+                                                {% if not guest.reservation_id %}
+                                                    <a href="{{ url_for('new_reservation') }}?guest_id={{ guest.Guest.id }}" class="text-primary" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Reservar este hóspede" data-bs-original-title="Reservar este hóspede" aria-label="Reservar este hóspede"><i class="ti ti-calendar-plus"></i></a>
+                                                {% else %}
+                                                    <a href="{{ url_for('manage_reservation', reservation_id=guest.reservation_id) }}" class="text-dark" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Gerenciar reserva" data-bs-original-title="Gerenciar reserva" aria-label="Gerenciar reserva"><i class="ti ti-calendar-cog"></i></a>
+                                                {% endif %}
+                                                <a href="{{ url_for('edit_guest', guest_id=guest.Guest.id, guest_cpf=guest.Guest.cpf) }}" class="text-success"><i class="ti ti-pencil"></i></a>
                                             </div>
                                         </td>
                                     </tr>

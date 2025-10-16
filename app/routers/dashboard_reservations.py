@@ -18,8 +18,14 @@ from app.utils.session_guard import require_session
 from app.schemas.reservations import ReservationBase, ReservationCreate, ReservationOut
 from app.models.reservations import Reservations
 from app.models.guest import Guest
-from app.helpers.verify_guest import verify_guest
+from app.helpers.verify_guest import verify_guest_by_id, verify_guest_by_cpf
 from app.helpers.verify_room import verify_room
+from app.helpers.reservations.booked_checkin import booked_to_checkin
+from app.helpers.reservations.checkin_checkout import ckeckin_to_checkout
+from app.helpers.reservations.cancel_reservation import cancel_reservation
+from app.helpers.reservations.price_calculator import calc_price
+from app.helpers.reservations.fast_update_reservation import fast_update_reservation
+from app.helpers.reservations.create_reservation import verify_and_create_reservation
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -153,7 +159,7 @@ def new_reservation(
         return RedirectResponse(url="/dashboard", status_code=303)
     
     if guest_id:
-        guest = verify_guest(request, guest_id, hotel_id, db)
+        guest = verify_guest_by_id(request, guest_id, hotel_id, db)
     else:
         guest = []
 
@@ -186,6 +192,7 @@ def check_availability(
     guest_conflict = None
     if guest_id:
         guest_conflict = db.query(Reservations).filter(
+            Reservations.status.not_in(["canceled", "checked_out"]),
             Reservations.guest_id == guest_id,
             Reservations.check_in < check_out,
             Reservations.check_out > check_in
@@ -245,54 +252,22 @@ def check_availability(
 def create_reservation(
     request: Request,
     db: Session = Depends(get_db),
-    name: Optional[str] = Query(""),
     cpf: str = Form(...),
     room_id: int = Form(...),
     check_in: datetime.datetime = Form(...),
     check_out: datetime.datetime = Form(...),
     csrf_token: str = Form(...)
 ):
-
     if not validate_csrf_token(csrf_token):
         add_flash_message(request, "Token de segurança inválido", "danger")
         return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
 
     hotel_id = request.session.get("hotel_id")
 
-    guest = db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id).first()
-    room = db.query(Rooms).filter(Rooms.id == room_id).filter(Rooms.hotel_id == hotel_id).first()
+    guest = verify_guest_by_cpf(request, cpf, hotel_id, db)
+    room = verify_room(request, room_id, hotel_id, db)
 
-    verify_guest(request, guest.id, hotel_id, db)
-    verify_room(request, room.id, hotel_id, db)
-    
-    if check_out <= check_in:
-        add_flash_message(request, "Data de check-out deve ser posterior à data de check-in.", "danger")
-        return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
-    
-    if check_out < datetime.datetime.now():
-        add_flash_message(request, "O horário de check-out não pode ser menor que o horário atual.", "danger")
-        return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
-
-    
-    if check_in > datetime.datetime.now():
-        status= 'booked'
-    elif check_in <= datetime.datetime.now():
-        status= 'checked_in'
-        room.status = 'occupied'
-    else:
-        add_flash_message(request, "Data de check-in inválida.", "danger")
-        return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
-
-    new_reservation = Reservations(
-        guest_id=guest.id,
-        room_id=room_id,
-        check_in=check_in,
-        check_out=check_out,
-        status=status
-    )
-
-    db.add(new_reservation)
-    db.commit()
+    verify_and_create_reservation(request, check_in, check_out, room, guest, db)
 
     add_flash_message(request, "Reserva criada com sucesso!", "success")
     return RedirectResponse(url="/dashboard_reservations", status_code=303)
@@ -303,7 +278,6 @@ def update_reservation(
     reservation_id: int,
     db: Session = Depends(get_db),
 ):
-    
     hotel_id = request.session.get('hotel_id')
     reservation = db.query(Reservations).filter(Reservations.id == reservation_id).first()
     if not reservation:
@@ -316,24 +290,7 @@ def update_reservation(
     .filter(Guest.hotel_id == hotel_id) \
     .first()
     
-    # Agendada -> Check-in
-    if reservation.status == 'booked' and room.status == 'available':
-        reservation.status = 'checked_in'
-        reservation.check_in = datetime.datetime.now()
-        room.status = 'occupied'
-    # Check-in -> Check-out
-    elif reservation.status == 'checked_in' and room.status == 'occupied':
-        reservation.status = 'checked_out'
-        reservation.check_out = datetime.datetime.now()
-        room.status = 'available'
-    else:
-        return {
-            "message": f"Não foi possível modificar essa reserva."
-        }
-
-    db.commit()
-    db.refresh(reservation)
-    db.refresh(room)
+    fast_update_reservation(reservation, room, db)
     
     return {
         "id": reservation.id,
@@ -364,49 +321,11 @@ def manage_reservation(
         add_flash_message(request, "Reserva não encontrada", "warning")
         return RedirectResponse(url='/dashboard_reservations', status_code=303)
     
-    if check_in and reservation.Reservations.status == 'booked':
-        reservation.Reservations.status = 'checked_in'
-        check_in_now = datetime.datetime.now()
-        reservation.Reservations.check_in = check_in_now
-        if check_in_now > reservation.Reservations.check_out:
-            reservation.Reservations.check_out = check_in_now + datetime.timedelta(days=1)
-            add_flash_message(request, "Devido ao conflito de datas, a previsão do check-out foi alterada automaticamente.", "warning")
-        reservation.Rooms.status = 'occupied'
-        db.commit()
-        db.refresh(reservation.Reservations)
-        db.refresh(reservation.Rooms)
-        add_flash_message(request, "Reserva atualizada com sucesso!", 'success')
-    elif check_in and reservation.Reservations.status != 'booked': 
-        return RedirectResponse(url=f'/dashboard_reservations/manage/{reservation_id}', status_code=303)
+    booked_to_checkin(request, check_in, reservation, db)
+    ckeckin_to_checkout(request, check_out, reservation, db)
+    cancel_reservation(request, cancel, reservation, db)
+    price = calc_price(reservation)
 
-    if check_out and reservation.Reservations.status == 'checked_in':
-        reservation.Reservations.status = 'checked_out'
-        reservation.Reservations.check_out = datetime.datetime.now()
-        reservation.Rooms.status = 'available'
-        db.commit()
-        db.refresh(reservation.Reservations)
-        db.refresh(reservation.Rooms)
-        add_flash_message(request, "Reserva atualizada com sucesso!", 'success')
-    elif check_out and reservation.Reservations.status != 'checked_in': 
-        return RedirectResponse(url=f'/dashboard_reservations/manage/{reservation_id}', status_code=303)
-
-    if cancel and reservation.Reservations.status == 'canceled':
-        add_flash_message(request, "A reserva já está cancelada", 'warning')
-    elif cancel and reservation.Reservations.status == 'checked_out':
-        add_flash_message(request, "A reserva já foi encerrada", 'warning')
-    elif cancel and (reservation.Reservations.status == 'booked' or reservation.Reservations.status == 'checked_in'):
-        reservation.Reservations.status = 'canceled'
-        reservation.Rooms.status = 'available'
-        db.commit()
-        db.refresh(reservation.Reservations)
-        db.refresh(reservation.Rooms)
-        add_flash_message(request, "A reserva foi cancelada com sucesso", 'success')
-
-    days = reservation.Reservations.check_out - reservation.Reservations.check_in
-    total_days = ceil(days.total_seconds() / (24 * 3600))
-    price = reservation.Rooms.price * total_days
-
-        
     return render(
         templates,
         request,
