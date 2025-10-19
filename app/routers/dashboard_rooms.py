@@ -253,7 +253,12 @@ def create_room(
     return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
 @router.get("/edit/{room_id}", response_class=HTMLResponse, include_in_schema=False)
-def edit_room(room_id: int, request: Request, db: Session = Depends(get_db)):
+def edit_room(
+    room_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    next: Optional[str] = Query(None),
+):
     room = db.query(Rooms).filter_by(id=room_id, hotel_id=request.session.get("hotel_id")).first()
     if room.status == 'occupied':
         add_flash_message(request, "Apenas visualização, não é possível alterar quartos ocupados.", 'secondary')
@@ -264,7 +269,16 @@ def edit_room(room_id: int, request: Request, db: Session = Depends(get_db)):
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     csrf_token = generate_csrf_token()
-    return render(templates, request, "dashboard/rooms/edit_room.html", {"room": room, "csrf_token": csrf_token})
+    return render(
+        templates, 
+        request, 
+        "dashboard/rooms/edit_room.html", 
+        {
+            "room": room, 
+            "csrf_token": csrf_token,
+            "next": next
+        }
+    )
 
 @router.post("/edit/{room_id}", response_class=HTMLResponse, include_in_schema=False)
 def update_room(
@@ -279,6 +293,7 @@ def update_room(
     is_active: Optional[bool] = Form(False),
     comments: Optional[str] = Form(""),
     csrf_token: str = Form(...),
+    next: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     # valida o CSRF token
@@ -346,6 +361,8 @@ def update_room(
     db.commit()
     db.refresh(room)
     add_flash_message(request, f"Quarto {room.room_number} atualizado com sucesso.", "success")
+    if next:
+        return RedirectResponse(url=next, status_code=303)
     return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
 @router.get("/delete/{room_id}", include_in_schema=False)

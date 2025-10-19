@@ -1,31 +1,35 @@
-from decimal import Decimal
-import sys
+# import de libs padrao
 import datetime
-from app.core.config import SessionLocal
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
+
+# import de libs da third-party
+from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import case, or_
 from sqlalchemy.orm import Session
-from passlib.hash import bcrypt
-from math import ceil
 
+# import de funções da aplicação local
+from app.core.config import SessionLocal
 from app.core.security import generate_csrf_token, validate_csrf_token
 from app.models.rooms import Rooms
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
-from app.schemas.reservations import ReservationBase, ReservationCreate, ReservationOut
+from app.schemas.reservations import ReservationOut
 from app.models.reservations import Reservations
 from app.models.guest import Guest
 from app.helpers.verify_guest import verify_guest_by_id, verify_guest_by_cpf
 from app.helpers.verify_room import verify_room
 from app.helpers.reservations.booked_checkin import booked_to_checkin
-from app.helpers.reservations.checkin_checkout import ckeckin_to_checkout
+from app.helpers.reservations.checkin_to_checkout import checkin_to_checkout
 from app.helpers.reservations.cancel_reservation import cancel_reservation
 from app.helpers.reservations.price_calculator import calc_price
 from app.helpers.reservations.fast_update_reservation import fast_update_reservation
 from app.helpers.reservations.create_reservation import verify_and_create_reservation
+from app.helpers.reservations.filter_reservations import filter_reservations
+from app.helpers.reservations.order_reservations import order_reservations
+from app.helpers.reservations.conflict_guest import conflict_guest
+from app.helpers.reservations.guest_availability import guest_availability
+from app.helpers.reservations.room_availability import room_availability
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -82,58 +86,18 @@ def reservations(
     check_out: Optional[str] = Query(None, description="Data do check-out")
 ):
     hotel_id = request.session.get("hotel_id")
-    
+    has_filter = False
+
     query = db.query(Reservations, Rooms.room_number, Guest.name, Guest.id) \
         .join(Rooms, Rooms.id == Reservations.room_id) \
         .join(Guest, Guest.id == Reservations.guest_id) \
         .filter(Rooms.hotel_id == hotel_id) \
-        
-    if search:
-        query = query.filter(
-            or_(
-                Reservations.id == search,
-                Guest.name.ilike(f"%{search}%")
-            )
-        )
-    if room:
-        query = query.filter(Rooms.id == room)
-    if status:
-        query = query.filter(Reservations.status == status)
-    if interval_in and check_in:
-        try:
-            check_in_dt = datetime.datetime.strptime(check_in, '%Y-%m-%dT%H:%M')
-            if interval_in == 'before':
-                query = query.filter(Reservations.check_in < check_in_dt)
-            elif interval_in == 'after':
-                query = query.filter(Reservations.check_in > check_in_dt)
-        except ValueError as e:
-            add_flash_message(request, f"Erro: {e}", "danger")
-    if interval_out and check_out:
-        try:
-            check_out_dt = datetime.datetime.strptime(check_out, "%Y-%m-%dT%H:%M")
-            if interval_out == 'before':
-                query = query.filter(Reservations.check_out < check_out_dt)
-            elif interval_out == 'after':
-                query = query.filter(Reservations.check_out > check_out_dt)
-        except ValueError as e:
-            add_flash_message(request, f"Erro: {e}", "danger")
-            
-    reservations = query.order_by(
-        case(
-            (Reservations.status == "booked", 1),
-            (Reservations.status == "checked_in", 2),
-            (Reservations.status == "checked_out", 3),
-            (Reservations.status == "canceled", 4),
-        ),
-        Reservations.check_in
-    ).all()
-    
-    if search or room or status or (interval_in and check_in) or (interval_out and check_out):
-        if len(reservations) == 0:
-            add_flash_message(request, 'Nenhuma reserva encontrada com os filtros aplicados.', "warning")
-            return RedirectResponse(url='/dashboard_reservations', status_code=303)
-        elif len(reservations and (room or status or (interval_in and check_in) or (interval_out and check_out))) > 0:
-            add_flash_message(request, "Filtro aplicado", "success")
+
+    if (search or room or status or (interval_in and check_in) or (interval_out and check_out)):
+        has_filter = True
+        query = filter_reservations(request, has_filter, query, search, room, status, interval_in, check_in, interval_out, check_out)
+
+    reservations = order_reservations(query)
              
     return render(
         templates,
@@ -143,7 +107,7 @@ def reservations(
             "request": request,
             "reservations": reservations,
             "hotel_id": hotel_id,
-            "has_filter": True if (search or room or status or (interval_in and check_in) or (interval_out and check_out)) else False
+            "has_filter": has_filter
         }
     )
 
@@ -187,43 +151,17 @@ def check_availability(
     guest_id: Optional[int] = Query(None),
 ):
     hotel_id = request.session.get("hotel_id")
-
-    # Hóspede específico
     guest_conflict = None
+
+    # se tiver hospede específicado
     if guest_id:
-        guest_conflict = db.query(Reservations).filter(
-            Reservations.status.not_in(["canceled", "checked_out"]),
-            Reservations.guest_id == guest_id,
-            Reservations.check_in < check_out,
-            Reservations.check_out > check_in
-        ).first()
-        print(bool(guest_conflict))
+        guest_conflict = conflict_guest(guest_id, check_in, check_out, db)
         available_guests = []
     else:
-        # Hóspedes disponíveis
-        reserved_guest_ids = db.query(Reservations.guest_id).filter(
-            Reservations.check_in < check_out,
-            Reservations.check_out > check_in,
-            Reservations.status.in_(["booked", "checked_in"])
-        ).subquery()
-
-        available_guests = db.query(Guest).filter(
-            Guest.hotel_id == hotel_id,
-            ~Guest.id.in_(reserved_guest_ids)
-        ).all()
-
+        available_guests = guest_availability(hotel_id, check_in, check_out, db)
+    
     # Quartos disponíveis
-    reserved_room_ids = db.query(Reservations.room_id).filter(
-        Reservations.status.in_(["booked", "checked_in"]),
-        Reservations.check_in < check_out,
-        Reservations.check_out > check_in
-    ).subquery()
-
-    available_rooms = db.query(Rooms).filter(
-        Rooms.hotel_id == hotel_id,
-        Rooms.status != "maintenance",
-        ~Rooms.id.in_(reserved_room_ids)
-    ).all()
+    available_rooms = room_availability(db, check_in, check_out, hotel_id)
 
     return {
         "guest_conflict": bool(guest_conflict),
@@ -322,7 +260,7 @@ def manage_reservation(
         return RedirectResponse(url='/dashboard_reservations', status_code=303)
     
     booked_to_checkin(request, check_in, reservation, db)
-    ckeckin_to_checkout(request, check_out, reservation, db)
+    checkin_to_checkout(request, check_out, reservation, db)
     cancel_reservation(request, cancel, reservation, db)
     price = calc_price(reservation)
 

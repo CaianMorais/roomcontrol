@@ -213,9 +213,7 @@ def update_guest(
     db.refresh(guest)
 
     add_flash_message(request, f"Cadastro de {guest.name} editado com sucesso!", "success")
-    print(next)
     if next:
-        print(next)
         return RedirectResponse(url=next, status_code=303)
     return RedirectResponse(url="/dashboard_guests", status_code=303)
 
