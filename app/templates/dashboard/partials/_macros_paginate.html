@@ -1,0 +1,38 @@
+{# --- Macros de URL que preservam todos os filtros --- #}
+{% macro build_url(new_page=None, new_per_page=None) -%}
+  {# base da rota #}
+  {% set base = url_for('reservations') %}
+
+  {# remonta a querystring atual, excluindo page/per_page #}
+  {% set ns = namespace(qs='') %}
+  {% for k, v in request.query_params.multi_items() %}
+    {% if k != 'page' and k != 'per_page' and v is not none and v != '' %}
+      {% set ns.qs = ns.qs ~ ( '&' if ns.qs else '' ) ~ k ~ '=' ~ (v | urlencode) %}
+    {% endif %}
+  {% endfor %}
+
+  {# injeta page/per_page desejados (se não passados, mantém os atuais) #}
+  {% set page_val = new_page if new_page is not none else pager.page %}
+  {% set per_val  = new_per_page if new_per_page is not none else pager.per_page %}
+
+  {% set ns.qs = ns.qs ~ ( '&' if ns.qs else '' ) ~ 'page=' ~ page_val %}
+  {% set ns.qs = ns.qs ~ '&per_page=' ~ per_val %}
+
+  {{ base ~ '?' ~ ns.qs }}
+{%- endmacro %}
+
+{# atalhos #}
+{% macro page_url(n) -%}{{ build_url(new_page=n) }}{%- endmacro %}
+{% macro per_page_url(n) -%}{{ build_url(new_page=1, new_per_page=n) }}{%- endmacro %}
+
+<div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small">Itens por página:</span>
+        <div class="btn-group btn-group-sm" role="group" aria-label="Itens por página">
+            {% for n in [10,20,50,100] %}
+            <a class="btn btn-outline-secondary {% if pager.per_page == n %}active{% endif %}"
+                href="{{ per_page_url(n) }}">{{ n }}</a>
+            {% endfor %}
+        </div>
+    </div>
+</div>

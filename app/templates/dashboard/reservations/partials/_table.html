@@ -1,3 +1,7 @@
+
+
+
+
 <div class="d-flex align-items-center justify-content-between">
     <h5 class="card-title fw-semibold mb-4">Reservas</h5>
     <div>
@@ -14,6 +18,7 @@
             href="{{ url_for('new_guest') }}">Novo Hóspede</a>
     </div>
 </div>
+{% include 'dashboard/partials/_macros_paginate.html' %}
 <div class="table-responsive">
     <table class="table text-nowrap mb-0 align-middle">
         <thead class="text-dark fs-4">
@@ -107,3 +112,4 @@
         </tbody>
     </table>
 </div>
+{% include 'dashboard/partials/_paginate.html' %}

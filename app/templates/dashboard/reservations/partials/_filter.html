@@ -1,6 +1,8 @@
 <div class="collapse" id="filtro_reservas">
     <div class="card card-body">
         <form action="{{ url_for('reservations') }}" method="GET">
+            <input type="hidden" name="per_page" value="{{ pager.per_page }}">
+            <input type="hidden" name="page" value="1">
             <div class="row mb-4">
                 <div class="col-12">
                     <label for="search" class="form-label">Nº da reserva ou Nome do Hóspede</label>

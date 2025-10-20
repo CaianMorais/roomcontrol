@@ -1,0 +1,6 @@
+app/static/**/*.css linguist-vendored
+app/static/**/*.scss linguist-vendored
+**/*.min.js linguist-generated=true
+**/*.min.css linguist-generated=true
+app/static/**/lib/** linguist-vendored
+app/static/**/libs/** linguist-vendored

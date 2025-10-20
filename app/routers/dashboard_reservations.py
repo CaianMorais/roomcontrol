@@ -17,6 +17,7 @@ from app.utils.session_guard import require_session
 from app.schemas.reservations import ReservationOut
 from app.models.reservations import Reservations
 from app.models.guest import Guest
+from app.helpers.paginate import paginate
 from app.helpers.verify_guest import verify_guest_by_id, verify_guest_by_cpf
 from app.helpers.verify_room import verify_room
 from app.helpers.reservations.booked_checkin import booked_to_checkin
@@ -83,7 +84,9 @@ def reservations(
     interval_in: Optional[str] = Query("", description="Intervalo do check-in"),
     check_in: Optional[str] = Query(None, description="Data do check-in"),
     interval_out: Optional[str] = Query("", description="Intervalo do check-out"),
-    check_out: Optional[str] = Query(None, description="Data do check-out")
+    check_out: Optional[str] = Query(None, description="Data do check-out"),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=200),
 ):
     hotel_id = request.session.get("hotel_id")
     has_filter = False
@@ -97,7 +100,8 @@ def reservations(
         has_filter = True
         query = filter_reservations(request, has_filter, query, search, room, status, interval_in, check_in, interval_out, check_out)
 
-    reservations = order_reservations(query)
+    query = order_reservations(query)
+    reservations, pager = paginate(query, page, per_page)
              
     return render(
         templates,
@@ -107,7 +111,8 @@ def reservations(
             "request": request,
             "reservations": reservations,
             "hotel_id": hotel_id,
-            "has_filter": has_filter
+            "has_filter": has_filter,
+            "pager": pager,
         }
     )
 

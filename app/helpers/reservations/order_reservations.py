@@ -10,5 +10,5 @@ def order_reservations(query):
             (Reservations.status == "canceled", 4),
         ),
         Reservations.check_in
-    ).all()
+    )
     return reservations
