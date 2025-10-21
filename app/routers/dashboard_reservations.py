@@ -7,6 +7,8 @@ from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
 
 # import de funções da aplicação local
 from app.core.config import SessionLocal
@@ -101,7 +103,10 @@ def reservations(
         query = filter_reservations(request, has_filter, query, search, room, status, interval_in, check_in, interval_out, check_out)
 
     query = order_reservations(query)
-    reservations, pager = paginate(query, page, per_page)
+
+    params = Params(page=page, size=per_page)
+    page_obj = sa_paginate(db, query, params)
+
              
     return render(
         templates,
@@ -109,10 +114,15 @@ def reservations(
         "dashboard/reservations/reservations.html",
         {
             "request": request,
-            "reservations": reservations,
+            "reservations": page_obj.items,
             "hotel_id": hotel_id,
             "has_filter": has_filter,
-            "pager": pager,
+            "pager": {
+                "page": page_obj.page,
+                "pages": page_obj.pages,
+                "per_page": page_obj.size,
+                "total": page_obj.total,
+            },
         }
     )
 

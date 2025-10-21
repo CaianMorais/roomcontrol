@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi_pagination import add_pagination
 from app.routers import dashboard, dashboard_rooms
 from app.utils.flash import add_flash_message, render
 from sqlalchemy.orm import Session
@@ -28,6 +29,8 @@ def get_db():
         yield db
     finally:
         db.close()
+
+add_pagination(app)
 
 #INCLUSAO DAS ROTAS DE API
 app.include_router(auth.api_router)

@@ -1,34 +1,40 @@
-
-{# paginação #}
+{# Paginação #}
 {% if pager.pages > 1 %}
 <nav class="mt-3 d-flex justify-content-center" aria-label="Paginação de reservas">
   <ul class="pagination mb-0">
     <li class="page-item {% if pager.page <= 1 %}disabled{% endif %}">
-      <a class="page-link" href="{{ page_url(pager.page - 1) }}">Anterior</a>
+      <a class="page-link"
+         href="{{ request.url.include_query_params(page=pager.page-1, per_page=pager.per_page) }}">Anterior</a>
     </li>
 
-    {# janela de páginas (±2 em torno da atual) #}
-    {% set start = 1 if pager.page - 2 < 1 else pager.page - 2 %}
-    {% set end = pager.pages if pager.page + 2 > pager.pages else pager.page + 2 %}
+    {% set s = 1 if pager.page - 2 < 1 else pager.page - 2 %}
+    {% set e = pager.pages if pager.page + 2 > pager.pages else pager.page + 2 %}
 
-    {% if start > 1 %}
-      <li class="page-item"><a class="page-link" href="{{ page_url(1) }}">1</a></li>
-      {% if start > 2 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+    {% if s > 1 %}
+      <li class="page-item">
+        <a class="page-link" href="{{ request.url.include_query_params(page=1, per_page=pager.per_page) }}">1</a>
+      </li>
+      {% if s > 2 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
     {% endif %}
 
-    {% for n in range(start, end + 1) %}
+    {% for n in range(s, e+1) %}
       <li class="page-item {% if n == pager.page %}active{% endif %}">
-        <a class="page-link" href="{{ page_url(n) }}">{{ n }}</a>
+        <a class="page-link"
+           href="{{ request.url.include_query_params(page=n, per_page=pager.per_page) }}">{{ n }}</a>
       </li>
     {% endfor %}
 
-    {% if end < pager.pages %}
-      {% if end < pager.pages - 1 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
-      <li class="page-item"><a class="page-link" href="{{ page_url(pager.pages) }}">{{ pager.pages }}</a></li>
+    {% if e < pager.pages %}
+      {% if e < pager.pages - 1 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+      <li class="page-item">
+        <a class="page-link"
+           href="{{ request.url.include_query_params(page=pager.pages, per_page=pager.per_page) }}">{{ pager.pages }}</a>
+      </li>
     {% endif %}
 
     <li class="page-item {% if pager.page >= pager.pages %}disabled{% endif %}">
-      <a class="page-link" href="{{ page_url(pager.page + 1) }}">Próxima</a>
+      <a class="page-link"
+         href="{{ request.url.include_query_params(page=pager.page+1, per_page=pager.per_page) }}">Próxima</a>
     </li>
   </ul>
 </nav>

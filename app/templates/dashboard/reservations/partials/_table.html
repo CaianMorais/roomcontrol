@@ -6,7 +6,10 @@
     <h5 class="card-title fw-semibold mb-4">Reservas</h5>
     <div>
         {% if has_filter %}
-        <a class="btn btn-outline-warning mb-4" href="{{ url_for('reservations') }}">Limpar Filtros</a>
+        <a class="btn btn-outline-warning mb-4"
+            href="{{ url_for('reservations') }}?per_page={{ pager.per_page }}">
+            Limpar Filtros
+        </a>
         {% endif %}
         <a class="btn btn-success mb-4" data-bs-toggle="tooltip" data-bs-placement="top"
             data-bs-custom-class="custom-tooltip"
@@ -18,7 +21,7 @@
             href="{{ url_for('new_guest') }}">Novo Hóspede</a>
     </div>
 </div>
-{% include 'dashboard/partials/_macros_paginate.html' %}
+{% include 'dashboard/partials/_per_page.html' %}
 <div class="table-responsive">
     <table class="table text-nowrap mb-0 align-middle">
         <thead class="text-dark fs-4">
