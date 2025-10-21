@@ -5,6 +5,8 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
 from sqlalchemy import cast, DateTime, outerjoin
 from sqlalchemy.orm import Session, aliased
 from passlib.hash import bcrypt
@@ -62,7 +64,9 @@ def guests(
     request: Request,
     db: Session = Depends(get_db),
     name: Optional[str] = Query("", description="Nome do hóspede"),
-    cpf: Optional[str] = Query("", description="CPF do hóspede")
+    cpf: Optional[str] = Query("", description="CPF do hóspede"),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=200),
     ):
     hotel_id = request.session.get("hotel_id")
     subquery = db.query(
@@ -92,15 +96,24 @@ def guests(
         query = query.filter(Guest.cpf.like(f"%{cpf}%"))
         add_flash_message(request, f"Filtro aplicado", "success")
 
+    params = Params(page=page, size=per_page)
+    page_obj = sa_paginate(db, query, params)
+
     return render(
         templates,
         request,
         "dashboard/guests/guests.html",
         {
             "request": request,
-            "guests": query.all(),
+            "guests": page_obj.items,
             "has_filter": True if (name or cpf) else False,
-            "now": datetime.datetime.now()
+            "now": datetime.datetime.now(),
+            "pager": {
+                "page": page_obj.page,
+                "pages": page_obj.pages,
+                "per_page": page_obj.size,
+                "total": page_obj.total,
+            },
         }
     )
 
