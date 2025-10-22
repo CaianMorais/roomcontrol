@@ -1,10 +1,11 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+import datetime
 
 class ReservationBase(BaseModel):
     guest_id: int
     room_id: int
-    check_in: str
-    check_out: str
+    check_in: datetime.datetime
+    check_out: datetime.datetime
     status: str
 
 class ReservationCreate(ReservationBase):

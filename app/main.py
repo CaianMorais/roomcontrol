@@ -14,7 +14,7 @@ from app.core.config import SessionLocal
 from app.models.guest import Guest
 from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations
 
-app = FastAPI(title="Hotel Management API")
+app = FastAPI(title="Room Control - API de Gerenciamento")
 
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static/main"), name="static")
