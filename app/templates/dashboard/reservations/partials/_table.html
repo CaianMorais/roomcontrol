@@ -1,7 +1,3 @@
-
-
-
-
 <div class="d-flex align-items-center justify-content-between">
     <h5 class="card-title fw-semibold mb-4">Reservas</h5>
     <div>
@@ -11,14 +7,16 @@
             Limpar Filtros
         </a>
         {% endif %}
-        <a class="btn btn-success mb-4" data-bs-toggle="tooltip" data-bs-placement="top"
-            data-bs-custom-class="custom-tooltip"
-            data-bs-title="Se o hóspede já estiver cadastrado você pode ir direto pra reserva."
-            href="{{ url_for('new_reservation') }}">Nova Reserva</a>
         <a class="btn btn-primary mb-4" data-bs-toggle="tooltip" data-bs-placement="top"
             data-bs-custom-class="custom-tooltip"
             data-bs-title="É necessário cadastrar o hóspede antes de fazer a reserva."
-            href="{{ url_for('new_guest') }}">Novo Hóspede</a>
+            href="{{ url_for('new_guest') }}">Novo Hóspede
+        </a>
+        <a class="btn btn-success mb-4" data-bs-toggle="tooltip" data-bs-placement="top"
+            data-bs-custom-class="custom-tooltip"
+            data-bs-title="Se o hóspede já estiver cadastrado você pode ir direto pra reserva."
+            href="{{ url_for('new_reservation') }}">Nova Reserva
+        </a>
     </div>
 </div>
 {% include 'dashboard/partials/_per_page.html' %}

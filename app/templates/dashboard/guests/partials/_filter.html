@@ -1,0 +1,33 @@
+<div class="card w-100 shadow-lg">
+    <div class="card-body py-0 px-2">
+        <p class="d-inline-flex gap-1">
+        <h4 class="text-center">
+            <a class="" data-bs-toggle="collapse" href="#filtros" role="button" aria-expanded="false"
+                aria-controls="filtros">
+                Filtros
+            </a>
+        </h4>
+        </p>
+        <div class="collapse show" id="filtros">
+            <div class="card card-body">
+                <form action="{{ url_for('guests') }}" method="GET">
+                    <input type="hidden" name="per_page" value="{{ pager.per_page }}">
+                    <input type="hidden" name="page" value="1">
+                    <div class="row">
+                        <div class="mb-3 col-6">
+                            <label for="name" class="form-label">Nome do hóspede</label>
+                            <input type="text" class="form-control" id="name" name="name" minlength="3"
+                                placeholder="Min. 3 caracteres">
+                        </div>
+                        <div class="mb-3 col-6">
+                            <label for="cpf" class="form-label">CPF do hóspede</label>
+                            <input type="text" class="form-control" id="cpf" name="cpf" maxlength="11"
+                                placeholder="Sem pontuação">
+                        </div>
+                    </div>
+                    <button class="btn btn-success" type="submit">Aplicar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
