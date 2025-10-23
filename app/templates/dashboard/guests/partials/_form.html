@@ -1,0 +1,48 @@
+<h5 class="card-title fw-semibold mb-4">
+    {% if not guest %}
+    Novo Hóspede
+    {% else %}
+    Editar Hóspede
+    {% endif %}
+</h5>
+<div class="card">
+    <div class="card-body">
+        <form action="{{ url_for('create_guest') if not guest else url_for('update_guest', guest_id=guest.id, guest_cpf=guest.cpf) }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            <div class="row">
+                <div class="mb-3 col-8">
+                    <label for="name" class="form-label">Nome e sobrenome do hóspede</label>
+                    <input type="text" class="form-control" id="name" name="name" required value="{{ guest.name if guest else '' }}" {% if guest %}readonly{% endif %}>
+                    {% if guest %}<div class="form-text text-warning">Inalterável</div>{% endif %}
+                </div>
+                <div class="mb-3 col-4">
+                    <label for="cpf" class="form-label">CPF do hóspede</label>
+                    <input type="text" class="form-control" id="cpf" name="cpf" required value="{{ guest.cpf if guest else '' }}" {% if guest %}readonly{% endif %}>
+                    {% if guest %}<div class="form-text text-warning">Inalterável</div>{% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="mb-3 col-8">
+                    <label for="email" class="form-label">E-mail do hóspede</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ guest.email if guest and guest.email else '' }}">
+                </div>
+                <div class="mb-3 col-4">
+                    <label for="phone_number" class="form-label">Telefone do hóspede</label>
+                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ guest.phone_number if guest and guest.phone_number else '' }}">
+                </div>
+            </div>
+            {% if not guest %}
+            <button type="submit" class="btn btn-primary">Salvar e prosseguir com a reserva</button>
+            <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Cancelar</a>
+            {% else %}
+            <button type="submit" class="btn btn-primary">Editar</button>
+            <a href="{{ url_for('delete_guest', guest_id=guest.id, guest_cpf=guest.cpf) }}" class="btn btn-warning ms-2 btn-delete-guest"><i class="ti ti-trash"></i> Apagar</a>
+            <a href="{{ url_for('new_reservation') }}?guest_id={{ guest.id }}" class="btn btn-secondary ms-2"><i class="ti ti-calendar-plus"></i> Reservar</a>
+            <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
