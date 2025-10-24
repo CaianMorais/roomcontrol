@@ -13,6 +13,7 @@ from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 from app.schemas.rooms import RoomOut, RoomCreate, RoomsBase
 from app.models.rooms import Rooms
+from app.models.reservations import Reservations
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -70,6 +71,7 @@ def rooms(
     
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
+    has_filter = False
 
     # valida o hotel
     if not hotel_id:
@@ -78,92 +80,86 @@ def rooms(
 
     # inicia a query
     query = db.query(Rooms).filter_by(hotel_id=hotel_id)
-    if not query.first():
-        return render(
-            templates,
-            request,
-            "dashboard/rooms/rooms.html",
-            {
-                "rooms": [],
-                "has_filter": False
-            }
-        )
 
     # aplica os filtros
-    room_types = []
-    if solteiro:
-        room_types.append("1")
-    if duplo:
-        room_types.append("2")
-        room_types.append("3")
-    if casal:
-        room_types.append("4")
-    if triplo:
-        room_types.append("5")
-        room_types.append("6")
-        room_types.append("7")
-    if triplo_com_casal:
-        room_types.append("8")
-    if personalizado:
-        room_types.append("9")
-    
-    if room_types:
-        query = query.filter(Rooms.type.in_(room_types))
+    if criteria or order or solteiro or duplo or casal or triplo or triplo_com_casal or personalizado or available or occupied or maintenance:
+        room_types = []
+        if solteiro:
+            room_types.append("1")
+        if duplo:
+            room_types.append("2")
+            room_types.append("3")
+        if casal:
+            room_types.append("4")
+        if triplo:
+            room_types.append("5")
+            room_types.append("6")
+            room_types.append("7")
+        if triplo_com_casal:
+            room_types.append("8")
+        if personalizado:
+            room_types.append("9")
+        
+        if room_types:
+            query = query.filter(Rooms.type.in_(room_types))
 
-    # filtra pela situação
-    statuses = []
-    if available:
-        statuses.append("available")
-    if occupied:
-        statuses.append("occupied")
-    if maintenance:
-        statuses.append("maintenance")
+        # filtra pela situação
+        statuses = []
+        if available:
+            statuses.append("available")
+        if occupied:
+            statuses.append("occupied")
+        if maintenance:
+            statuses.append("maintenance")
 
-    if statuses:
-        query = query.filter(Rooms.status.in_(statuses))
+        if statuses:
+            query = query.filter(Rooms.status.in_(statuses))
 
-    # aplica a ordenação
-    if criteria == "room_number":
-        if order == "cres":
-            query = query.order_by(Rooms.room_number.asc())
-        elif order == "decres":
-            query = query.order_by(Rooms.room_number.desc())
-    elif criteria == "capacity_total":
-        if order == "cres":
-            query = query.order_by(Rooms.capacity_total.asc())
-        elif order == "decres":
-            query = query.order_by(Rooms.capacity_total.desc())
-    elif criteria == "capacity_adults":
-        if order == "cres":
-            query = query.order_by(Rooms.capacity_adults.asc())
-        elif order == "decres":
-            query = query.order_by(Rooms.capacity_adults.desc())
-    elif criteria == "capacity_children":
-        if order == "cres":
-            query = query.order_by(Rooms.capacity_children.asc())
-        elif order == "decres":
-            query = query.order_by(Rooms.capacity_children.desc())
-    elif criteria == "price":
-        if order == "cres":
-            query = query.order_by(Rooms.price.asc())
-        elif order == "decres":
-            query = query.order_by(Rooms.price.desc())
+        # aplica a ordenação
+        if criteria == "room_number":
+            if order == "cres":
+                query = query.order_by(Rooms.room_number.asc())
+            elif order == "decres":
+                query = query.order_by(Rooms.room_number.desc())
+        elif criteria == "capacity_total":
+            if order == "cres":
+                query = query.order_by(Rooms.capacity_total.asc())
+            elif order == "decres":
+                query = query.order_by(Rooms.capacity_total.desc())
+        elif criteria == "capacity_adults":
+            if order == "cres":
+                query = query.order_by(Rooms.capacity_adults.asc())
+            elif order == "decres":
+                query = query.order_by(Rooms.capacity_adults.desc())
+        elif criteria == "capacity_children":
+            if order == "cres":
+                query = query.order_by(Rooms.capacity_children.asc())
+            elif order == "decres":
+                query = query.order_by(Rooms.capacity_children.desc())
+        elif criteria == "price":
+            if order == "cres":
+                query = query.order_by(Rooms.price.asc())
+            elif order == "decres":
+                query = query.order_by(Rooms.price.desc())
+    else:
+        room_types = []
+        statuses = []
+        
 
     # executa a query
     rooms = query.order_by(Rooms.is_active.desc()).all()
-    if not rooms:
-        add_flash_message(request, "Nenhum quarto encontrado com esses filtros.", "warning")
-        return RedirectResponse(url="/dashboard_rooms", status_code=303)
-    if criteria or order or room_types or statuses:
+    if rooms and (criteria or order or room_types or statuses):
         has_filter = True
         add_flash_message(request, f"Filtro aplicado: {len(rooms)} quartos encontrados.", "info")
+    elif not rooms and (criteria or order or room_types or statuses):
+        add_flash_message(request, "Nenhum quarto encontrado com esses filtros.", "warning")
     return render(
         templates,
         request,
         "dashboard/rooms/rooms.html",
         {
             "rooms": rooms,
-            "has_filter": has_filter if (criteria or order or room_types or statuses) else False
+            "has_filter": has_filter
         }
     )
 
@@ -318,6 +314,15 @@ def update_room(
     if room.status == 'occupied':
         add_flash_message(request, "O quarto não pode ser modificado enquanto ele estiver ocupado", 'warning')
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
+    
+    if room.is_active == True and room.is_active != is_active:
+        reservation = db.query(Reservations) \
+        .filter_by(room_id=room.id) \
+        .all()
+        for res in reservation:
+            if res.status in ['booked', 'checked_in']:
+                add_flash_message(request, "O quarto não pode ser desativado pois possui reservas ativas.", 'warning')
+                return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
     # define a capacidade com base no tipo do quarto (pra não depender dos dados do form)
     room_capacities = {

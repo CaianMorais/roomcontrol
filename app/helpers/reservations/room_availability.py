@@ -12,6 +12,7 @@ def room_availability(db, check_in, check_out, hotel_id):
     available_rooms = db.query(Rooms).filter(
         Rooms.hotel_id == hotel_id,
         Rooms.status != "maintenance",
+        Rooms.is_active == True,
         ~Rooms.id.in_(reserved_room_ids)
     ).all()
 

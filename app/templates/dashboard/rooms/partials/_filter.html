@@ -1,0 +1,88 @@
+<div class="card w-100 shadow-lg">
+    <div class="card-body py-0 px-2">
+        <p class="d-inline-flex gap-1">
+        <h4 class="text-center">
+            <a class="" data-bs-toggle="collapse" href="#filtros_quartos" role="button" aria-expanded="false"
+                aria-controls="filtros_quartos">
+                Filtros
+            </a>
+        </h4>
+        </p>
+        <div class="collapse" id="filtros_quartos">
+            <div class="card card-body">
+                <form action="{{ url_for('rooms') }}" method="GET">
+                    <div class="row">
+                        <div class="mb-3 col-6">
+                            <label for="criteria" class="form-label">Critério</label>
+                            <select class="form-select" name="criteria" id="criteria">
+                                <option value="">Selecione o critério do filtro</option>
+                                <option value="room_number">Número do quarto</option>
+                                <option value="price">Preço (diária)</option>
+                                <option value="capacity_adults">Capacidade de Adultos</option>
+                                <option value="capacity_children">Capacidade de Crianças</option>
+                                <option value="capacity_total">Capacidade Total</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 col-6">
+                            <label for="order" class="form-label">Ordem</label>
+                            <select class="form-select" name="order" id="order">
+                                <option value="">Selecione a ordem</option>
+                                <option value="cres">Crescente</option>
+                                <option value="decres">Decrescente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label class="form-label">Tipo</label>
+                            <div class="row">
+                                <div class="form-check col-6">
+                                    <input class="form-check-input" type="checkbox" id="solteiro" name="solteiro">
+                                    <label class="form-check-label" for="solteiro">Solteiro</label>
+                                </div>
+                                <div class="form-check col-6">
+                                    <input class="form-check-input" type="checkbox" id="duplo" name="duplo">
+                                    <label class="form-check-label" for="duplo">Duplo</label>
+                                </div>
+                                <div class="form-check col-6">
+                                    <input class="form-check-input" type="checkbox" id="casal" name="casal">
+                                    <label class="form-check-label" for="casal">Casal</label>
+                                </div>
+                                <div class="form-check col-6">
+                                    <input class="form-check-input" type="checkbox" id="triplo" name="triplo">
+                                    <label class="form-check-label" for="triplo">Triplo</label>
+                                </div>
+                                <div class="form-check col-6">
+                                    <input class="form-check-input" type="checkbox" id="triplo_com_casal"
+                                        name="triplo_com_casal">
+                                    <label class="form-check-label" for="triplo_com_casal">Triplo (com casal)</label>
+                                </div>
+                                <div class="form-check col-6">
+                                    <input class="form-check-input" type="checkbox" id="personalizado"
+                                        name="personalizado">
+                                    <label class="form-check-label" for="personalizado">Personalizado</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Situação</label>
+                            <div class="form-check col-4">
+                                <input class="form-check-input" type="checkbox" id="available" name="available">
+                                <label class="form-check-label text-success" for="available">Disponível</label>
+                            </div>
+                            <div class="form-check col-4">
+                                <input class="form-check-input" type="checkbox" id="occupied" name="occupied">
+                                <label class="form-check-label text-danger" for="occupied">Ocupado</label>
+                            </div>
+                            <div class="form-check col-4">
+                                <input class="form-check-input" type="checkbox" id="maintenance" name="maintenance">
+                                <label class="form-check-label text-secondary" for="maintenance">Manutenção</label>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" type="submit">Aplicar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

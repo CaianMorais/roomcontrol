@@ -1,0 +1,108 @@
+<div class="d-flex align-items-center justify-content-between">
+    <h5 class="card-title fw-semibold mb-4">Quartos</h5>
+    <div>
+        {% if has_filter %}
+        <a class="btn btn-outline-warning mb-4" href="{{ url_for('rooms') }}">Limpar Filtros</a>
+        {% endif %}
+        <a class="btn btn-primary mb-4" href="{{ url_for('new_room') }}">Novo Quarto</a>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table text-nowrap mb-0 align-middle">
+        <thead class="text-dark fs-4">
+            <tr>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Número</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Situação</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Tipo</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Cap. (adulto + criança)</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Ativo</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Preço (diária)</h6>
+                </th>
+                <th class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">Ações</h6>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for room in rooms %}
+            <tr>
+                <td class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0">{{ room.room_number }}</h6>
+                </td>
+                <td class="border-bottom-0">
+                    <h6 class="fw-semibold mb-1">
+                        {% if room.status == 'available' %}
+                        <span class="badge bg-success rounded-3 fw-semibold">Disponível</span>
+                        {% elif room.status == 'occupied' %}
+                        <span class="badge bg-danger rounded-3 fw-semibold">Ocupado</span>
+                        {% elif room.status == 'maintenance' %}
+                        <span class="badge bg-secondary rounded-3 fw-semibold">Manutenção</span>
+                        {% endif %}
+                    </h6>
+                    {# <span class="fw-normal">Web Designer</span> #}
+                </td>
+                <td class="border-bottom-0">
+                    <p class="mb-0 fw-normal">
+                        {% if room.type == '1' %}
+                        Solteiro
+                        {% elif room.type == '2' %}
+                        Duplo
+                        {% elif room.type == '3' %}
+                        Duplo
+                        {% elif room.type == '4' %}
+                        Casal
+                        {% elif room.type == '5' %}
+                        Triplo
+                        {% elif room.type == '6' %}
+                        Triplo
+                        {% elif room.type == '7' %}
+                        Triplo
+                        {% elif room.type == '8' %}
+                        Triplo (com casal)
+                        {% elif room.type == '9' %}
+                        Personalizado
+                        {% endif %}
+                    </p>
+                </td>
+                <td class="border-bottom-0">
+                    <p class="mb-0 fw-normal">
+                        {{ room.capacity_adults }} adulto, {{ room.capacity_children }} criança
+                    </p>
+                </td>
+                <td class="border-bottom-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light rounded-5 fw-bold"><i
+                                class="ti fs-6 {{ 'ti-check text-success' if room.is_active else 'ti-x text-danger' }}"></i></span>
+                    </div>
+                </td>
+                <td class="border-bottom-0">
+                    <h6 class="fw-semibold mb-0 fs-4">R$ {{ '%.2f'|format(room.price)|replace('.', ',') }}</h6>
+                </td>
+                <td class="border-bottom-0">
+                    <div class="d-flex align-items-center gap-3 fs-6">
+                        <a href="{{ url_for('edit_room', room_id=room.id) }}" class="text-primary"><i
+                                class="ti ti-settings-2"></i></a>
+                        {% if room.status != 'occupied' %}
+                        <a href="{{ url_for('delete_room', room_id=room.id) }}" class="text-danger btn-delete-room"><i
+                                class="ti ti-trash"></i></a>
+                        {% else %}
+                        <a class="text-danger opacity-25" style="cursor: not-allowed;"><i class="ti ti-trash"></i></a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
