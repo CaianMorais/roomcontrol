@@ -1,18 +1,18 @@
 import os
+import uvicorn
 from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import add_pagination
-from app.routers import dashboard, dashboard_rooms
-from app.utils.flash import add_flash_message, render
+from utils.flash import render
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from app.core.config import SessionLocal
-from app.models.guest import Guest
-from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations
+from core.config import SessionLocal
+from models.guest import Guest
+from routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations
 
 app = FastAPI(title="Room Control - API de Gerenciamento")
 
@@ -102,3 +102,6 @@ async def internal_exception_handler(request: Request, exc: Exception):
             },
             status_code=500,
         )
+    
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

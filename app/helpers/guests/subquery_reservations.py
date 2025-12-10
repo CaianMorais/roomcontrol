@@ -1,5 +1,5 @@
-from app.models.reservations import Reservations
-from app.models.guest import Guest
+from models.reservations import Reservations
+from models.guest import Guest
 
 def subquery_reservations(db):
     subquery = db.query(

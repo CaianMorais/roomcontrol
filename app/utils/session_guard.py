@@ -1,8 +1,8 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import RedirectResponse
-from app.core.config import SessionLocal
-from app.utils.flash import add_flash_message
-from app.models.hotel import Hotel
+from core.config import SessionLocal
+from utils.flash import add_flash_message
+from models.hotel import Hotel
 from fastapi import Depends
 
 

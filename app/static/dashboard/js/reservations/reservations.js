@@ -56,7 +56,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             `Erro`,
                             data.message,
                             'error',
-                            true
+                            true,
+                            2000
                         )
                     }
                 // alerta sem timer dando erro: problema ao fazer a requisição

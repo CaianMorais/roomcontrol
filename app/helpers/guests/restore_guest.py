@@ -1,5 +1,5 @@
-from app.models.guest import Guest
-from app.utils.flash import add_flash_message
+from models.guest import Guest
+from utils.flash import add_flash_message
 
 def restore_guest(request, db, name, email, cpf, phone_number, hotel_id):
     guest = db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id, Guest.is_deleted == True).first()

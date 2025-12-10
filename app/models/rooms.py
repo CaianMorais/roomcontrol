@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, ForeignKey, Float, Enum, Text
-from app.core.config import Base
+from core.config import Base
+from sqlalchemy.orm import relationship
 
 # op.create_table(
 #     'rooms',
@@ -33,3 +34,6 @@ class Rooms(Base):
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    hotel = relationship("Hotel", back_populates="rooms")
+    reservations = relationship("Reservations", back_populates="room")

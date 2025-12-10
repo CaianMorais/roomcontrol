@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 from validate_docbr import CPF
 from fastapi.templating import Jinja2Templates
 
-from app.core.config import SessionLocal
-from app.schemas.guest import GuestCreate, GuestOut
-from app.models.guest import Guest
-from app.core.security import validate_csrf_token, generate_csrf_token
+from core.config import SessionLocal
+from schemas.guest import GuestCreate, GuestOut
+from models.guest import Guest
+from core.security import validate_csrf_token, generate_csrf_token
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter(prefix="/guests", tags=["guests"])

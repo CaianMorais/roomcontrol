@@ -1,4 +1,4 @@
-from app.utils.flash import add_flash_message
+from utils.flash import add_flash_message
 
 def guest_updater(request, guest, email, phone_number, db):
     guest.email = email

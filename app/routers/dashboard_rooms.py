@@ -1,19 +1,19 @@
 from decimal import Decimal
-from app.core.config import SessionLocal
+from core.config import SessionLocal
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from passlib.hash import bcrypt
 from sqlalchemy import case
 
-from app.core.security import generate_csrf_token, validate_csrf_token
-from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session
-from app.schemas.rooms import RoomOut, RoomCreate, RoomsBase
-from app.models.rooms import Rooms
-from app.models.reservations import Reservations
+from core.security import generate_csrf_token, validate_csrf_token
+from utils.flash import add_flash_message, render
+from utils.session_guard import require_session
+from schemas.rooms import RoomOut, RoomCreate, RoomsBase
+from models.rooms import Rooms
+from models.reservations import Reservations
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -40,7 +40,7 @@ def get_rooms(
     if request.session.get("Hotel_id"):
         if request.session.get("Hotel_id") != hotel_id:
             return HTTPException(status_code=404, detail="Erro!")
-    query = db.query(Rooms)
+    query = db.query(Rooms).options(joinedload(Rooms.hotel))
 
     if hotel_id:
         query = query.filter(Rooms.hotel_id == hotel_id)

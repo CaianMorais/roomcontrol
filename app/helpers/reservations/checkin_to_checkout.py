@@ -1,5 +1,5 @@
 import datetime
-from app.utils.flash import add_flash_message
+from utils.flash import add_flash_message
 from fastapi import HTTPException
 
 def checkin_to_checkout(request, check_out, reservation, db):

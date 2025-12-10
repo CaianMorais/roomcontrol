@@ -1,5 +1,5 @@
 from sqlalchemy import case
-from app.models.reservations import Reservations
+from models.reservations import Reservations
 
 def order_reservations(query):
     reservations = query.order_by(

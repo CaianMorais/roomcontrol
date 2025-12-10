@@ -1,6 +1,7 @@
 from xmlrpc.client import DateTime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Boolean
-from app.core.config import Base
+from core.config import Base
+from sqlalchemy.orm import relationship
 
 class Guest(Base):
     __tablename__ = "guests"
@@ -14,3 +15,6 @@ class Guest(Base):
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
+
+    reservations = relationship("Reservations", back_populates="guest")
+    hotel = relationship("Hotel", back_populates="guests")

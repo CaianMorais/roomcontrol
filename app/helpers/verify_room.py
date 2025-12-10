@@ -1,6 +1,6 @@
-from app.utils.flash import add_flash_message
-from app.core.config import SessionLocal
-from app.models.rooms import Rooms
+from utils.flash import add_flash_message
+from core.config import SessionLocal
+from models.rooms import Rooms
 from fastapi import HTTPException
 
 def get_db():

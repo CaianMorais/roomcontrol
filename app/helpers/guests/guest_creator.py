@@ -1,5 +1,5 @@
-from app.models.guest import Guest
-from app.utils.flash import add_flash_message
+from models.guest import Guest
+from utils.flash import add_flash_message
 
 def guest_creator(request, name, cpf, email, phone_number, hotel_id, db):
     new_guest = Guest(

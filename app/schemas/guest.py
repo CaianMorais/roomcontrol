@@ -1,5 +1,17 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
+
+class HotelOut(BaseModel):
+    id: int
+    name: str
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    phone_number: Optional[str] = None
+
+    class Config:
+        orm_mode = True
 
 class GuestBase(BaseModel):
     name: str
@@ -12,6 +24,7 @@ class GuestCreate(GuestBase):
 
 class GuestOut(GuestBase):
     id: int
+    hotel: Optional[HotelOut] = None
 
     class Config:
         orm_mode = True

@@ -2,25 +2,35 @@ import datetime
 from pydantic import BaseModel, Field
 from typing import Optional
 
+class HotelOut(BaseModel):
+    id: int
+    name: str
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    phone_number: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
 class RoomsBase(BaseModel):
-    hotel_id: int = Field(..., example=1)
-    room_number: str = Field(..., example="302")
-    type: str = Field(..., example="Suíte Luxo")
-    capacity_adults: int = Field(..., example=2)
-    capacity_children: int = Field(..., example=1)
-    capacity_total: int = Field(..., example=3)
-    price: Optional[float] = Field(None, example=200.00)
-    status: Optional[str] = Field("available", example="available")
-    comments: Optional[str] = Field(None, example="Esse é um quarto de hotel.")
+    room_number: str
+    type: str
+    capacity_adults: int
+    capacity_children: int
+    capacity_total: int
+    price: Optional[float] = None
+    status: Optional[str] = None
+    comments: Optional[str] = None
 
 class RoomCreate(RoomsBase):
     pass
 
 class RoomOut(RoomsBase):
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
     is_active: bool
+    hotel: Optional[HotelOut] = None
 
     class Config:
         orm_mode = True

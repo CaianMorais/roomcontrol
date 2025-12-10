@@ -1,5 +1,5 @@
-from app.models.reservations import Reservations
-from app.models.guest import Guest
+from models.reservations import Reservations
+from models.guest import Guest
 
 def guest_availability(hotel_id, check_in, check_out, db):
     reserved_guest_ids = db.query(Reservations.guest_id).filter(

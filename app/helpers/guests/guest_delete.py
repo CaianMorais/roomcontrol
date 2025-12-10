@@ -1,5 +1,5 @@
-from app.models.reservations import Reservations
-from app.utils.flash import add_flash_message
+from models.reservations import Reservations
+from utils.flash import add_flash_message
 from starlette.responses import RedirectResponse
 
 def guest_delete(request, db, guest):
