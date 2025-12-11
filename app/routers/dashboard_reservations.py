@@ -19,6 +19,7 @@ from utils.session_guard import require_session
 from schemas.reservations import ReservationOut
 from models.reservations import Reservations
 from models.guest import Guest
+from models.hotel import Hotel
 from helpers.paginate import paginate
 from helpers.verify_guest import verify_guest_by_id, verify_guest_by_cpf
 from helpers.verify_room import verify_room
@@ -52,9 +53,10 @@ def get_db():
 
 @api_router.get("/get_reservations", response_model=List[ReservationOut])
 def get_reservations(
+    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
     guest_id: Optional[int] = Query(None, description="Filtrar pelo ID do hóspede"),
     guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
-    room_id: Optional[int] = Query(None, description="Filtrar pelo ID do quarto"),
+    room_number: Optional[str] = Query(None, description="Filtrar pelo número do quarto"),
     check_in: Optional[str] = Query(None, description="Filtrar pela data de check-in"),
     check_out: Optional[str] = Query(None, description="Filtrar pela data de check-out"),
     db: Session = Depends(get_db)
@@ -67,13 +69,15 @@ def get_reservations(
         )
     )
 
+    if hotel_name:
+        query = query.join(Rooms, Reservations.room_id == Rooms.id).join(Hotel, Rooms.hotel_id == Hotel.id).filter(Hotel.name.ilike(f"%{hotel_name}%"))
     if guest_id:
         query = query.filter(Reservations.guest_id == guest_id)
     if guest_name:
         query = query.join(Guest, Guest.id == Reservations.guest_id) \
             .filter(Guest.name.ilike(f"%{guest_name}%"))
-    if room_id:
-        query = query.filter(Reservations.room_id == room_id)
+    if room_number:
+        query = query.join(Rooms, Reservations.room_id == Rooms.id).filter(Rooms.room_number == room_number)
     if check_in:
         query = query.filter(Reservations.check_in == check_in)
     if check_out:

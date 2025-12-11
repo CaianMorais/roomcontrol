@@ -14,6 +14,8 @@ from utils.session_guard import require_session
 from schemas.rooms import RoomOut, RoomCreate, RoomsBase
 from models.rooms import Rooms
 from models.reservations import Reservations
+from models.hotel import Hotel
+from helpers.rooms.object_mapper import tipos_map, coluna_map
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -35,6 +37,7 @@ def get_db():
 def get_rooms(
     request: Request,
     hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel"),
+    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
     db: Session = Depends(get_db)
 ):
     if request.session.get("Hotel_id"):
@@ -44,6 +47,8 @@ def get_rooms(
 
     if hotel_id:
         query = query.filter(Rooms.hotel_id == hotel_id)
+    if hotel_name:
+        query = query.join(Hotel, Rooms.hotel_id == Hotel.id).filter(Hotel.name.ilike(f'%{hotel_name}%'))
 
     rooms = query.all()
 
@@ -68,7 +73,6 @@ def rooms(
     maintenance: Optional[bool] = Query(False),
     db: Session = Depends(get_db)
 ):
-    
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
     has_filter = False
@@ -81,78 +85,57 @@ def rooms(
     # inicia a query
     query = db.query(Rooms).filter_by(hotel_id=hotel_id)
 
-    # aplica os filtros
-    if criteria or order or solteiro or duplo or casal or triplo or triplo_com_casal or personalizado or available or occupied or maintenance:
-        room_types = []
-        if solteiro:
-            room_types.append("1")
-        if duplo:
-            room_types.append("2")
-            room_types.append("3")
-        if casal:
-            room_types.append("4")
-        if triplo:
-            room_types.append("5")
-            room_types.append("6")
-            room_types.append("7")
-        if triplo_com_casal:
-            room_types.append("8")
-        if personalizado:
-            room_types.append("9")
-        
-        if room_types:
-            query = query.filter(Rooms.type.in_(room_types))
+    ROOM_TYPE_MAP = tipos_map()
+    ORDER_MAP = coluna_map()
 
-        # filtra pela situação
-        statuses = []
-        if available:
-            statuses.append("available")
-        if occupied:
-            statuses.append("occupied")
-        if maintenance:
-            statuses.append("maintenance")
+    selected_type_flags = {
+        "solteiro": solteiro,
+        "duplo": duplo,
+        "casal": casal,
+        "triplo": triplo,
+        "triplo_com_casal": triplo_com_casal,
+        "personalizado": personalizado,
+    }
 
-        if statuses:
-            query = query.filter(Rooms.status.in_(statuses))
+    room_types = [t for flag, on in selected_type_flags.items() if on for t in ROOM_TYPE_MAP[flag]]
+    if room_types:
+        query = query.filter(Rooms.type.in_(room_types))
 
-        # aplica a ordenação
-        if criteria == "room_number":
-            if order == "cres":
-                query = query.order_by(Rooms.room_number.asc())
-            elif order == "decres":
-                query = query.order_by(Rooms.room_number.desc())
-        elif criteria == "capacity_total":
-            if order == "cres":
-                query = query.order_by(Rooms.capacity_total.asc())
-            elif order == "decres":
-                query = query.order_by(Rooms.capacity_total.desc())
-        elif criteria == "capacity_adults":
-            if order == "cres":
-                query = query.order_by(Rooms.capacity_adults.asc())
-            elif order == "decres":
-                query = query.order_by(Rooms.capacity_adults.desc())
-        elif criteria == "capacity_children":
-            if order == "cres":
-                query = query.order_by(Rooms.capacity_children.asc())
-            elif order == "decres":
-                query = query.order_by(Rooms.capacity_children.desc())
-        elif criteria == "price":
-            if order == "cres":
-                query = query.order_by(Rooms.price.asc())
-            elif order == "decres":
-                query = query.order_by(Rooms.price.desc())
+    status_flags = {
+        "available": available,
+        "occupied": occupied,
+        "maintenance": maintenance,
+    }
+    statuses = [name for name, on in status_flags.items() if on]
+    if statuses:
+        query = query.filter(Rooms.status.in_(statuses))
+
+    # ----- ordenação -----
+    order_cols = [Rooms.is_active.desc()]  # sempre prioriza ativos
+    col = ORDER_MAP.get(criteria or "")
+    if col is not None:
+        if order == "decres":
+            order_cols.append(col.desc())
+        else:
+            # default: crescente
+            order_cols.append(col.asc())
     else:
-        room_types = []
-        statuses = []
-        
+        # ordenação padrão estável quando critério não for válido/informado
+        order_cols.append(Rooms.room_number.asc())
 
-    # executa a query
-    rooms = query.order_by(Rooms.is_active.desc()).all()
-    if rooms and (criteria or order or room_types or statuses):
-        has_filter = True
-        add_flash_message(request, f"Filtro aplicado: {len(rooms)} quartos encontrados.", "info")
-    elif not rooms and (criteria or order or room_types or statuses):
-        add_flash_message(request, "Nenhum quarto encontrado com esses filtros.", "warning")
+    query = query.order_by(*order_cols)
+
+    rooms = query.all()
+
+    has_filter = bool(
+        room_types or statuses or (criteria in ORDER_MAP)
+    )
+    if has_filter:
+        if rooms:
+            add_flash_message(request, f"Filtro aplicado: {len(rooms)} quartos encontrados.", "info")
+        else:
+            add_flash_message(request, "Nenhum quarto encontrado com esses filtros.", "warning")
+
     return render(
         templates,
         request,
