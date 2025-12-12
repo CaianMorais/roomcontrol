@@ -88,6 +88,7 @@ def rooms(
     ROOM_TYPE_MAP = tipos_map()
     ORDER_MAP = coluna_map()
 
+    # MARCA AS FLAGS COM TRUE OU FALSE QUE FORAM MARCADAS NO FILTRO
     selected_type_flags = {
         "solteiro": solteiro,
         "duplo": duplo,
@@ -97,30 +98,40 @@ def rooms(
         "personalizado": personalizado,
     }
 
+    # ITERA SOBRE AS FLAGS PARA ADICIONAR RESGATAR O 
+    # VALOR DOS SELECIONADOS (TRUE) NA LISTA TOOM_TYPE_MAP
     room_types = [t for flag, on in selected_type_flags.items() if on for t in ROOM_TYPE_MAP[flag]]
     if room_types:
+        # SE TIVER ITENS NA LISTA, FAZ A CONSULTA
         query = query.filter(Rooms.type.in_(room_types))
 
+    # MARCA AS FLAGS QUE FORAM MARCADAS NO FILTRO
     status_flags = {
         "available": available,
         "occupied": occupied,
         "maintenance": maintenance,
     }
+
+    #ITERA SOBRE AS FLAGS PARA FAZER A LISTA DE STATUS SELECIONADOS NO FILTRO
     statuses = [name for name, on in status_flags.items() if on]
     if statuses:
         query = query.filter(Rooms.status.in_(statuses))
 
-    # ----- ordenação -----
-    order_cols = [Rooms.is_active.desc()]  # sempre prioriza ativos
+    # ORDENAÇÃO DOS QUARTOS, PRIORIZANDO OS ATIVOS ACIMA
+    order_cols = [Rooms.is_active.desc()]
+
+    # PEGA O CRITERIO DE ORDENAÇÃO NO FILTRO E BUSCA ELE NO MAPPING
     col = ORDER_MAP.get(criteria or "")
     if col is not None:
+        # SE HOVER CRITERIO DE ORDENAÇÃO, PEGA A ORDENAÇÃO
         if order == "decres":
             order_cols.append(col.desc())
         else:
-            # default: crescente
+            # SENAO O PADRAO É ASC
             order_cols.append(col.asc())
     else:
-        # ordenação padrão estável quando critério não for válido/informado
+        # SE NAO HOUVER CRITERIO DE ORDENAÇÃO
+        # O PADRÃO SERÁ PELO NUMERO DO QUARTO CRESCENTE
         order_cols.append(Rooms.room_number.asc())
 
     query = query.order_by(*order_cols)
