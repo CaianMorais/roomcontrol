@@ -1,7 +1,7 @@
 from decimal import Decimal
 from core.config import SessionLocal
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
+from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
@@ -15,7 +15,9 @@ from schemas.rooms import RoomOut, RoomCreate, RoomsBase
 from models.rooms import Rooms
 from models.reservations import Reservations
 from models.hotel import Hotel
-from helpers.rooms.object_mapper import tipos_map, coluna_map
+from helpers.rooms.object_mapper import tipos_map, coluna_map, room_capacities_map
+from helpers.rooms.room_creator import room_creator
+from helpers.rooms.room_editor import room_editor
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -138,6 +140,8 @@ def rooms(
 
     rooms = query.all()
 
+    # SE TIVER ALGUM FILTRO ATIVO, MUDA A VARIAVEL PRA SABER
+    # SE HÁ QUARTOS NA VARIAVEL DA CONSULTA OU NÃO
     has_filter = bool(
         room_types or statuses or (criteria in ORDER_MAP)
     )
@@ -194,18 +198,10 @@ def create_room(
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
     # define a capacidade com base no tipo do quarto (pra não depender dos dados do form)
-    room_capacities = {
-    "1": [1, 0],
-    "2": [1, 1],
-    "3": [2, 0],
-    "4": [2, 0],
-    "5": [1, 2],
-    "6": [2, 1],
-    "7": [3, 0],
-    "8": [2, 1],
-}
+    room_capacities = room_capacities_map()
     
     if room_type in room_capacities:
+        # pega as capacidades do quarto no map
         capacity_adults, capacity_children = room_capacities[room_type]
     elif room_type == "9":
         # se o tipo for personalizado, depende dos dados do form
@@ -223,23 +219,7 @@ def create_room(
     price = Decimal(price)
     
     # instancia o novo quarto
-    new_room = Rooms(
-        hotel_id=hotel_id,
-        room_number=room_number,
-        type=room_type,
-        capacity_adults=capacity_adults,
-        capacity_children=capacity_children,
-        capacity_total=capacity_total,
-        price=price,
-        status='available',
-        is_active=True
-    )
-
-    # salva no banco
-    db.add(new_room)
-    db.commit()
-    db.refresh(new_room)
-    add_flash_message(request, f"Quarto {room_number} criado com sucesso. Clique <a href='/dashboard_rooms/edit/{new_room.id}'>aqui</a> para editá-lo.", "success")
+    room_creator(request, hotel_id, room_number, room_type, capacity_adults, capacity_children,capacity_total, price, db)
     return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
 @router.get("/edit/{room_id}", response_class=HTMLResponse, include_in_schema=False)
@@ -250,6 +230,7 @@ def edit_room(
     next: Optional[str] = Query(None),
 ):
     room = db.query(Rooms).filter_by(id=room_id, hotel_id=request.session.get("hotel_id")).first()
+
     if room.status == 'occupied':
         add_flash_message(request, "Apenas visualização, não é possível alterar quartos ocupados.", 'secondary')
     if room.hotel_id != request.session.get("hotel_id"):
@@ -258,7 +239,9 @@ def edit_room(
     if not room:
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
+    
     csrf_token = generate_csrf_token()
+
     return render(
         templates, 
         request, 
@@ -305,11 +288,14 @@ def update_room(
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
+    # verifica a disponibilidade do quarto
     if room.status == 'occupied':
         add_flash_message(request, "O quarto não pode ser modificado enquanto ele estiver ocupado", 'warning')
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
+    # se está ativo e o formulário traz mudança nesse parametro
     if room.is_active == True and room.is_active != is_active:
+        # consulta se há alguma reserva ativa para esse quarto
         reservation = db.query(Reservations) \
         .filter_by(room_id=room.id) \
         .all()
@@ -319,18 +305,10 @@ def update_room(
                 return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
     # define a capacidade com base no tipo do quarto (pra não depender dos dados do form)
-    room_capacities = {
-        "1": [1, 0],
-        "2": [1, 1],
-        "3": [2, 0],
-        "4": [2, 0],
-        "5": [1, 2],
-        "6": [2, 1],
-        "7": [3, 0],
-        "8": [2, 1],
-    }
+    room_capacities = room_capacities_map()
     
     if room_type in room_capacities:
+        # pega as capacidades do quarto no map
         capacity_adults, capacity_children = room_capacities[room_type]
     elif room_type == "9":
         # se o tipo for personalizado, depende dos dados do form
@@ -348,18 +326,8 @@ def update_room(
     price = Decimal(price)
 
     # atualiza os dados do quarto
-    room.room_number = room_number
-    room.type = room_type
-    room.capacity_adults = capacity_adults
-    room.capacity_children = capacity_children
-    room.capacity_total = capacity_total
-    room.price = price
-    room.is_active = is_active
-    room.comments = comments
+    room_editor(request, room, room_number, room_type, capacity_adults, capacity_children, capacity_total, price, is_active, comments, db)
 
-    db.commit()
-    db.refresh(room)
-    add_flash_message(request, f"Quarto {room.room_number} atualizado com sucesso.", "success")
     if next:
         return RedirectResponse(url=next, status_code=303)
     return RedirectResponse(url="/dashboard_rooms", status_code=303)
@@ -368,6 +336,7 @@ def update_room(
 def delete_room(room_id: int, request: Request, db: Session = Depends(get_db
 )):
     room = db.query(Rooms).filter_by(id=room_id, hotel_id=request.session.get("hotel_id")).first()
+
     if not room:
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)

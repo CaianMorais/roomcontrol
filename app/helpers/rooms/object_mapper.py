@@ -20,3 +20,15 @@ def coluna_map():
         "capacity_children": Rooms.capacity_children,
         "price": Rooms.price,
     }
+
+def room_capacities_map():
+    return {
+        "1": [1, 0],
+        "2": [1, 1],
+        "3": [2, 0],
+        "4": [2, 0],
+        "5": [1, 2],
+        "6": [2, 1],
+        "7": [3, 0],
+        "8": [2, 1],
+    }

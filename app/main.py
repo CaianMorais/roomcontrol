@@ -12,7 +12,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from core.config import SessionLocal
 from models.guest import Guest
-from routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations
+from routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services
 
 app = FastAPI(title="Room Control - API de Gerenciamento")
 
@@ -39,6 +39,7 @@ app.include_router(dashboard.api_router)
 app.include_router(dashboard_rooms.api_router)
 app.include_router(dashboard_guests.api_router)
 app.include_router(dashboard_reservations.api_router)
+app.include_router(dashboard_services.api_router)
 
 #INCLUSAO DAS ROTAS DE PAGINAS
 app.include_router(auth.router)
@@ -47,6 +48,7 @@ app.include_router(dashboard.router)
 app.include_router(dashboard_rooms.router)
 app.include_router(dashboard_guests.router)
 app.include_router(dashboard_reservations.router)
+app.include_router(dashboard_services.router)
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def home(request: Request, db: Session = Depends(get_db)):
