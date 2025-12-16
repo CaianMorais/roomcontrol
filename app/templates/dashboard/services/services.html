@@ -24,22 +24,22 @@
                             <thead class="text-dark fs-4">
                                 <tr>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Nº Pedido</h6>
+                                        <h6 class="text-center fw-semibold mb-0">Nº Pedido</h6>
                                     </th>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Nº Reserva</h6>
+                                        <h6 class="text-center fw-semibold mb-0">Nº Reserva</h6>
                                     </th>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Nº Quarto</h6>
+                                        <h6 class="text-center fw-semibold mb-0">Nº Quarto</h6>
                                     </th>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Status</h6>
+                                        <h6 class="text-center fw-semibold mb-0">Hóspede</h6>
                                     </th>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Horário do pedido</h6>
+                                        <h6 class="text-center fw-semibold mb-0">Status</h6>
                                     </th>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Ações</h6>
+                                        <h6 class="text-center fw-semibold mb-0">Horário do pedido</h6>
                                     </th>
                                 </tr>
                             </thead>
@@ -60,6 +60,7 @@
 
 <script>
     $('#servicos').DataTable({
+        responsive: true,
         language: {
             url: '//cdn.datatables.net/plug-ins/2.3.5/i18n/pt-BR.json',
         },
@@ -67,17 +68,44 @@
             4, 'desc'
         ]],
         ajax: {
+            method: 'GET',
             url:'/api/get_services_requests',
-            dataSrc: ''
+            dataSrc: '',
         },
         columns: [
-            { data : 'id' },
-            { data : 'reservation_id' },
-            { data : 'room_id' },
-            { data : 'status' },
-            { data : 'created_at' },
-            { data : 'guest_id' },
-        ]
+            { 
+                data : 'id',
+                class : 'text-center',
+            },
+            { 
+                data : 'reservation.id',
+                class : 'text-center'
+            },
+            { 
+                data : 'reservation.room.room_number',
+                class : 'text-center'
+            },
+            {
+                data : 'reservation.guest.name',
+                class : 'text-center'
+            },
+            { 
+                data : 'status',
+                class : 'text-center'
+            },
+            {
+                data : 'created_at',
+                class : 'text-center'
+            },
+            {
+                title : 'Ações',
+                data : 'id',
+                class : 'text-center',
+                render : function(data, type, full, meta){
+                    return `<a href="dashboard_services/pedido/${data}"><i class="ti ti-arrow-badge-right"/></a>`
+                }
+            }
+        ],
     });
 </script>
 {% endblock %}
