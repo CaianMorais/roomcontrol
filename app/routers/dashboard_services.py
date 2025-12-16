@@ -4,11 +4,13 @@ from fastapi.responses import HTMLResponse
 from utils.session_guard import require_session
 from core.config import SessionLocal
 from schemas.services import ServicesOut
-from typing import List, Optional
-from sqlalchemy.orm import Session
+from typing import List, Optional, Literal
+from sqlalchemy.orm import Session, joinedload
 from models.services import Services
 from models.reservations import Reservations
 from models.rooms import Rooms
+from models.guest import Guest
+from models.hotel import Hotel
 from utils.flash import render, add_flash_message
 
 router = APIRouter(
@@ -33,25 +35,42 @@ def get_db():
 @api_router.get('/get_services_requests', response_model=List[ServicesOut])
 def get_services_requests(
     request: Request,
-    reservation_id: Optional[int] = Query(None, description="Filtrar pelo ID da reserva"),
-    guest_id: Optional[int] = Query(None, description="Filtrar pelo ID do hóspede"),
-    room_id: Optional[int] = Query(None, description="Filtrar pelo ID do quarto"),
-    status: Optional[str] = Query(None, description="Filtrar pelo status do pedido"),
+    reservation_id: Optional[int] = Query(None, description="Filtrar pelo número da reserva"),
+    guest_cpf: Optional[int] = Query(None, description="Filtrar pelo CPF do hóspede"),
+    guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
+    room_number: Optional[str] = Query(None, description="Filtrar pelo número do quarto"),
+    hotel_id: Optional[int] = Query(None, description="Filtrar pelo ID do hotel"),
+    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
+    status: Optional[Literal['pending', 'in_progress', 'completed']] = Query(None, description="Filtrar pelo status do pedido"),
     db: Session = Depends(get_db)
 ):
-    if request.session.get("Hotel_id"):
-        if request.session.get("Hotel_id") != hotel_id:
-            return HTTPException(status_code=404, detail="Erro!")
-    query = db.query(Services)
+    query = (
+        db.query(Services)
+        .options(
+            joinedload(Services.reservation).joinedload(Reservations.guest),
+            joinedload(Services.reservation).joinedload(Reservations.room).joinedload(Rooms.hotel)
+        )
+    )
 
     if reservation_id:
         query = query.filter(Services.reservation_id == reservation_id)
-    if guest_id:
-        query = query.filter(Services.guest_id == guest_id)
-    if room_id:
-        query = query.filter(Services.room_id == room_id)
+    if guest_cpf:
+        query = query.join(Guest, Services.guest_id == Guest.id).filter(Guest.cpf == guest_cpf)
+    if guest_name:
+        query = query.join(Guest, Services.guest_id == Guest.id).filter(Guest.name.ilike(f'%{guest_name}%'))
+    if room_number:
+        query = query.join(Rooms, Services.room_id == Rooms.id).filter(Rooms.room_number == room_number)
+    if hotel_id:
+        query = query.join(Rooms, Services.room_id == Rooms.id).join(
+            Hotel, Rooms.hotel_id == Hotel.id
+        ).filter(Hotel.id == hotel_id)
+    if hotel_name:
+        query = query.join(Rooms, Services.room_id == Rooms.id).join(
+            Hotel, Rooms.hotel_id == Hotel.id
+        ).filter(Hotel.name.ilike(f'%{hotel_name}%'))
     if status:
-        query = query.filter(Services.status.ilike(f'&{status}%'))
+        query = query.filter(Services.status.ilike(f'%{status}%'))
+
 
     requests = query.all()
 

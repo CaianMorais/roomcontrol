@@ -28,3 +28,4 @@ class Reservations(Base):
 
     guest = relationship("Guest", back_populates="reservations")
     room = relationship("Rooms", back_populates="reservations")
+    services_requests = relationship("Services", back_populates='reservation')

@@ -1,5 +1,6 @@
 from xmlrpc.client import DateTime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, func
+from sqlalchemy.orm import relationship
 from core.config import Base
 
 class Services(Base):
@@ -13,3 +14,5 @@ class Services(Base):
     status = Column(Enum('pending', 'in_progress', 'completed'), nullable=False, server_default='available')
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    reservation = relationship("Reservations", back_populates='services_requests')
