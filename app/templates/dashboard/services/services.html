@@ -14,9 +14,7 @@
                     <div class="d-flex align-items-center justify-content-between">
                         <h5 class="card-title fw-semibold mb-4">Pedidos de Serviços</h5>
                         <div>
-                            {% if has_filter %}
-                            <a class="btn btn-outline-warning mb-4" href="{{ url_for('rooms') }}">Limpar Filtros</a>
-                            {% endif %}
+                            <a class="btn btn-info mb-4" onclick="reloadTable()">Atualizar <i class="ti ti-refresh"></i></a>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -59,53 +57,67 @@
 <script src="https://cdn.datatables.net/2.3.5/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
-    $('#servicos').DataTable({
-        responsive: true,
-        language: {
-            url: '//cdn.datatables.net/plug-ins/2.3.5/i18n/pt-BR.json',
-        },
-        order: [[
-            4, 'desc'
-        ]],
-        ajax: {
-            method: 'GET',
-            url:'/api/get_services_requests',
-            dataSrc: '',
-        },
-        columns: [
-            { 
-                data : 'id',
-                class : 'text-center',
+    const hotel_id = '{{ hotel_id }}';
+
+    function carregaTabelaPedidos(){
+        let table = $('#servicos').DataTable({
+            destroy: true,
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/2.3.5/i18n/pt-BR.json',
             },
-            { 
-                data : 'reservation.id',
-                class : 'text-center'
+            order: [[
+                5, 'desc'
+            ]],
+            ajax: {
+                method: 'GET',
+                url: `/api/table_services_requests?hotel_id=${hotel_id}`,
+                dataSrc: '',
             },
-            { 
-                data : 'reservation.room.room_number',
-                class : 'text-center'
-            },
-            {
-                data : 'reservation.guest.name',
-                class : 'text-center'
-            },
-            { 
-                data : 'status',
-                class : 'text-center'
-            },
-            {
-                data : 'created_at',
-                class : 'text-center'
-            },
-            {
-                title : 'Ações',
-                data : 'id',
-                class : 'text-center',
-                render : function(data, type, full, meta){
-                    return `<a href="dashboard_services/pedido/${data}"><i class="ti ti-arrow-badge-right"/></a>`
+            columns: [
+                {
+                    data: 'id',
+                    class: 'text-center',
+                },
+                {
+                    data: 'reservation.id',
+                    class: 'text-center'
+                },
+                {
+                    data: 'reservation.room.room_number',
+                    class: 'text-center'
+                },
+                {
+                    data: 'reservation.guest.name',
+                    class: 'text-center'
+                },
+                {
+                    data: 'status_table',
+                    class: 'text-center'
+                },
+                {
+                    data: 'request_date_table',
+                    class: 'text-center'
+                },
+                {
+                    title: 'Ações',
+                    data: 'id',
+                    className: 'text-center',
+                    class: 'text-center',
+                    render: function (data, type, full, meta) {
+                        return `<a href="dashboard_services/pedido/${data}">Ver pedido</a>`
+                    }
                 }
-            }
-        ],
-    });
+            ],
+        });
+    }
+    carregaTabelaPedidos();
+
+    function reloadTable(){
+        carregaTabelaPedidos();
+    }
+    
+
+    
 </script>
 {% endblock %}

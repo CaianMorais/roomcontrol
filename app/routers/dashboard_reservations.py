@@ -41,7 +41,7 @@ router = APIRouter(
     dependencies=[Depends(require_session)]
 )
 
-api_router = APIRouter(prefix="/api", tags=["api_reservations"])
+api_router = APIRouter(prefix="/api", tags=["reservations"])
 templates = Jinja2Templates(directory="app/templates")
 
 def get_db():
@@ -51,7 +51,7 @@ def get_db():
     finally:
         db.close()
 
-@api_router.get("/get_reservations", response_model=List[ReservationOut])
+@api_router.get("/reservations", response_model=List[ReservationOut], summary="Filtrar reservas")
 def get_reservations(
     hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
     guest_id: Optional[int] = Query(None, description="Filtrar pelo ID do hóspede"),

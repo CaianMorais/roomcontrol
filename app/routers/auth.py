@@ -14,7 +14,7 @@ from utils.flash import add_flash_message, render
 from services.cnpj_ws import fetch_cnpj_situacao, CNPJWsError
 
 router = APIRouter(prefix="/auth", tags=["hotels"])
-api_router = APIRouter(prefix="/api", tags=["api_hotels"])
+api_router = APIRouter(prefix="/api", tags=["hotels"])
 templates = Jinja2Templates(directory="app/templates")
 
 def get_db():
@@ -24,7 +24,7 @@ def get_db():
     finally:
         db.close()
 
-@api_router.get("/get_hotels", response_model=List[HotelOut])
+@api_router.get("/hotels", response_model=List[HotelOut], summary="Filtrar hotéis")
 def get_hotels(
     cnpj: Optional[str] = Query(None, description="Filtrar pelo CNPJ do hotel"),
     name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),

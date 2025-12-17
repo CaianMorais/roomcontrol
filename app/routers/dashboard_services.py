@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 from utils.session_guard import require_session
 from core.config import SessionLocal
 from schemas.services import ServicesOut
+from schemas.table_services import TableServicesOut
 from typing import List, Optional, Literal
 from sqlalchemy.orm import Session, joinedload
 from models.services import Services
@@ -21,7 +22,7 @@ router = APIRouter(
 
 api_router = APIRouter(
     prefix='/api',
-    tags=['api_services']
+    tags=['services']
 )
 templates = Jinja2Templates(directory='app/templates')
 
@@ -32,7 +33,7 @@ def get_db():
     finally:
         db.close()
 
-@api_router.get('/get_services_requests', response_model=List[ServicesOut])
+@api_router.get('/services_requests', response_model=List[ServicesOut], summary="Filtrar pedidos de serviços")
 def get_services_requests(
     request: Request,
     reservation_id: Optional[int] = Query(None, description="Filtrar pelo número da reserva"),
@@ -79,6 +80,32 @@ def get_services_requests(
     
     return requests
 
+@api_router.get('/table_services_requests', response_model=List[TableServicesOut], summary="Filtrar dados para a tabela de pedidos de serviço na view")
+def get_table_services_requests(
+    request: Request,
+    hotel_id: int,
+    db: Session = Depends(get_db)
+):
+    query = (
+        db.query(Services)
+        .options(
+            joinedload(Services.reservation).joinedload(Reservations.guest),
+            joinedload(Services.reservation).joinedload(Reservations.room).joinedload(Rooms.hotel)
+        )
+    )
+
+    if hotel_id == request.session.get("hotel_id"):
+        query = query.join(Rooms, Services.room_id == Rooms.id).join(
+            Hotel, Rooms.hotel_id == Hotel.id
+        ).filter(Hotel.id == hotel_id)
+
+    requests = query.all()
+
+    if not requests:
+        raise HTTPException(status_code=404, detail="Nenhum pedido encontrado")
+    
+    return requests
+
 @router.get('', response_class=HTMLResponse, include_in_schema=False)
 def services_requests(
     request: Request,
@@ -86,15 +113,11 @@ def services_requests(
 ):
     hotel_id = request.session.get("hotel_id")
 
-    reservations = db.query(Reservations).filter(
-        Reservations.status == 'checked_in'
-        ).join(Rooms, Rooms.id == Reservations.id)
-
     return render(
         templates,
         request,
         "dashboard/services/services.html",
         {
-            
+            "hotel_id": hotel_id
         }
     )

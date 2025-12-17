@@ -25,7 +25,7 @@ router = APIRouter(
     dependencies=[Depends(require_session)]
 )
 
-api_router = APIRouter(prefix="/api", tags=["api_rooms"])
+api_router = APIRouter(prefix="/api", tags=["rooms"])
 templates = Jinja2Templates(directory="app/templates")
 
 def get_db():
@@ -35,7 +35,7 @@ def get_db():
     finally:
         db.close()
 
-@api_router.get("/get_rooms", response_model=List[RoomOut])
+@api_router.get("/rooms", response_model=List[RoomOut], summary="Filtrar quartos")
 def get_rooms(
     request: Request,
     hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel"),

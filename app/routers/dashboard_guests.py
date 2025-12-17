@@ -33,7 +33,7 @@ router = APIRouter(
     dependencies=[Depends(require_session)]
 )
 
-api_router = APIRouter(prefix="/api", tags=["api_guests"])
+api_router = APIRouter(prefix="/api", tags=["guests"])
 templates = Jinja2Templates(directory="app/templates")
 
 def get_db():
@@ -43,7 +43,7 @@ def get_db():
     finally:
         db.close()
 
-@api_router.get("/get_guests", response_model=List[GuestOut])
+@api_router.get("/guests", response_model=List[GuestOut], summary="Filtrar hóspedes")
 def get_guests(
     guest_cpf: Optional[str] = Query(None, description="Filtrar pelo CPF do hóspede"),
     guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
