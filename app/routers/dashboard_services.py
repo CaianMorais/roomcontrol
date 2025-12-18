@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, Query, HTTPException
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from utils.session_guard import require_session
 from core.config import SessionLocal
 from schemas.services import ServicesOut
@@ -33,6 +33,7 @@ def get_db():
     finally:
         db.close()
 
+###################### API START ######################
 @api_router.get('/services_requests', response_model=List[ServicesOut], summary="Filtrar pedidos de serviços")
 def get_services_requests(
     request: Request,
@@ -102,9 +103,11 @@ def get_table_services_requests(
     requests = query.all()
 
     if not requests:
-        raise HTTPException(status_code=404, detail="Nenhum pedido encontrado")
+        return []
     
     return requests
+
+###################### API END ######################
 
 @router.get('', response_class=HTMLResponse, include_in_schema=False)
 def services_requests(
@@ -121,3 +124,25 @@ def services_requests(
             "hotel_id": hotel_id
         }
     )
+
+@router.get('/pedido/{request_id}', response_class=HTMLResponse, include_in_schema=False)
+def view_request(
+    request: Request,
+    request_id: int,
+    db: Session = Depends(get_db)
+):
+    hotel_id = request.session.get('hotel_id')
+    service_request = db.query(Services).join(Guest, Services.guest_id == Guest.id).filter(Services.id==request_id, Guest.hotel_id==hotel_id).first()
+    
+    if not service_request:
+        add_flash_message(request, "Houve um erro ao tentar abrir o pedido.", "warning")
+        return RedirectResponse(url="/dashboard_services", status_code=303)
+    return render(
+        templates,
+        request,
+        "dashboard/services/view_request.html",
+        {
+            "service": service_request,
+        }
+    )
+    

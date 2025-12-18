@@ -53,8 +53,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.5/js/dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/plug-ins/2.3.5/i18n/pt-BR.json"></script>
 <script src="https://cdn.datatables.net/2.3.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     const hotel_id = '{{ hotel_id }}';
@@ -64,7 +64,7 @@
             destroy: true,
             responsive: true,
             language: {
-                url: '//cdn.datatables.net/plug-ins/2.3.5/i18n/pt-BR.json',
+                url: 'https://cdn.datatables.net/plug-ins/2.3.5/i18n/pt-BR.json',
             },
             order: [[
                 5, 'desc'
@@ -72,8 +72,11 @@
             ajax: {
                 method: 'GET',
                 url: `/api/table_services_requests?hotel_id=${hotel_id}`,
-                dataSrc: '',
-            },
+                dataSrc: function(json) {
+                    if (json && json.length) return json;
+                    return [];
+                    },
+                },
             columns: [
                 {
                     data: 'id',
@@ -112,6 +115,10 @@
         });
     }
     carregaTabelaPedidos();
+
+    // setInterval(function(){ 
+    //     carregaTabelaPedidos();
+    // }, 60000)
 
     function reloadTable(){
         carregaTabelaPedidos();
