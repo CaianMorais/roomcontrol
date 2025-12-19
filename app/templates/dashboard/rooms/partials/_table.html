@@ -1,3 +1,15 @@
+{% set ROOM_TYPE_LABEL = {
+    '1': 'Solteiro',
+    '2': 'Duplo',
+    '3': 'Duplo',
+    '4': 'Casal',
+    '5': 'Triplo',
+    '6': 'Triplo',
+    '7': 'Triplo',
+    '8': 'Triplo (com casal)',
+    '9': 'Personalizado'
+} %}
+
 <div class="d-flex align-items-center justify-content-between">
     <h5 class="card-title fw-semibold mb-4">Quartos</h5>
     <div>
@@ -54,25 +66,7 @@
                 </td>
                 <td class="border-bottom-0">
                     <p class="mb-0 fw-normal">
-                        {% if room.type == '1' %}
-                        Solteiro
-                        {% elif room.type == '2' %}
-                        Duplo
-                        {% elif room.type == '3' %}
-                        Duplo
-                        {% elif room.type == '4' %}
-                        Casal
-                        {% elif room.type == '5' %}
-                        Triplo
-                        {% elif room.type == '6' %}
-                        Triplo
-                        {% elif room.type == '7' %}
-                        Triplo
-                        {% elif room.type == '8' %}
-                        Triplo (com casal)
-                        {% elif room.type == '9' %}
-                        Personalizado
-                        {% endif %}
+                        {{ ROOM_TYPE_LABEL.get(room.type|string, 'Não informado') }}
                     </p>
                 </td>
                 <td class="border-bottom-0">

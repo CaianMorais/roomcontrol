@@ -132,7 +132,12 @@ def view_request(
     db: Session = Depends(get_db)
 ):
     hotel_id = request.session.get('hotel_id')
-    service_request = db.query(Services).join(Guest, Services.guest_id == Guest.id).filter(Services.id==request_id, Guest.hotel_id==hotel_id).first()
+    service_request = db.query(Services, Guest, Reservations, Rooms) \
+    .join(Guest, Services.guest_id == Guest.id) \
+    .join(Reservations, Services.reservation_id == Reservations.id) \
+    .join(Rooms, Rooms.id == Services.room_id) \
+    .filter(Services.id==request_id, Guest.hotel_id==hotel_id) \
+    .first()
     
     if not service_request:
         add_flash_message(request, "Houve um erro ao tentar abrir o pedido.", "warning")

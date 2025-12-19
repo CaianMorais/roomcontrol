@@ -4,22 +4,123 @@
 
 {% block content %}
 
+{% set ROOM_TYPE_LABEL = {
+    '1': 'Solteiro',
+    '2': 'Duplo',
+    '3': 'Duplo',
+    '4': 'Casal',
+    '5': 'Triplo',
+    '6': 'Triplo',
+    '7': 'Triplo',
+    '8': 'Triplo (com casal)',
+    '9': 'Personalizado'
+} %}
+
+{% set REQUEST_STATUS_LABEL = {
+    'pending': 'Pendente',
+    'in_progress': 'Em andamento',
+    'completed': 'Concluído'
+} %}
+
 <div class="container-fluid">
     <div class="container-fluid">
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title fw-semibold mb-4">Detalhes do pedido</h5>
-                <hr>
                 <div class="row">
-                    <div class="col-4">
-                        <h6>Reserva</h6>
+                    <div class="col-5">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-4">Reserva</h6>
+                                <ul>
+                                    <li class="d-flex justify-content-between">
+                                        <strong>Nº: </strong>
+                                        {{ service.Reservations.id }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                    <li class="d-flex justify-content-between">
+                                        <strong>Nº do Quarto: </strong>
+                                        {{ service.Rooms.room_number }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                    <li class="d-flex justify-content-between">
+                                        <strong>Tipo do quarto: </strong>
+                                        {{ ROOM_TYPE_LABEL.get(service.Rooms.type|string, 'Não Informado') }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                    <li class="d-flex justify-content-between">
+                                        <strong>Check-in: </strong>
+                                        {{ service.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                    <li class="d-flex justify-content-between">
+                                        <strong>Check-out (previsto): </strong>
+                                        {{ service.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+                                    </li>
+                                </ul>
+                                <div class="d-grid">
+                                    <a class="btn btn-dark" type="button" href="{{ url_for('manage_reservation', reservation_id=service.Reservations.id) }}">Gerenciar reserva</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="fw-semibold mb-4">Hóspede</h6>
+                                <ul>
+                                    <li class="d-flex justify-content-between">
+                                        <strong>Nome: </strong>
+                                        {{ service.Guest.name }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                    <li class="d-flex justify-content-between">
+                                        <strong>CPF: </strong>
+                                        {{ service.Guest.cpf[:3] + "." + service.Guest.cpf[3:6] + "." + service.Guest.cpf[6:9] + "." + service.Guest.cpf[9:] }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                    <li class="d-flex justify-content-between">
+                                        <strong>Telefone: </strong>
+                                        {{ "(" + service.Guest.phone_number[:2] + ") " + service.Guest.phone_number[2:] if service.Guest.phone_number else 'Não informado' }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                    <li class="d-flex justify-content-between">
+                                        <strong>E-mail: </strong>
+                                        {{ service.Guest.email if service.Guest.email else 'Não informado' }}
+                                    </li>
+                                    <hr class="mx-0 my-2">
+                                </ul>
+                                <div class="d-grid">
+                                    <a class="btn btn-dark" type="button" href="{{ url_for('edit_guest', guest_id=service.Guest.id, guest_cpf=service.Guest.cpf) }}">Gerenciar hóspede</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-4">
-                        <h6>Reserva</h6>
+                    
+                    <div class="card col-7">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-4">Pedido</h6>
+                            <ul>
+                                <li class="d-flex justify-content-between">
+                                    <strong>Solicitado em: </strong>
+                                    {{ service.Services.created_at.strftime("%d/%m/%Y %H:%M") }}
+                                </li>
+                                <hr class="mx-0 my-2">
+                                <li class="d-flex justify-content-between">
+                                    <strong>Situação: </strong>
+                                    {{ REQUEST_STATUS_LABEL.get(service.Services.status|string) }}
+                                </li>
+                                <hr class="mx-0 my-2">
+                                <li class="d-flex justify-content-between">
+                                    <strong>Pedido: </strong>
+                                </li>
+                            </ul>
+                            <span>{{ service.Services.request }}</span>
+                        </div>
+                        <div class="d-grid gap-2 mb-4">
+                            <a class="btn btn-outline-warning" type="button" href="#">Pedido em andamento</a>
+                            <a class="btn btn-outline-success" type="button" href="#">Concluir pedido</a>
+                        </div>
                     </div>
-                    <div class="col-4">
-                        <h6>Reserva</h6>
-                    </div>
+
                 </div>
             </div>
         </div>
