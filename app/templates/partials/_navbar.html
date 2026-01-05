@@ -21,14 +21,14 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <div class="navbar-nav ms-auto">
-                    <a href="index.html" class="nav-item nav-link active">Início</a>
-                    <a href="about.html" class="nav-item nav-link">Sobre</a>
-                    <a href="service.html" class="nav-item nav-link">Serviços</a>
+                    <a href="{{ url_for('home') }}" class="nav-item nav-link active">Início</a>
+                    <!-- <a href="about.html" class="nav-item nav-link">Sobre</a>
+                    <a href="service.html" class="nav-item nav-link">Serviços</a> -->
                     <div class="nav-item dropdown">
                         <a href="#!" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Plataforma</a>
                         <div class="dropdown-menu bg-light mt-2">
                             <a href="{{ url_for('get_registration_form') }}" class="dropdown-item">Sou hotel</a>
-                            <a href="team.html" class="dropdown-item">Sou hóspede</a>
+                            <a href="{{ url_for('guest') }}" class="dropdown-item">Sou hóspede</a>
                         </div>
                     </div>
                     <a href="contact.html" class="nav-item nav-link">Fale conosco</a>

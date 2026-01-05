@@ -45,10 +45,7 @@
                                 <!-- LOGIN -->
                                 <div id="login-card" class="col-12 col-lg-12 card shadow-lg p-4">
                                     <p class="text-center">Informe seu CPF para localizarmos sua reserva</p>
-                                    <form id="login-form" action="{{ url_for('guest_access') }}" method="post"
-                                        enctype="multipart/form-data">
-                                        {% if csrf_token %}<input type="hidden" name="csrf_token"
-                                            value="{{ csrf_token }}">{% endif %}
+                                    <form id="login-form" action="{{ url_for('guest_access') }}" method="get">
                                         <div class="mb-4">
                                             <label for="exampleInputtext1" class="form-label">CPF</label>
                                             <input type="text" class="form-control" name="cpf" maxlength="11" required>

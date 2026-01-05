@@ -1,0 +1,48 @@
+<!-- Include Header Start -->
+{% extends "partials/base.html" %}
+<!-- Include Header End -->
+
+{% block content %}
+
+<!-- Include Navbar Start -->
+{% include "partials/_navbar.html" %}
+<!-- Include Navbar End -->
+
+    <div class="mb-5 container-fluid mt-5">
+        <div class="container mt-5">
+            <div class="row g-0">
+                <div class="col-lg-6">
+                    <div class="row g-0">
+                        <div class="col-12 wow fadeIn" data-wow-delay="0.1s">
+                            <div class="p-5">
+                                <h3 class="mb-4">Detalhes da Reserva</h3>
+                                <table class="table">
+                                    <tr>
+                                        <th>Número da Reserva:</th>
+                                        <td># {{ reserva.Reservations.id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Nome do Hóspede:</th>
+                                        <td>{{ guest.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Número do Quarto:</th>
+                                        <td>{{ reserva.Rooms.room_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Data de Check-in:</th>
+                                        <td>{{ reserva.Reservations.check_in }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Data de Check-out:</th>
+                                        <td>{{ reserva.Reservations.check_out }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
