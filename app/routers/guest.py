@@ -29,18 +29,30 @@ def get_db():
 def guest(
     request: Request,
 ):
+    csrf_token = generate_csrf_token()
+    request.session['csrf_token'] = csrf_token
     return render(
         templates,
         request,
-        'auth/guest_access.html'
+        'auth/guest_access.html',
+        {
+            'csrf_token': csrf_token
+        }
     )
 
 @router.get('/access', response_class=HTMLResponse, include_in_schema=False)
 def guest_access(
     request: Request,
-    cpf: str,
+    token: Optional[str] = Query(None),
+    cpf: Optional[str] = Query(None),
+    res: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
+
+    if not token or token != request.session.get('csrf_token') or not validate_csrf_token(token):
+        add_flash_message(request, 'Token inválido. Por favor, tente novamente.', 'danger')
+        return RedirectResponse(request.url_for('guest'), status_code=303)
+    
     guest = db.query(Guest) \
     .filter(Guest.cpf == cpf) \
     .first()
@@ -51,10 +63,16 @@ def guest_access(
 
     reserva = db.query(Reservations, Rooms) \
     .join(Rooms, Reservations.room_id == Rooms.id) \
-    .filter(Reservations.guest_id == guest.id) \
+    .filter(Reservations.id == res) \
     .order_by(desc(Reservations.created_at)) \
     .first()
+
+    if not reserva or reserva.Reservations.guest_id != guest.id:
+        add_flash_message(request, 'Reserva não encontrada. Verifique e tente novamente.', 'danger')
+        return RedirectResponse(request.url_for('guest'), status_code=303)
     
+    request.session["reservation_id"] = reserva.Reservations.id
+
     return render(
         templates,
         request,
@@ -64,3 +82,19 @@ def guest_access(
             'reserva': reserva
         }
     )
+
+@router.post('/request', response_class=HTMLResponse, include_in_schema=False)
+def request_service(
+    request: Request,
+    service_description: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    reservation_id = request.session.get("reservation_id")
+    if not reservation_id:
+        add_flash_message(request, 'Reserva não encontrada na sessão. Por favor, faça login novamente.', 'danger')
+        return RedirectResponse(request.url_for('guest'), status_code=303)
+    
+    reserva = db.query(Reservations).filter(Reservations.id == reservation_id).first()
+    if not reserva:
+        add_flash_message(request, 'Reserva não encontrada. Verifique e tente novamente.', 'danger')
+        return RedirectResponse(request.url_for('guest'), status_code=303)

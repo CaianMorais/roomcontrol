@@ -10,11 +10,11 @@
 
     <div class="mb-5 container-fluid mt-5">
         <div class="container mt-5">
-            <div class="row g-0">
-                <div class="col-lg-6">
-                    <div class="row g-0">
-                        <div class="col-12 wow fadeIn" data-wow-delay="0.1s">
-                            <div class="p-5">
+            <div class="row">
+                <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
+                    <div class="card shadow-lg">
+                        <div class="card-body">
+                            <div class="p-3">
                                 <h3 class="mb-4">Detalhes da Reserva</h3>
                                 <table class="table">
                                     <tr>
@@ -31,18 +31,92 @@
                                     </tr>
                                     <tr>
                                         <th>Data de Check-in:</th>
-                                        <td>{{ reserva.Reservations.check_in }}</td>
+                                        <td>{{ reserva.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}</td>
                                     </tr>
                                     <tr>
                                         <th>Data de Check-out:</th>
-                                        <td>{{ reserva.Reservations.check_out }}</td>
+                                        <td>{{ reserva.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}</td>
                                     </tr>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
+                    <div class="card shadow-lg">
+                        <div class="card-body">
+                            <div class="p-3">
+                                <div class="d-flex justify-content-between mb-4">
+                                    <h3 class="m-0">Serviços solicitados</h3>
+                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#solicitarServico">
+                                        +
+                                    </button>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>06/01/2026 10:55</td>
+                                            <td>Andamento</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="modal fade" id="solicitarServico" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Solicitar serviço</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="serviceRequestForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <textarea 
+                                class="form-control"
+                                id="serviceRequestDescription"
+                                rows="3"
+                                placeholder="Descreva o serviço que deseja solicitar..."
+                            ></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="sendRequest">Enviar pedido</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
+    <script>
+        form = document.getElementById('serviceRequestForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const serviceDescription = document.getElementById('serviceRequestDescription').value;
+
+            if (!serviceDescription) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Por favor, descreva o serviço que deseja solicitar.'
+                });
+                return;
+            }
+        });
+    </script>
 
 {% endblock %}
