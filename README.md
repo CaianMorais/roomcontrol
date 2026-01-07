@@ -1,3 +1,11 @@
+## 🔄️ Última Atualização 07/01/2026
+- Módulo de Serviços funcional;
+- API tem um endpoint exclusivo para atualizar a tabela de pedidos de serviços.
+
+## ➡️ Próximas atualizações
+- Aplicar Clean Code ao back-end e ao front-end na lógica das novas funcionalidades do módulo de Serviços;
+- Executar testes manuais para depurar possíveis bugs do JavaScript ou do Python;
+- Aplicar server-side validation, para evitar que o back-end dependa do front-end para definir e validar regras.
 
 # RoomControl
 

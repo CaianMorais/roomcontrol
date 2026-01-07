@@ -1,11 +1,12 @@
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query, Request, Form, Depends, APIRouter
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from validate_docbr import CPF
 from fastapi.templating import Jinja2Templates
 
+from models.services import Services
 from core.config import SessionLocal
 from schemas.guest import GuestCreate, GuestOut
 from models.guest import Guest
@@ -50,7 +51,6 @@ def guest_access(
 ):
 
     if not token or token != request.session.get('csrf_token') or not validate_csrf_token(token):
-        add_flash_message(request, 'Token inválido. Por favor, tente novamente.', 'danger')
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
     guest = db.query(Guest) \
@@ -67,11 +67,16 @@ def guest_access(
     .order_by(desc(Reservations.created_at)) \
     .first()
 
-    if not reserva or reserva.Reservations.guest_id != guest.id:
+    if not reserva or reserva.Reservations.guest_id != guest.id or reserva.Reservations.status != 'checked_in':
         add_flash_message(request, 'Reserva não encontrada. Verifique e tente novamente.', 'danger')
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
     request.session["reservation_id"] = reserva.Reservations.id
+
+    services = db.query(Services) \
+    .filter(Services.reservation_id == reserva.Reservations.id) \
+    .order_by(desc(Services.created_at)) \
+    .all()
 
     return render(
         templates,
@@ -79,11 +84,12 @@ def guest_access(
         'guests_access/reservation.html',
         {
             'guest': guest,
-            'reserva': reserva
+            'reserva': reserva,
+            'services': services
         }
     )
 
-@router.post('/request', response_class=HTMLResponse, include_in_schema=False)
+@router.post('/request', include_in_schema=False)
 def request_service(
     request: Request,
     service_description: str = Form(...),
@@ -95,6 +101,45 @@ def request_service(
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
     reserva = db.query(Reservations).filter(Reservations.id == reservation_id).first()
-    if not reserva:
+    if not reserva or reserva.status != 'checked_in':
         add_flash_message(request, 'Reserva não encontrada. Verifique e tente novamente.', 'danger')
         return RedirectResponse(request.url_for('guest'), status_code=303)
+    
+    new_request = Services(
+        reservation_id=reserva.id,
+        guest_id=reserva.guest_id,
+        room_id=reserva.room_id,
+        request=service_description,
+        status='pending',
+    )
+
+    db.add(new_request)
+    db.commit()
+    db.refresh(new_request)
+    
+    return JSONResponse({
+        "ok": True,
+        "message": "Solicitação de serviço recebida com sucesso.",
+        "service_description": service_description
+    })
+
+@router.get('/load_request/{request_id}', include_in_schema=False)
+def load_service_request(
+    request: Request,
+    request_id: int,
+    db: Session = Depends(get_db)
+):
+    service_request = db.query(Services).filter(Services.id == request_id).first()
+    if not service_request:
+        return JSONResponse({
+            "ok": False,
+            "message": "Solicitação de serviço não encontrada."
+        })
+    
+    return JSONResponse({
+        "ok": True,
+        "service_request": {
+            "id": service_request.id,
+            "request": service_request.request,
+        }
+    })

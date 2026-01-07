@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, Request, Query, HTTPException
+from fastapi import APIRouter, Body, Depends, Request, Query, HTTPException
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from utils.session_guard import require_session
 from core.config import SessionLocal
 from schemas.services import ServicesOut
@@ -142,6 +142,9 @@ def view_request(
     if not service_request:
         add_flash_message(request, "Houve um erro ao tentar abrir o pedido.", "warning")
         return RedirectResponse(url="/dashboard_services", status_code=303)
+    
+    request.session['service_id'] = service_request.Services.id
+
     return render(
         templates,
         request,
@@ -151,3 +154,71 @@ def view_request(
         }
     )
     
+@router.post('/update_status', include_in_schema=False)
+def update_service_status(
+    request: Request,
+    payload: dict = Body(...),
+    db: Session = Depends(get_db)
+):
+    new_status = payload.get("status")
+    print(new_status)
+    if new_status not in ("pending", "in_progress", "completed"):
+        return JSONResponse(
+            {
+                "ok": False,
+                "message": "Status inválido fornecido.",
+                "new_status": None
+            }
+        )
+
+    service_id = request.session.get('service_id')
+    print(service_id)
+    if not service_id:
+        return JSONResponse(
+            {
+                "ok": False,
+                "message": "ID do pedido de serviço não encontrado na sessão.",
+                "new_status": None
+            }
+        )
+    
+    service = db.query(Services).filter(Services.id == service_id).first()
+
+    if not service:
+        return JSONResponse(
+            {
+                "ok": False,
+                "message": "Pedido de serviço não encontrado.",
+                "new_status": None
+            }
+        )
+    
+    if service.status == "completed":
+        return JSONResponse(
+            {
+                "ok": False,
+                "message": "O pedido já foi concluído e não pode ser alterado.",
+                "new_status": service.status
+            }
+        )
+
+    if service.status == new_status:
+        return JSONResponse(
+            {
+                "ok": False,
+                "message": "O pedido já está com esse status.",
+                "new_status": new_status
+            }
+        )
+
+    service.status = new_status
+    db.commit()
+    db.refresh(service)
+    
+    return JSONResponse(
+        {
+            "ok": True,
+            "message": "Status do pedido atualizado com sucesso.",
+            "new_status": new_status
+        }
+    )

@@ -11,7 +11,7 @@ class Services(Base):
     guest_id = Column(Integer, ForeignKey('guests.id', ondelete='cascade'), nullable=False)
     room_id = Column(Integer, ForeignKey('rooms.id', ondelete='cascade'), nullable=False)
     request = Column(String(500), nullable=False)
-    status = Column(Enum('pending', 'in_progress', 'completed'), nullable=False, server_default='available')
+    status = Column(Enum('pending', 'in_progress', 'completed'), nullable=False, server_default='pending')
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
