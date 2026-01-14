@@ -68,7 +68,7 @@ def guest_access(
     .first()
 
     if not reserva or reserva.Reservations.guest_id != guest.id or reserva.Reservations.status != 'checked_in':
-        add_flash_message(request, 'Reserva não encontrada. Verifique e tente novamente.', 'danger')
+        add_flash_message(request, 'Reserva encerrada ou inexistente. Verifique os dados e tente novamente.', 'danger')
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
     request.session["reservation_id"] = reserva.Reservations.id
@@ -102,7 +102,7 @@ def request_service(
     
     reserva = db.query(Reservations).filter(Reservations.id == reservation_id).first()
     if not reserva or reserva.status != 'checked_in':
-        add_flash_message(request, 'Reserva não encontrada. Verifique e tente novamente.', 'danger')
+        add_flash_message(request, 'Reserva encerrada ou inexistente. Verifique os dados e tente novamente.', 'danger')
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
     new_request = Services(

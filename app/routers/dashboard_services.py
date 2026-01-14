@@ -13,6 +13,8 @@ from models.rooms import Rooms
 from models.guest import Guest
 from models.hotel import Hotel
 from utils.flash import render, add_flash_message
+from helpers.services.query_requests import query_requests
+from helpers.services.update_request_status import update_req_status
 
 router = APIRouter(
     prefix='/dashboard_services',
@@ -131,18 +133,9 @@ def view_request(
     request_id: int,
     db: Session = Depends(get_db)
 ):
-    hotel_id = request.session.get('hotel_id')
-    service_request = db.query(Services, Guest, Reservations, Rooms) \
-    .join(Guest, Services.guest_id == Guest.id) \
-    .join(Reservations, Services.reservation_id == Reservations.id) \
-    .join(Rooms, Rooms.id == Services.room_id) \
-    .filter(Services.id==request_id, Guest.hotel_id==hotel_id) \
-    .first()
+    service_request = query_requests(request, db, request.session.get('hotel_id'), request_id)
     
-    if not service_request:
-        add_flash_message(request, "Houve um erro ao tentar abrir o pedido.", "warning")
-        return RedirectResponse(url="/dashboard_services", status_code=303)
-    
+    # seta o id do serviço na sessão para fazer update sem precisar passar o id pelo template
     request.session['service_id'] = service_request.Services.id
 
     return render(
@@ -161,64 +154,6 @@ def update_service_status(
     db: Session = Depends(get_db)
 ):
     new_status = payload.get("status")
-    print(new_status)
-    if new_status not in ("pending", "in_progress", "completed"):
-        return JSONResponse(
-            {
-                "ok": False,
-                "message": "Status inválido fornecido.",
-                "new_status": None
-            }
-        )
-
-    service_id = request.session.get('service_id')
-    print(service_id)
-    if not service_id:
-        return JSONResponse(
-            {
-                "ok": False,
-                "message": "ID do pedido de serviço não encontrado na sessão.",
-                "new_status": None
-            }
-        )
+    response = update_req_status(request, db, payload, new_status)
     
-    service = db.query(Services).filter(Services.id == service_id).first()
-
-    if not service:
-        return JSONResponse(
-            {
-                "ok": False,
-                "message": "Pedido de serviço não encontrado.",
-                "new_status": None
-            }
-        )
-    
-    if service.status == "completed":
-        return JSONResponse(
-            {
-                "ok": False,
-                "message": "O pedido já foi concluído e não pode ser alterado.",
-                "new_status": service.status
-            }
-        )
-
-    if service.status == new_status:
-        return JSONResponse(
-            {
-                "ok": False,
-                "message": "O pedido já está com esse status.",
-                "new_status": new_status
-            }
-        )
-
-    service.status = new_status
-    db.commit()
-    db.refresh(service)
-    
-    return JSONResponse(
-        {
-            "ok": True,
-            "message": "Status do pedido atualizado com sucesso.",
-            "new_status": new_status
-        }
-    )
+    return response

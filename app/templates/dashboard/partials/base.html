@@ -73,19 +73,11 @@
                             </a>
                         </li>
                         <li class="sidebar-item">
-                            <a class="sidebar-link" href="{{ url_for('new_guest') }}" aria-expanded="false">
+                            <a class="sidebar-link" href="{{ url_for('services_requests') }}" aria-expanded="false">
                                 <span>
-                                    <i class="ti ti-user-plus"></i>
+                                    <i class="ti ti-hotel-service"></i>
                                 </span>
-                                <span class="hide-menu">Novo hóspede</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="{{ url_for('guests') }}" aria-expanded="false">
-                                <span>
-                                    <i class="ti ti-user-plus"></i>
-                                </span>
-                                <span class="hide-menu">Hóspedes</span>
+                                <span class="hide-menu">Serviços</span>
                             </a>
                         </li>
                         <li class="nav-small-cap">
@@ -93,27 +85,19 @@
                             <span class="hide-menu">Cadastro Geral</span>
                         </li>
                         <li class="sidebar-item">
+                            <a class="sidebar-link" href="{{ url_for('guests') }}" aria-expanded="false">
+                                <span>
+                                    <i class="ti ti-user"></i>
+                                </span>
+                                <span class="hide-menu">Hóspedes</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
                             <a class="sidebar-link" href="{{ url_for('rooms') }}" aria-expanded="false">
                                 <span>
-                                    <i class="ti ti-article"></i>
+                                    <i class="ti ti-bed"></i>
                                 </span>
                                 <span class="hide-menu">Quartos</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="{{ url_for('services_requests') }}" aria-expanded="false">
-                                <span>
-                                    <i class="ti ti-alert-circle"></i>
-                                </span>
-                                <span class="hide-menu">Serviços</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="./ui-card.html" aria-expanded="false">
-                                <span>
-                                    <i class="ti ti-cards"></i>
-                                </span>
-                                <span class="hide-menu">Itens</span>
                             </a>
                         </li>
                         <li class="nav-small-cap">
@@ -123,17 +107,9 @@
                         <li class="sidebar-item">
                             <a class="sidebar-link" href="./icon-tabler.html" aria-expanded="false">
                                 <span>
-                                    <i class="ti ti-mood-happy"></i>
+                                    <i class="ti ti-help"></i>
                                 </span>
-                                <span class="hide-menu">Icons</span>
-                            </a>
-                        </li>
-                        <li class="sidebar-item">
-                            <a class="sidebar-link" href="./sample-page.html" aria-expanded="false">
-                                <span>
-                                    <i class="ti ti-aperture"></i>
-                                </span>
-                                <span class="hide-menu">Sample Page</span>
+                                <span class="hide-menu">Suporte</span>
                             </a>
                         </li>
                     </ul>
@@ -214,7 +190,7 @@
 
 
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js" integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js" integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
     <script src="{{ url_for('dashboard', path='js/sidebarmenu.js') }}"></script>
     <script src="{{ url_for('dashboard', path='js/app.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.36.2/apexcharts.min.js" integrity="sha512-YwMWovbODpJxF5IN8vZI3F6v+t/Q0UBrgfeyJUEJYl00uOVWqtWWOIfpplNy88ZL2ZYb5LywrKz2aD0ZtlFU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
