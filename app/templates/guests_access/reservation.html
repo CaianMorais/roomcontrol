@@ -13,215 +13,26 @@
             <div class="row">
                 <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
                     <div class="card shadow-lg">
-                        <div class="card-body">
-                            <div class="p-3">
-                                <h3 class="mb-4">Detalhes da Reserva</h3>
-                                <table class="table">
-                                    <tr>
-                                        <th>Número da Reserva:</th>
-                                        <td># {{ reserva.Reservations.id }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Nome do Hóspede:</th>
-                                        <td>{{ guest.name }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Número do Quarto:</th>
-                                        <td>{{ reserva.Rooms.room_number }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Data de Check-in:</th>
-                                        <td>{{ reserva.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
+                        {% include 'guests_access/partials/_table_reservation.html' %}
                     </div>
                 </div>
                 <div class="col-lg-6 wow fadeIn" data-wow-delay="0.1s">
                     <div class="card shadow-lg">
-                        <div class="card-body">
-                            <div class="p-3">
-                                <div class="d-flex justify-content-between mb-4">
-                                    <h3 class="m-0">Serviços solicitados</h3>
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#solicitarServico">
-                                        +
-                                    </button>
-                                </div>
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Data</th>
-                                            <th>Status</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for service in services %}
-                                        <tr>
-                                            <td>{{ service.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
-                                            <td>
-                                                {% if service.status == 'pending' %}
-                                                    Pendente
-                                                {% elif service.status == 'in_progress' %}
-                                                    Em andamento
-                                                {% elif service.status == 'completed' %}
-                                                    Concluído
-                                                {% else %}
-                                                     Desconhecido
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <a 
-                                                    href="#"
-                                                    data-request="{{ service.id }}" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#solicitacaoServico">
-                                                <i class="fa fa-solid fa-eye"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        {% else %}
-                                        <tr>
-                                            <td colspan="2" class="text-center">Nenhum serviço solicitado.</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        {% include 'guests_access/partials/_table_requests.html' %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="modal fade" id="solicitarServico" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Solicitar serviço</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="serviceRequestForm">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <textarea 
-                                class="form-control"
-                                id="serviceRequestDescription"
-                                rows="3"
-                                placeholder="Descreva o serviço que deseja solicitar..."
-                            ></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary" id="sendRequest">Enviar pedido</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        {% include 'guests_access/partials/_modal_solicitar.html' %}
     </div>
     <div class="modal fade" id="solicitacaoServico" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Pedido</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="requestedService">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <textarea 
-                                class="form-control"
-                                id="requestedServiceDescription"
-                                rows="3"
-                            ></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+        {% include 'guests_access/partials/_modal_ver_solicitacao.html' %}
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
-    <script>
-        form = document.getElementById('serviceRequestForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const serviceDescription = document.getElementById('serviceRequestDescription').value;
-
-            if (!serviceDescription) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Atenção',
-                    text: 'Por favor, descreva o serviço que deseja solicitar.'
-                });
-                return;
-            }
-
-            const form = new FormData();
-            form.append('service_description', serviceDescription);
-            try {
-                const response = await fetch('/guests/request', {
-                    method: 'POST',
-                    body: form,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                const data = await response.json();
-                if (data.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Sucesso',
-                        text: data.message
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erro',
-                        text: data.message || 'Ocorreu um erro ao enviar a solicitação.'
-                    });
-                }
-            }
-            catch(error){
-                console.error('Error:', error);
-            }
-        });
-    </script>
-    <script>
-        const requestModal = document.getElementById('solicitacaoServico');
-        requestModal.addEventListener('show.bs.modal', async (event) => {
-            const button = event.relatedTarget;
-            const requestId = button.getAttribute('data-request');
-
-            try {
-                const response = await fetch(`/guests/load_request/${requestId}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                const data = await response.json();
-                if (data.ok) {
-                    document.getElementById('requestedServiceDescription').value = data.service_request.request;
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erro',
-                        text: data.message || 'Ocorreu um erro ao buscar os detalhes da solicitação.'
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        });
-    </script>
+    <script src="{{ url_for('guests_access', path='js/request_service.js' ) }}" type="module"></script>
+    <script src="{{ url_for('guests_access', path='js/view_request.js' ) }}" type="module"></script>
 
 {% endblock %}

@@ -1,0 +1,18 @@
+<div id="login-card" class="col-12 col-lg-12 card shadow-lg p-4">
+    <p class="text-center">Preencha os dados para localizar sua reserva</p>
+    <form id="login-form" action="{{ url_for('guest_access') }}" method="get">
+        {% if csrf_token %}
+        <input type="hidden" name="token" value="{{ csrf_token }}">
+        {% endif %}
+        <div class="mb-4">
+            <label for="cpf" class="form-label">CPF do titular da reserva</label>
+            <input type="text" class="form-control" name="cpf" id="cpf" maxlength="11" required
+                placeholder="Apenas números">
+        </div>
+        <div class="mb-4">
+            <label for="res" class="form-label">Número da Reserva</label>
+            <input type="text" class="form-control" name="res" id="res" required placeholder="Fornecido pelo hotel">
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-8 fs-4 mb-2 rounded-2">Enviar</button>
+    </form>
+</div>

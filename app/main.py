@@ -19,6 +19,7 @@ app = FastAPI(title="Room Control - API de Gerenciamento")
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static/main"), name="static")
 app.mount("/dashboard", StaticFiles(directory="app/static/dashboard"), name="dashboard")
+app.mount("/guests_access", StaticFiles(directory='app/static/guests_access'), name="guests_access")
 
 #criptografia das sessões
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "your_secret_key"))

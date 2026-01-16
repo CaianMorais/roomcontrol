@@ -14,6 +14,8 @@ from models.rooms import Rooms
 from models.reservations import Reservations
 from core.security import validate_csrf_token, generate_csrf_token
 from utils.flash import render, add_flash_message
+from helpers.guest_access.access import find_guest, find_reservation, find_services
+from helpers.guest_access.request_service import create_request_service
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter(prefix="/guests", tags=["guests"])
@@ -53,30 +55,10 @@ def guest_access(
     if not token or token != request.session.get('csrf_token') or not validate_csrf_token(token):
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
-    guest = db.query(Guest) \
-    .filter(Guest.cpf == cpf) \
-    .first()
-
-    if not guest:
-        add_flash_message(request, 'CPF não encontrado. Verifique e tente novamente.', 'danger')
-        return RedirectResponse(request.url_for('guest'), status_code=303)
-
-    reserva = db.query(Reservations, Rooms) \
-    .join(Rooms, Reservations.room_id == Rooms.id) \
-    .filter(Reservations.id == res) \
-    .order_by(desc(Reservations.created_at)) \
-    .first()
-
-    if not reserva or reserva.Reservations.guest_id != guest.id or reserva.Reservations.status != 'checked_in':
-        add_flash_message(request, 'Reserva encerrada ou inexistente. Verifique os dados e tente novamente.', 'danger')
-        return RedirectResponse(request.url_for('guest'), status_code=303)
-    
-    request.session["reservation_id"] = reserva.Reservations.id
-
-    services = db.query(Services) \
-    .filter(Services.reservation_id == reserva.Reservations.id) \
-    .order_by(desc(Services.created_at)) \
-    .all()
+    guest = find_guest(request, db, cpf)
+    reservation = find_reservation(request, db, res, guest)
+    request.session["reservation_id"] = reservation.Reservations.id
+    services = find_services(db, reservation)
 
     return render(
         templates,
@@ -84,7 +66,7 @@ def guest_access(
         'guests_access/reservation.html',
         {
             'guest': guest,
-            'reserva': reserva,
+            'reserva': reservation,
             'services': services
         }
     )
@@ -100,28 +82,20 @@ def request_service(
         add_flash_message(request, 'Reserva não encontrada na sessão. Por favor, faça login novamente.', 'danger')
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
-    reserva = db.query(Reservations).filter(Reservations.id == reservation_id).first()
-    if not reserva or reserva.status != 'checked_in':
-        add_flash_message(request, 'Reserva encerrada ou inexistente. Verifique os dados e tente novamente.', 'danger')
-        return RedirectResponse(request.url_for('guest'), status_code=303)
-    
-    new_request = Services(
-        reservation_id=reserva.id,
-        guest_id=reserva.guest_id,
-        room_id=reserva.room_id,
-        request=service_description,
-        status='pending',
-    )
+    new_request = create_request_service(request, db, reservation_id, service_description)
 
-    db.add(new_request)
-    db.commit()
-    db.refresh(new_request)
-    
-    return JSONResponse({
-        "ok": True,
-        "message": "Solicitação de serviço recebida com sucesso.",
-        "service_description": service_description
-    })
+    if new_request:
+        return JSONResponse({
+            "ok": True,
+            "message": "Solicitação de serviço recebida com sucesso.",
+            "service_description": service_description
+        })
+    else:
+        return JSONResponse({
+            "ok": False,
+            "message": "Algo deu errado com sua solicitação",
+            "service_description": service_description
+        })
 
 @router.get('/load_request/{request_id}', include_in_schema=False)
 def load_service_request(

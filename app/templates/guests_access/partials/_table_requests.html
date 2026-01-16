@@ -1,0 +1,48 @@
+<div class="card-body">
+    <div class="p-3">
+        <div class="d-flex justify-content-between mb-4">
+            <h3 class="m-0">Serviços solicitados</h3>
+            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                data-bs-target="#solicitarServico">
+                +
+            </button>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td>{{ service.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                    <td>
+                        {% if service.status == 'pending' %}
+                        Pendente
+                        {% elif service.status == 'in_progress' %}
+                        Em andamento
+                        {% elif service.status == 'completed' %}
+                        Concluído
+                        {% else %}
+                        Desconhecido
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="#" data-request="{{ service.id }}" data-bs-toggle="modal"
+                            data-bs-target="#solicitacaoServico">
+                            <i class="fa fa-solid fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" class="text-center">Nenhum serviço solicitado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

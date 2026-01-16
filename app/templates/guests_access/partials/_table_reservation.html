@@ -1,0 +1,23 @@
+<div class="card-body">
+    <div class="p-3">
+        <h3 class="mb-4">Detalhes da Reserva</h3>
+        <table class="table">
+            <tr>
+                <th>Número da Reserva:</th>
+                <td># {{ reserva.Reservations.id }}</td>
+            </tr>
+            <tr>
+                <th>Nome do Hóspede:</th>
+                <td>{{ guest.name }}</td>
+            </tr>
+            <tr>
+                <th>Número do Quarto:</th>
+                <td>{{ reserva.Rooms.room_number }}</td>
+            </tr>
+            <tr>
+                <th>Data de Check-in:</th>
+                <td>{{ reserva.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}</td>
+            </tr>
+        </table>
+    </div>
+</div>

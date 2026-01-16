@@ -1,11 +1,16 @@
-## 🔄️ Última Atualização 07/01/2026
+## 🔄️ Última Atualização 16/01/2026
 - Módulo de Serviços funcional;
-- API tem um endpoint exclusivo para atualizar a tabela de pedidos de serviços.
+- API tem um endpoint exclusivo para atualizar a tabela de pedidos de serviços;
+- Back-end do módulo `dashboard_services.py` e `guest.py` otimizado para reduzir o tamanho dos códigos dentros das rotas.
+- Template HTML do módulo `auth/guests_access` e `guests_access` otimizados para organização em partials;
+- Scripts JS otimizados para arquivos independentes para organizar front-end;
+- Server-side validation para não deixar o back-end dependente dos dados do front.
+
 
 ## ➡️ Próximas atualizações
-- Aplicar Clean Code ao back-end e ao front-end na lógica das novas funcionalidades do módulo de Serviços;
-- Executar testes manuais para depurar possíveis bugs do JavaScript ou do Python;
-- Aplicar server-side validation, para evitar que o back-end dependa do front-end para definir e validar regras.
+- Aplicar Clean Code ao front-end do módulo `dashboard_services`
+- Executar testes manuais para depurar possíveis bugs do JavaScript ou do Python durante a otimização dos módulos;
+- Estudar novas condicionais ao criar pedidos de serviço e possibilitar que o hotel bloqueie pedidos de reservas específicas.
 
 # RoomControl
 
