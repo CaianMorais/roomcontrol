@@ -25,6 +25,7 @@ class Reservations(Base):
     status = Column(String(50), nullable=False, default='booked')
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    allow_request_services = Column(Boolean, nullable=False, default=True)
 
     guest = relationship("Guest", back_populates="reservations")
     room = relationship("Rooms", back_populates="reservations")

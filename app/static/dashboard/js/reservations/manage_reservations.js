@@ -12,6 +12,7 @@ Inputmask({
 document.addEventListener("DOMContentLoaded", function () {
     const updateBtn = document.querySelectorAll(".btn-update-reservation");
     const cancelBtn = document.querySelectorAll(".btn-cancel-reservation");
+    const requestBtn = document.querySelectorAll(".btn-update-request");
 
     updateBtn.forEach(link => {
         link.addEventListener("click", function (e) {
@@ -39,4 +40,17 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+    requestBtn.forEach(link => {
+        link.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            const url = this.href;
+            showAlert("Atualizar pedidos?", "Essa ação atualizará a permissão do usuário solicitar algum serviço.", "question")
+            .then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            })
+        })
+    })
 });

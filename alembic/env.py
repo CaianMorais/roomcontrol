@@ -3,7 +3,6 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from app.core.config import Base
-from app.models import hotel, guest
 
 from logging.config import fileConfig
 

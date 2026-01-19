@@ -311,3 +311,26 @@ def manage_reservation(
             "price": price,
         }
     )
+
+@router.get('/update_request_auth/{reservation_id}', include_in_schema=False)
+def update_request_auth(
+    request: Request,
+    reservation_id: int,
+    db: Session = Depends(get_db)
+):
+    
+    reservation = db.query(Reservations).filter(Reservations.id == reservation_id).first()
+
+    if reservation.allow_request_services:
+        reservation.allow_request_services = False
+        add_flash_message(request, 'O hóspede não pode mais solicitar serviços para essa reserva', 'success')
+    else:
+        reservation.allow_request_services = True
+        add_flash_message(request, 'O hóspede está autorizado a solicitar serviços para essa reserva', 'success')
+
+    db.commit()
+    db.refresh(reservation)
+
+    return JSONResponse({
+        "ok": True,
+    })
