@@ -116,15 +116,14 @@ def services_requests(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    hotel_id = request.session.get("hotel_id")
-
+    if not request.session.get("hotel_id"):
+        add_flash_message(request, 'Não foi identificado o ID do hotel na sua sessão, tente novamente', 'error')
+        return RedirectResponse(url="/logout", status_code=303)
+    
     return render(
         templates,
         request,
-        "dashboard/services/services.html",
-        {
-            "hotel_id": hotel_id
-        }
+        "dashboard/services/services.html"
     )
 
 @router.get('/pedido/{request_id}', response_class=HTMLResponse, include_in_schema=False)

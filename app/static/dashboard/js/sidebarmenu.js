@@ -21,15 +21,12 @@ $(function () {
     const element = $("ul#sidebarnav a").filter(function () {
       const linkPath = new URL(this.href, window.location.origin)
         .pathname.replace(/\/+$/, "");
-        console.log('linkPath: ' + linkPath);
       // ativa se for exatamente o mesmo path
       // OU se o atual for um "filho" do link: /reservas/... começa com /reservas/
       return currentPath === linkPath || currentPath.startsWith(linkPath + "/");
     });
-    console.log('currentPath: ' + currentPath);
     
     element.parentsUntil(".sidebar-nav").each(function (index) {
-      console.log($(this));
       if ($(this).is("li") && $(this).children("a").length !== 0) {
         $(this).children("a").addClass("active");
         $(this).parent("ul#sidebarnav").length === 0

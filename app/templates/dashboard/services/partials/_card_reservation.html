@@ -1,0 +1,33 @@
+<div class="card-body">
+    <h6 class="fw-semibold mb-4">Reserva</h6>
+    <ul>
+        <li class="d-flex justify-content-between">
+            <strong>Nº: </strong>
+            {{ service.Reservations.id }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>Nº do Quarto: </strong>
+            {{ service.Rooms.room_number }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>Tipo do quarto: </strong>
+            {{ ROOM_TYPE_LABEL.get(service.Rooms.type|string, 'Não Informado') }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>Check-in: </strong>
+            {{ service.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>Check-out (previsto): </strong>
+            {{ service.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
+        </li>
+    </ul>
+    <div class="d-grid">
+        <a class="btn btn-dark" type="button"
+            href="{{ url_for('manage_reservation', reservation_id=service.Reservations.id) }}">Gerenciar reserva</a>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+<div class="card-body">
+    <h6 class="fw-semibold mb-4">Pedido</h6>
+    <ul>
+        <li class="d-flex justify-content-between">
+            <strong>Solicitado em: </strong>
+            {{ service.Services.created_at.strftime("%d/%m/%Y %H:%M") }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>Situação: </strong>
+            {{ REQUEST_STATUS_LABEL.get(service.Services.status|string) }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>Pedido: </strong>
+        </li>
+    </ul>
+    <span>{{ service.Services.request }}</span>
+</div>
+<div class="d-grid gap-2 mb-4">
+    {% if service.Services.status == 'pending' %}
+    <a class="btn btn-outline-warning service-status-btn" data-status="in_progress"
+        data-text="marcar o pedido como EM ANDAMENTO" type="button" href="#">Marcar pedido em andamento</a>
+    {% endif %}
+    {% if service.Services.status != 'completed' %}
+    <a class="btn btn-outline-success service-status-btn" data-status="completed"
+        data-text="marcar o pedido como CONCLUÍDO" type="button" href="#">Marcar como pedido concluído</a>
+    {% endif %}
+</div>

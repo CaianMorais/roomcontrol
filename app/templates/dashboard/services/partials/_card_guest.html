@@ -1,0 +1,32 @@
+<div class="card-body">
+    <h6 class="fw-semibold mb-4">Hóspede</h6>
+    <ul>
+        <li class="d-flex justify-content-between">
+            <strong>Nome: </strong>
+            {{ service.Guest.name }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>CPF: </strong>
+            {{ service.Guest.cpf[:3] + "." + service.Guest.cpf[3:6] + "." + service.Guest.cpf[6:9] + "." +
+            service.Guest.cpf[9:] }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>Telefone: </strong>
+            {{ "(" + service.Guest.phone_number[:2] + ") " + service.Guest.phone_number[2:] if
+            service.Guest.phone_number else 'Não informado' }}
+        </li>
+        <hr class="mx-0 my-2">
+        <li class="d-flex justify-content-between">
+            <strong>E-mail: </strong>
+            {{ service.Guest.email if service.Guest.email else 'Não informado' }}
+        </li>
+        <hr class="mx-0 my-2">
+    </ul>
+    <div class="d-grid">
+        <a class="btn btn-dark" type="button"
+            href="{{ url_for('edit_guest', guest_id=service.Guest.id, guest_cpf=service.Guest.cpf) }}">Gerenciar
+            hóspede</a>
+    </div>
+</div>

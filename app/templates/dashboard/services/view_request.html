@@ -31,168 +31,25 @@
                 <div class="row">
                     <div class="col-5">
                         <div class="card">
-                            <div class="card-body">
-                                <h6 class="fw-semibold mb-4">Reserva</h6>
-                                <ul>
-                                    <li class="d-flex justify-content-between">
-                                        <strong>Nº: </strong>
-                                        {{ service.Reservations.id }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                    <li class="d-flex justify-content-between">
-                                        <strong>Nº do Quarto: </strong>
-                                        {{ service.Rooms.room_number }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                    <li class="d-flex justify-content-between">
-                                        <strong>Tipo do quarto: </strong>
-                                        {{ ROOM_TYPE_LABEL.get(service.Rooms.type|string, 'Não Informado') }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                    <li class="d-flex justify-content-between">
-                                        <strong>Check-in: </strong>
-                                        {{ service.Reservations.check_in.strftime("%d/%m/%Y %H:%M") }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                    <li class="d-flex justify-content-between">
-                                        <strong>Check-out (previsto): </strong>
-                                        {{ service.Reservations.check_out.strftime("%d/%m/%Y %H:%M") }}
-                                    </li>
-                                </ul>
-                                <div class="d-grid">
-                                    <a class="btn btn-dark" type="button" href="{{ url_for('manage_reservation', reservation_id=service.Reservations.id) }}">Gerenciar reserva</a>
-                                </div>
-                            </div>
+                            {% include 'dashboard/services/partials/_card_reservation.html' %}
                         </div>
                         <div class="card">
-                            <div class="card-body">
-                                <h6 class="fw-semibold mb-4">Hóspede</h6>
-                                <ul>
-                                    <li class="d-flex justify-content-between">
-                                        <strong>Nome: </strong>
-                                        {{ service.Guest.name }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                    <li class="d-flex justify-content-between">
-                                        <strong>CPF: </strong>
-                                        {{ service.Guest.cpf[:3] + "." + service.Guest.cpf[3:6] + "." + service.Guest.cpf[6:9] + "." + service.Guest.cpf[9:] }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                    <li class="d-flex justify-content-between">
-                                        <strong>Telefone: </strong>
-                                        {{ "(" + service.Guest.phone_number[:2] + ") " + service.Guest.phone_number[2:] if service.Guest.phone_number else 'Não informado' }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                    <li class="d-flex justify-content-between">
-                                        <strong>E-mail: </strong>
-                                        {{ service.Guest.email if service.Guest.email else 'Não informado' }}
-                                    </li>
-                                    <hr class="mx-0 my-2">
-                                </ul>
-                                <div class="d-grid">
-                                    <a class="btn btn-dark" type="button" href="{{ url_for('edit_guest', guest_id=service.Guest.id, guest_cpf=service.Guest.cpf) }}">Gerenciar hóspede</a>
-                                </div>
-                            </div>
+                            {% include 'dashboard/services/partials/_card_guest.html' %}
                         </div>
                     </div>
                     
                     <div class="card col-7">
-                        <div class="card-body">
-                            <h6 class="fw-semibold mb-4">Pedido</h6>
-                            <ul>
-                                <li class="d-flex justify-content-between">
-                                    <strong>Solicitado em: </strong>
-                                    {{ service.Services.created_at.strftime("%d/%m/%Y %H:%M") }}
-                                </li>
-                                <hr class="mx-0 my-2">
-                                <li class="d-flex justify-content-between">
-                                    <strong>Situação: </strong>
-                                    {{ REQUEST_STATUS_LABEL.get(service.Services.status|string) }}
-                                </li>
-                                <hr class="mx-0 my-2">
-                                <li class="d-flex justify-content-between">
-                                    <strong>Pedido: </strong>
-                                </li>
-                            </ul>
-                            <span>{{ service.Services.request }}</span>
-                        </div>
-                        <div class="d-grid gap-2 mb-4">
-                            <a class="btn btn-outline-warning service-status-btn"
-                            data-status="in_progress"
-                            data-text="marcar o pedido como EM ANDAMENTO"
-                            type="button" href="#">Marcar pedido em andamento</a>
-
-                            <a class="btn btn-outline-success service-status-btn"
-                            data-status="completed"
-                            data-text="marcar o pedido como CONCLUÍDO"
-                            type="button" href="#">Marcar como pedido concluído</a>
-                        </div>
+                        {% include 'dashboard/services/partials/_card_request.html' %}
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
-<script>
-    document.querySelectorAll('.service-status-btn').forEach(button => {
-        button.addEventListener('click', async function(e) {
-            e.preventDefault();
-
-            const newStatus = this.dataset.status;
-            const text = this.dataset.text;
-
-            const response = await Swal.fire({
-                title: 'Tem certeza?',
-                text: `Você quer ${text}.`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sim, tenho certeza!',
-                cancelButtonText: 'Cancelar'
-            });
-
-            if (!response.isConfirmed) return;
-
-            try {
-                const res = await fetch('/dashboard_services/update_status', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                })
-
-                const data = await res.json();
-
-                if (data.ok) {
-                    await Swal.fire(
-                        'Atualizado!',
-                        data.message || 'O status do pedido foi atualizado com sucesso.',
-                        'success'
-                    );
-                    window.location.reload();
-                } else {
-                    Swal.fire(
-                        'Erro!',
-                        data.message || 'Não foi possível atualizar o pedido.',
-                        'error'
-                    );
-                }
-            } catch (error) {
-                console.log(error);
-                await Swal.fire(
-                    'Erro!',
-                    'Houve um erro ao atualizar o pedido. Por favor, tente novamente.',
-                    'error'
-                );
-            }
-        });
-    });
-</script>
+<script src="{{ url_for('dashboard', path='js/services/update_request.js') }}" type="module"></script>
 
 {% endblock %}
