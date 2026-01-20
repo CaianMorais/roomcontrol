@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from utils.flash import add_flash_message
 from models.reservations import Reservations
 
-def verify_and_create_reservation(request, check_in, check_out, room, guest, db):
+def verify_and_create_reservation(request, check_in, check_out, check_in_now, room, guest, db):
     if check_out <= check_in:
         add_flash_message(request, "Data de check-out deve ser posterior à data de check-in.", "danger")
         raise HTTPException(status_code=303, headers={"Location": "/dashboard_reservations/new"})
@@ -13,9 +13,9 @@ def verify_and_create_reservation(request, check_in, check_out, room, guest, db)
         raise HTTPException(status_code=303, headers={"Location": "/dashboard_reservations/new"})
 
     
-    if check_in > datetime.datetime.now():
+    if not check_in_now:
         status= 'booked'
-    elif check_in <= datetime.datetime.now():
+    elif check_in_now:
         status= 'checked_in'
         room.status = 'occupied'
     else:
@@ -32,3 +32,4 @@ def verify_and_create_reservation(request, check_in, check_out, room, guest, db)
 
     db.add(new_reservation)
     db.commit()
+    return new_reservation

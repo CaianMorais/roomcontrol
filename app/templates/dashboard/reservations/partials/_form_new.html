@@ -1,7 +1,7 @@
 <h5 class="card-title fw-semibold mb-4">Nova Reserva</h5>
 <div class="card">
     <div class="card-body">
-        <form action="{{ url_for('create_reservation') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ url_for('create_reservation') }}" method="POST" enctype="multipart/form-data" id="new_reservation_form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="row">
                 <div class="mb-3 col-6">
@@ -14,6 +14,9 @@
                         </a>
                     </label>
                     <input type="datetime-local" class="form-control" id="check_in" name="check_in" required>
+
+                    <input type="hidden" name="check_in_now" id="check_in_now" value="false">
+
                 </div>
                 <div class="mb-3 col-6">
                     <label for="check_out" class="form-label">Data de check-out (previsto)</label>

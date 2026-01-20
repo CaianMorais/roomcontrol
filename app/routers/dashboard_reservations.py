@@ -223,6 +223,7 @@ def create_reservation(
     room_id: int = Form(...),
     check_in: datetime.datetime = Form(...),
     check_out: datetime.datetime = Form(...),
+    check_in_now: bool = Form(False),
     csrf_token: str = Form(...)
 ):
     if not validate_csrf_token(csrf_token):
@@ -234,10 +235,10 @@ def create_reservation(
     guest = verify_guest_by_cpf(request, cpf, hotel_id, db)
     room = verify_room(request, room_id, hotel_id, db)
 
-    verify_and_create_reservation(request, check_in, check_out, room, guest, db)
+    reservation = verify_and_create_reservation(request, check_in, check_out, check_in_now, room, guest, db)
 
     add_flash_message(request, "Reserva criada com sucesso!", "success")
-    return RedirectResponse(url="/dashboard_reservations", status_code=303)
+    return RedirectResponse(url=f"/dashboard_reservations/manage/{reservation.id}", status_code=303)
 
 @router.post("/update/{reservation_id}", include_in_schema=False)
 def update_reservation(
@@ -323,14 +324,17 @@ def update_request_auth(
 
     if reservation.allow_request_services:
         reservation.allow_request_services = False
-        add_flash_message(request, 'O hóspede não pode mais solicitar serviços para essa reserva', 'success')
+        db.commit()
+        db.refresh(reservation)
+        return JSONResponse({
+            "ok": True,
+            "message": "O hóspede não está mais autorizado a solicitar serviços para essa reserva"
+        })
     else:
         reservation.allow_request_services = True
-        add_flash_message(request, 'O hóspede está autorizado a solicitar serviços para essa reserva', 'success')
-
-    db.commit()
-    db.refresh(reservation)
-
-    return JSONResponse({
-        "ok": True,
-    })
+        db.commit()
+        db.refresh(reservation)
+        return JSONResponse({
+            "ok": True,
+            "message": "O hóspede está autorizado a solicitar serviços para essa reserva"
+        })

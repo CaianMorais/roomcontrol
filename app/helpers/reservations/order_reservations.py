@@ -9,7 +9,7 @@ def order_reservations(query):
             (Reservations.status == "checked_out", 3),
             (Reservations.status == "canceled", 4),
         ),
-        Reservations.check_in,
-        Reservations.id
+        Reservations.check_in.desc(),
+        Reservations.id.desc()
     )
     return reservations

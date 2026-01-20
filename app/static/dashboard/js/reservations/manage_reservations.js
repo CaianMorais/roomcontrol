@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             const url = this.href;
-            showAlert("Atualizar a situação da reserva?", "Essa ação é irreversível.", "question")
+            const title = this.dataset.text;
+            showAlert(title, "Essa ação é irreversível.", "question")
             .then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = url;
@@ -32,7 +33,8 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             const url = this.href;
-            showAlert("Cancelar esta reserva?", "Essa ação é irreversível.", "warning")
+            const title = this.dataset.text;
+            showAlert(title, "Essa ação é irreversível.", "warning")
             .then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = url;
@@ -45,10 +47,29 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             const url = this.href;
-            showAlert("Atualizar pedidos?", "Essa ação atualizará a permissão do usuário solicitar algum serviço.", "question")
-            .then((result) => {
+            const title = this.dataset.text;
+            showAlert(title, "Essa ação atualizará a permissão do hóspede solicitar algum serviço.", "question")
+            .then(async (result) => {
                 if (result.isConfirmed) {
-                    window.location.href = url;
+                    try {
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const data = await response.json();
+                        if (data.ok) {
+                            showAlert('Sucesso', data.message || 'Reserva atualizada com sucesso.', 'success', true, 2000)
+                            .then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            showAlert('Erro', data.message || 'Ocorreu um erro ao buscar os detalhes da solicitação.', 'error', true, 2500);
+                        }
+                    } catch (error) {
+                        showAlert('Erro desconhecido', error, 'error')
+                    }
                 }
             })
         })

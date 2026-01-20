@@ -10,6 +10,7 @@ Inputmask({
     unmaskAsNumber: true,
 }).mask("#cpf");
 
+const form = document.getElementById("new_reservation_form");
 const checkInInput = document.getElementById("check_in");
 const checkOutInput = document.getElementById("check_out");
 const roomSelect = document.getElementById("room_id");
@@ -63,3 +64,18 @@ async function updateAvailability() {
 checkInInput.addEventListener("change", updateAvailability);
 checkOutInput.addEventListener("change", updateAvailability);
 //if (guestSelect) guestSelect.addEventListener("change", updateAvailability);
+
+
+form.addEventListener("submit", function(event) {
+    if (!checkInInput.value) return;
+    const checkIn = new Date(checkInInput.value);
+
+    if (checkIn < new Date()) {
+        event.preventDefault();
+        showAlert("O horário já passou...", "Você gostaria de marcar o check-in dessa reserva agora?", "question")
+        .then((result) => {
+            document.getElementById("check_in_now").value = result.isConfirmed ? "true" : "false";
+            form.submit();
+        });
+    }
+});
