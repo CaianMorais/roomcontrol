@@ -14,7 +14,7 @@ from core.config import SessionLocal
 from models.guest import Guest
 from routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services
 
-app = FastAPI(title="Room Control - API de Gerenciamento")
+app = FastAPI(title="Room Control - API de Gerenciamento", swagger_ui_parameters={"defaultModelsExpandDepth": -1})
 
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static/main"), name="static")

@@ -1,16 +1,14 @@
-## 🔄️ Última Atualização 16/01/2026
-- Módulo de Serviços funcional;
-- API tem um endpoint exclusivo para atualizar a tabela de pedidos de serviços;
-- Back-end do módulo `dashboard_services.py` e `guest.py` otimizado para reduzir o tamanho dos códigos dentros das rotas.
-- Template HTML do módulo `auth/guests_access` e `guests_access` otimizados para organização em partials;
-- Scripts JS otimizados para arquivos independentes para organizar front-end;
-- Server-side validation para não deixar o back-end dependente dos dados do front.
+## 🔄️ Última Atualização 20/01/2026
+- Módulo Serviços completamente finalizado e testado
+- Back-end e Front-end otimizados com **código limpo**
+- Interface Swagger da API otimizada com a remoção da seção Schemas
 
 
 ## ➡️ Próximas atualizações
-- Aplicar Clean Code ao front-end do módulo `dashboard_services`
-- Executar testes manuais para depurar possíveis bugs do JavaScript ou do Python durante a otimização dos módulos;
-- Estudar novas condicionais ao criar pedidos de serviço e possibilitar que o hotel bloqueie pedidos de reservas específicas.
+- Desenvolver testes de integração de rota, dando prioridade a intregridade dos dados pelos endpoint;
+- Desenvolver testes para endpoint que retornar HTMLResponse para o Jinja, com foco em entregar os dados sem quebrar o template;
+- Desenvolver testes de serviço para validações de filtros, ordenações;
+- Após os testes existentes, uma análise será feita para avaliar necessidade e utilidade de outros endpoints utilizando métodos **POST, PUT** e **DELETE**.
 
 # RoomControl
 
