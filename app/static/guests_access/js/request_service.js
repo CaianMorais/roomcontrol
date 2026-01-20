@@ -32,6 +32,8 @@ form.addEventListener('submit', async (e) => {
         }
     }
     catch (error) {
-        showAlert('Erro desconhecido', error, 'error')
+        console.log(error);
+        showAlert('Erro desconhecido', 'Houve um erro desconhecido', 'error', true, 1500)
+        .then(() => location.reload());
     }
 });

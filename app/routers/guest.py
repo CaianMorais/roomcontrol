@@ -53,6 +53,7 @@ def guest_access(
 ):
 
     if not token or token != request.session.get('csrf_token') or not validate_csrf_token(token):
+        add_flash_message(request, 'Houve um problema ao processar sua sessão. Tente novamente.', 'danger')
         return RedirectResponse(request.url_for('guest'), status_code=303)
     
     guest = find_guest(request, db, cpf)
@@ -77,6 +78,8 @@ def request_service(
     service_description: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    print("Descrição do serviço solicitado:", service_description)
+    print(request.url)
     reservation_id = request.session.get("reservation_id")
     if not reservation_id:
         add_flash_message(request, 'Reserva não encontrada na sessão. Por favor, faça login novamente.', 'danger')

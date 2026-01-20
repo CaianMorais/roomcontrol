@@ -12,6 +12,10 @@ def create_request_service(request, db, reservation_id, service_description):
         add_flash_message(request, 'Reserva encerrada ou inexistente. Verifique os dados e tente novamente.', 'danger')
         raise HTTPException(status_code=303, headers={"Location": "/guests"})
     
+    if reserva.allow_request_services == False:
+        add_flash_message(request, 'Pedidos de serviços estão bloqueados na sua reserva!', 'danger')
+        raise HTTPException(status_code=303, headers={"Location": "/guests"})
+    
     new_request = Services(
         reservation_id=reserva.id,
         guest_id=reserva.guest_id,
