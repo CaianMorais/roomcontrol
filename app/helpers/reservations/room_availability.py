@@ -1,5 +1,5 @@
-from models.reservations import Reservations
-from models.rooms import Rooms
+from app.models.reservations import Reservations
+from app.models.rooms import Rooms
 
 def room_availability(db, check_in, check_out, hotel_id):
     # Quartos disponíveis

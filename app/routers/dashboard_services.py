@@ -1,20 +1,20 @@
 from fastapi import APIRouter, Body, Depends, Request, Query, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from utils.session_guard import require_session
-from core.config import SessionLocal
-from schemas.services import ServicesOut
-from schemas.table_services import TableServicesOut
+from app.utils.session_guard import require_session
+from app.core.config import get_db
+from app.schemas.services import ServicesOut
+from app.schemas.table_services import TableServicesOut
 from typing import List, Optional, Literal
 from sqlalchemy.orm import Session, joinedload
-from models.services import Services
-from models.reservations import Reservations
-from models.rooms import Rooms
-from models.guest import Guest
-from models.hotel import Hotel
-from utils.flash import render, add_flash_message
-from helpers.services.query_requests import query_requests
-from helpers.services.update_request_status import update_req_status
+from app.models.services import Services
+from app.models.reservations import Reservations
+from app.models.rooms import Rooms
+from app.models.guest import Guest
+from app.models.hotel import Hotel
+from app.utils.flash import render, add_flash_message
+from app.helpers.services.query_requests import query_requests
+from app.helpers.services.update_request_status import update_req_status
 
 router = APIRouter(
     prefix='/dashboard_services',
@@ -27,13 +27,6 @@ api_router = APIRouter(
     tags=['services']
 )
 templates = Jinja2Templates(directory='app/templates')
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 ###################### API START ######################
 @api_router.get('/services_requests', response_model=List[ServicesOut], summary="Filtrar pedidos de serviços")

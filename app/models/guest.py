@@ -1,6 +1,6 @@
 from xmlrpc.client import DateTime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Boolean
-from core.config import Base
+from app.core.config import Base
 from sqlalchemy.orm import relationship
 
 class Guest(Base):

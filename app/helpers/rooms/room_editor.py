@@ -1,5 +1,5 @@
-from models.rooms import Rooms
-from utils.flash import add_flash_message
+from app.models.rooms import Rooms
+from app.utils.flash import add_flash_message
 
 def room_editor(request, room, room_number, room_type, capacity_adults, capacity_children, capacity_total, price, is_active, comments, db):
     room.room_number = room_number

@@ -13,19 +13,19 @@ from sqlalchemy.orm import Session, joinedload
 
 # import de funções da aplicação local
 
-from core.config import SessionLocal
-from core.security import generate_csrf_token, validate_csrf_token
-from helpers.guests.guest_delete import guest_delete
-from helpers.guests.guest_updater import guest_updater
-from helpers.guests.guest_creator import guest_creator
-from helpers.verify_guest import verify_guest_by_id
-from utils.flash import add_flash_message, render
-from utils.session_guard import require_session
-from schemas.guest import GuestOut
-from models.guest import Guest
-from helpers.guests.subquery_reservations import subquery_reservations
-from helpers.guests.filter_guests import filter_guests
-from helpers.guests.restore_guest import restore_guest
+from app.core.config import get_db
+from app.core.security import generate_csrf_token, validate_csrf_token
+from app.helpers.guests.guest_delete import guest_delete
+from app.helpers.guests.guest_updater import guest_updater
+from app.helpers.guests.guest_creator import guest_creator
+from app.helpers.verify_guest import verify_guest_by_id
+from app.utils.flash import add_flash_message, render
+from app.utils.session_guard import require_session
+from app.schemas.guest import GuestOut
+from app.models.guest import Guest
+from app.helpers.guests.subquery_reservations import subquery_reservations
+from app.helpers.guests.filter_guests import filter_guests
+from app.helpers.guests.restore_guest import restore_guest
 
 router = APIRouter(
     prefix="/dashboard_guests",
@@ -35,13 +35,6 @@ router = APIRouter(
 
 api_router = APIRouter(prefix="/api", tags=["guests"])
 templates = Jinja2Templates(directory="app/templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @api_router.get("/guests", response_model=List[GuestOut], summary="Filtrar hóspedes")
 def get_guests(

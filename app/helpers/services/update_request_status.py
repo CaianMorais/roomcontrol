@@ -1,4 +1,4 @@
-from models.services import Services
+from app.models.services import Services
 from fastapi.responses import JSONResponse
 
 def update_req_status(request, db, payload, new_status):

@@ -1,7 +1,7 @@
 import datetime
 from fastapi import HTTPException
-from utils.flash import add_flash_message
-from models.reservations import Reservations
+from app.utils.flash import add_flash_message
+from app.models.reservations import Reservations
 
 def verify_and_create_reservation(request, check_in, check_out, check_in_now, room, guest, db):
     if check_out <= check_in:

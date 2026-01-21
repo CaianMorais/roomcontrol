@@ -5,14 +5,14 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import add_pagination
-from utils.flash import render
+from app.utils.flash import render
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from core.config import SessionLocal
-from models.guest import Guest
-from routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services
+from app.core.config import SessionLocal
+from app.models.guest import Guest
+from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services
 
 app = FastAPI(title="Room Control - API de Gerenciamento", swagger_ui_parameters={"defaultModelsExpandDepth": -1})
 

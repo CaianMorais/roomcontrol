@@ -1,7 +1,7 @@
 from xmlrpc.client import DateTime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, func
 from sqlalchemy.orm import relationship
-from core.config import Base
+from app.core.config import Base
 
 class Services(Base):
     __tablename__ = "services_requests"

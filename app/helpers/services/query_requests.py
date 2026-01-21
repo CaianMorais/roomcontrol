@@ -1,8 +1,8 @@
-from models.services import Services
-from models.reservations import Reservations
-from models.guest import Guest
-from models.rooms import Rooms
-from utils.flash import add_flash_message
+from app.models.services import Services
+from app.models.reservations import Reservations
+from app.models.guest import Guest
+from app.models.rooms import Rooms
+from app.utils.flash import add_flash_message
 from fastapi import HTTPException
 
 def query_requests(request, db, hotel_id, request_id):

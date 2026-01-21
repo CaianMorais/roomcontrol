@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, func, ForeignKey, Float, Enum, Text
-from core.config import Base
+from app.core.config import Base
 from sqlalchemy.orm import relationship
 
 # op.create_table(

@@ -1,23 +1,21 @@
 from decimal import Decimal
-from core.config import SessionLocal
+from app.core.config import get_db
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
-from passlib.hash import bcrypt
-from sqlalchemy import case
 
-from core.security import generate_csrf_token, validate_csrf_token
-from utils.flash import add_flash_message, render
-from utils.session_guard import require_session
-from schemas.rooms import RoomOut, RoomCreate, RoomsBase
-from models.rooms import Rooms
-from models.reservations import Reservations
-from models.hotel import Hotel
-from helpers.rooms.object_mapper import tipos_map, coluna_map, room_capacities_map
-from helpers.rooms.room_creator import room_creator
-from helpers.rooms.room_editor import room_editor
+from app.core.security import generate_csrf_token, validate_csrf_token
+from app.utils.flash import add_flash_message, render
+from app.utils.session_guard import require_session
+from app.schemas.rooms import RoomOut
+from app.models.rooms import Rooms
+from app.models.reservations import Reservations
+from app.models.hotel import Hotel
+from app.helpers.rooms.object_mapper import tipos_map, coluna_map, room_capacities_map
+from app.helpers.rooms.room_creator import room_creator
+from app.helpers.rooms.room_editor import room_editor
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -27,13 +25,6 @@ router = APIRouter(
 
 api_router = APIRouter(prefix="/api", tags=["rooms"])
 templates = Jinja2Templates(directory="app/templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @api_router.get("/rooms", response_model=List[RoomOut], summary="Filtrar quartos")
 def get_rooms(

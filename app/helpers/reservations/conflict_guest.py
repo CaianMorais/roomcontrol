@@ -1,4 +1,4 @@
-from models.reservations import Reservations
+from app.models.reservations import Reservations
 
 def conflict_guest(guest_id, check_in, check_out, db):
     guest_conflict = db.query(Reservations).filter(

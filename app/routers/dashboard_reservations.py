@@ -11,29 +11,29 @@ from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
 
 # import de funções da aplicação local
-from core.config import SessionLocal
-from core.security import generate_csrf_token, validate_csrf_token
-from models.rooms import Rooms
-from utils.flash import add_flash_message, render
-from utils.session_guard import require_session
-from schemas.reservations import ReservationOut
-from models.reservations import Reservations
-from models.guest import Guest
-from models.hotel import Hotel
-from helpers.paginate import paginate
-from helpers.verify_guest import verify_guest_by_id, verify_guest_by_cpf
-from helpers.verify_room import verify_room
-from helpers.reservations.booked_checkin import booked_to_checkin
-from helpers.reservations.checkin_to_checkout import checkin_to_checkout
-from helpers.reservations.cancel_reservation import cancel_reservation
-from helpers.reservations.price_calculator import calc_price
-from helpers.reservations.fast_update_reservation import fast_update_reservation
-from helpers.reservations.create_reservation import verify_and_create_reservation
-from helpers.reservations.filter_reservations import filter_reservations
-from helpers.reservations.order_reservations import order_reservations
-from helpers.reservations.conflict_guest import conflict_guest
-from helpers.reservations.guest_availability import guest_availability
-from helpers.reservations.room_availability import room_availability
+from app.core.config import get_db
+from app.core.security import generate_csrf_token, validate_csrf_token
+from app.models.rooms import Rooms
+from app.utils.flash import add_flash_message, render
+from app.utils.session_guard import require_session
+from app.schemas.reservations import ReservationOut
+from app.models.reservations import Reservations
+from app.models.guest import Guest
+from app.models.hotel import Hotel
+from app.helpers.paginate import paginate
+from app.helpers.verify_guest import verify_guest_by_id, verify_guest_by_cpf
+from app.helpers.verify_room import verify_room
+from app.helpers.reservations.booked_checkin import booked_to_checkin
+from app.helpers.reservations.checkin_to_checkout import checkin_to_checkout
+from app.helpers.reservations.cancel_reservation import cancel_reservation
+from app.helpers.reservations.price_calculator import calc_price
+from app.helpers.reservations.fast_update_reservation import fast_update_reservation
+from app.helpers.reservations.create_reservation import verify_and_create_reservation
+from app.helpers.reservations.filter_reservations import filter_reservations
+from app.helpers.reservations.order_reservations import order_reservations
+from app.helpers.reservations.conflict_guest import conflict_guest
+from app.helpers.reservations.guest_availability import guest_availability
+from app.helpers.reservations.room_availability import room_availability
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -43,13 +43,6 @@ router = APIRouter(
 
 api_router = APIRouter(prefix="/api", tags=["reservations"])
 templates = Jinja2Templates(directory="app/templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @api_router.get("/reservations", response_model=List[ReservationOut], summary="Filtrar reservas")
 def get_reservations(

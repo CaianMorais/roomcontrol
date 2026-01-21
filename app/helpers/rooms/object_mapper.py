@@ -1,4 +1,4 @@
-from models.rooms import Rooms
+from app.models.rooms import Rooms
 
 def tipos_map():
 # mapeia flags -> tipos

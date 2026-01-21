@@ -1,32 +1,19 @@
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, Query, Request, Form, Depends, APIRouter
+from fastapi import Query, Request, Form, Depends, APIRouter
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from sqlalchemy import desc
 from sqlalchemy.orm import Session
-from validate_docbr import CPF
 from fastapi.templating import Jinja2Templates
 
-from models.services import Services
-from core.config import SessionLocal
-from schemas.guest import GuestCreate, GuestOut
-from models.guest import Guest
-from models.rooms import Rooms
-from models.reservations import Reservations
-from core.security import validate_csrf_token, generate_csrf_token
-from utils.flash import render, add_flash_message
-from helpers.guest_access.access import find_guest, find_reservation, find_services
-from helpers.guest_access.request_service import create_request_service
+from app.models.services import Services
+from app.core.config import get_db
+from app.core.security import validate_csrf_token, generate_csrf_token
+from app.utils.flash import render, add_flash_message
+from app.helpers.guest_access.access import find_guest, find_reservation, find_services
+from app.helpers.guest_access.request_service import create_request_service
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter(prefix="/guests", tags=["guests"])
 api_router = APIRouter(prefix="/api", tags=["api_guests"])
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get('', response_class=HTMLResponse, include_in_schema=False)
 def guest(

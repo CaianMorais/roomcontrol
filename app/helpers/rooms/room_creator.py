@@ -1,5 +1,5 @@
-from models.rooms import Rooms
-from utils.flash import add_flash_message
+from app.models.rooms import Rooms
+from app.utils.flash import add_flash_message
 
 def room_creator(request, hotel_id, room_number, room_type, capacity_adults, capacity_children,capacity_total, price, db):
     new_room = Rooms(

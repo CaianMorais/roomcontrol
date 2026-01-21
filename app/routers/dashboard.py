@@ -1,4 +1,4 @@
-from core.config import SessionLocal
+from app.core.config import get_db
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -6,10 +6,10 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 
-from utils.flash import render
-from utils.session_guard import require_session
-from schemas.rooms import RoomOut, RoomCreate, RoomsBase
-from models.rooms import Rooms
+from app.utils.flash import render
+from app.utils.session_guard import require_session
+from app.schemas.rooms import RoomOut, RoomCreate, RoomsBase
+from app.models.rooms import Rooms
 
 router = APIRouter(
     prefix="/dashboard",
@@ -19,13 +19,6 @@ router = APIRouter(
 
 api_router = APIRouter(prefix="/api", tags=["api_dashboard"])
 templates = Jinja2Templates(directory="app/templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def dashboard(request: Request):
