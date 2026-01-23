@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 
-from app.core.config import SessionLocal
+from app.core.config import get_db
 from app.models.hotel import Hotel
 from app.schemas.hotel import HotelCreate, HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
 from app.core.security import generate_csrf_token, validate_csrf_token, hash_password, verify_password, create_access_token, decode_access_token
@@ -16,13 +16,6 @@ from app.services.cnpj_ws import fetch_cnpj_situacao, CNPJWsError
 router = APIRouter(prefix="/auth", tags=["hotels"])
 api_router = APIRouter(prefix="/api", tags=["hotels"])
 templates = Jinja2Templates(directory="app/templates")
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @api_router.get("/hotels", response_model=List[HotelOut], summary="Filtrar hotéis")
 def get_hotels(

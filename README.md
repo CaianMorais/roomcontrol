@@ -1,14 +1,12 @@
-## 🔄️ Última Atualização 20/01/2026
-- Módulo Serviços completamente finalizado e testado
-- Back-end e Front-end otimizados com **código limpo**
-- Interface Swagger da API otimizada com a remoção da seção Schemas
+## 🔄️ Última Atualização 23/01/2026
+- Testes de integração dos endpoints da API configurados e testados (necessário instalar novas dependências);
+- Testes no endpoint usado pela lib JS `DataTables` para consultar dados de pedidos periodicamente, com objetivo de garantir a integridade dos dados e evitando quebras do template.
+- Correções nos tipos de dados nos schemas de saída do `Pydantic`.
 
 
 ## ➡️ Próximas atualizações
-- Desenvolver testes de integração de rota, dando prioridade a intregridade dos dados pelos endpoint;
-- Desenvolver testes para endpoint que retornar HTMLResponse para o Jinja, com foco em entregar os dados sem quebrar o template;
-- Desenvolver testes de serviço para validações de filtros, ordenações;
-- Após os testes existentes, uma análise será feita para avaliar necessidade e utilidade de outros endpoints utilizando métodos **POST, PUT** e **DELETE**.
+- Análise para avaliar necessidade e utilidade de outros endpoints utilizando métodos **POST, PUT** e **DELETE**;
+- Criar o back-end para uma função de notificar o hotel pelo dashboard da aplicação sobre um novo pedido de serviço e demais relevantes notificações.
 
 # RoomControl
 
@@ -47,12 +45,17 @@ alembic/
     env.py
 app/
     core/   # Configs do SQLAlchemy, CSRF-Token e Encrypt
+    helpers/  # Funções criadas para evitar repetição e código longo nas routers
     models/   # Models SQLAlchemy
     routers/   # Rotas organizadas por módulo
+    schemas/   # Schemas do Pydantic para definir as respostas da API
     templates/   # Templates do Jinja2
     utils/   # Funcionalidades úteis (ex. validador de documentos)
+tests/
+    conftest.py   # Arquivo de configuração dos testes
 .gitignore
 alembic.ini
+pytest.ini
 README.md
 requirements.txt
 ```
@@ -68,6 +71,7 @@ Bibliotecas:
 - Select2 → selects avançados com busca e filtro
 - InputMask → máscaras de inputs (CNPJ, telefone, valores monetários)
 - SweetAlert2 → alertas interativos
+- DataTables → Cria tabelas dinâmicas no template
 
 Funcionalidades:
 
@@ -127,7 +131,8 @@ alembic upgrade head
 ``` bash
 uvicorn app.main:app --reload
 ```
-- O servidor será iniciado em: http://127.0.0.1:8000
+- A aplicação será iniciada em: http://127.0.0.1:8000
+- O Swagger será iniciado em: http://127.0.0.1:8000/docs
 
 ### 🔒 Segurança
 
@@ -136,9 +141,10 @@ uvicorn app.main:app --reload
 - Rotas administrativas protegidas pelo decorator require_session.
 ### 👩‍💻 Resumo das tecnologias utilizadas
 
-- __Backend__: Python, FastAPI, SQLAlchemy, Alembic, MySQL
-- __Frontend__: HTML, Jinja2, Bootstrap 5, jQuery, Select2, SweetAlert2, InputMask
+- __Backend__: Python, FastAPI, Pydantic, SQLAlchemy, Alembic, MySQL
+- __Frontend__: HTML, Jinja2, Bootstrap 5, jQuery, Select2, SweetAlert2, InputMask, DataTables
 - __DevOps__: Uvicorn, Git
+- __Testes__: Pytest
 ### 📝 Licença
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

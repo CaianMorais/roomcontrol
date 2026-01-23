@@ -7,7 +7,6 @@ from app.models.guest import Guest
 from app.models.reservations import Reservations
 from app.models.services import Services
 
-
 def seed(db):
     hotel = Hotel(
         name="Hotel Teste",
@@ -56,6 +55,22 @@ def seed(db):
 
     return hotel, room, guest, res, srv
 
+def test_api_get_services_requests_ok(client, db_session):
+    hotel, room, guest, res, srv = seed(db_session)
+
+    r = client.get(f"/api/services_requests?hotel_id={hotel.id}")
+    assert r.status_code == 200
+
+    data = r.json()
+    assert isinstance(data, list)
+    assert len(data) == 1
+
+    assert data[0]["id"] == srv.id
+    assert data[0]["request"] == srv.request
+    assert data[0]["reservation"]["id"] == res.id
+    assert data[0]["reservation"]["guest"]["id"] == guest.id
+    assert data[0]["reservation"]["room"]["id"] == room.id
+    assert data[0]["reservation"]["room"]["hotel"]["id"] == hotel.id
 
 def test_table_services_requests_ok(client, db_session):
     hotel, room, guest, res, srv = seed(db_session)

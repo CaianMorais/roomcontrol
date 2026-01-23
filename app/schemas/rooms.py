@@ -17,9 +17,9 @@ class HotelOut(BaseModel):
 class RoomsBase(BaseModel):
     room_number: str
     type: str
-    capacity_adults: int
-    capacity_children: int
-    capacity_total: int
+    capacity_adults: Optional[int] = None
+    capacity_children: Optional[int] = None
+    capacity_total: Optional[int] = None
     price: Optional[float] = None
     status: Optional[str] = None
     comments: Optional[str] = None

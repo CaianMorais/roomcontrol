@@ -13,10 +13,10 @@ class HotelOut(BaseModel):
     id: int
     name: str
     cnpj: str
-    address: str
-    city: str
-    state: str
-    zip_code: str
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
 
     class Config:
         orm_mode = True
@@ -24,7 +24,7 @@ class HotelOut(BaseModel):
 class RoomsOut(BaseModel):
     id: int
     room_number: str
-    price: float
+    price: Optional[float] = None
     hotel: Optional[HotelOut] = None
 
     class Config:

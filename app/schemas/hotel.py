@@ -1,15 +1,16 @@
 import datetime
+from typing import Optional
 from pydantic import BaseModel, Field, EmailStr
 
 class HotelBase(BaseModel):
     name: str
     login: str
-    address: str
-    city: str
-    state: str
-    zip_code: str
-    phone_number: str
-    email: EmailStr
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
     cnpj: str
 
 class HotelCreate(HotelBase):

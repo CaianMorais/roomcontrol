@@ -36,16 +36,12 @@ def engine():
     Base.metadata.create_all(bind=eng)
     yield eng
 
-    # opcional: limpar tudo ao final da suíte
+    # limpar tudo ao final
     Base.metadata.drop_all(bind=eng)
 
 
 @pytest.fixture()
 def db_session(engine):
-    """
-    Um teste = uma transação.
-    No final faz rollback, mantendo o DB limpo entre testes.
-    """
     connection = engine.connect()
     trans = connection.begin()
     TestingSessionLocal = sessionmaker(bind=connection, autoflush=False, autocommit=False)
@@ -74,10 +70,7 @@ def client(db_session):
 
 
 def set_session_cookie(client: TestClient, session_dict: dict, secret_key: str | None = None):
-    """
-    Seta cookie de sessão compatível com Starlette SessionMiddleware.
-    Útil para endpoints que usam request.session.get("hotel_id").
-    """
+    #função necessário para setar cookies no início da sessão, caso exija hotel_id ou outro dado na sessão
     secret_key = secret_key or os.getenv("SECRET_KEY", "test-secret")
     signer = TimestampSigner(secret_key, salt="starlette.sessions")
 

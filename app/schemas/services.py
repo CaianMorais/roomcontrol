@@ -1,16 +1,16 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 import datetime
 
 class HotelOut(BaseModel):
     id: int
     name: str
-    address: str
-    city: str
-    state: str
-    zip_code: int
-    phone_number: int
-    email: str
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
 
     class Config:
         orm_mode = True
@@ -18,7 +18,7 @@ class HotelOut(BaseModel):
 class RoomOut(BaseModel):
     id: int
     room_number: str
-    price: float
+    price: Optional[float] = None
     hotel: Optional[HotelOut]
 
     class Config:
