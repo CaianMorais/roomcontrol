@@ -1,10 +1,13 @@
 ## 🔄️ Última Atualização 23/01/2026
 - Testes de integração dos endpoints da API configurados e testados (necessário instalar novas dependências);
 - Testes no endpoint usado pela lib JS `DataTables` para consultar dados de pedidos periodicamente, com objetivo de garantir a integridade dos dados e evitando quebras do template.
+- Testes unitários (diretório `tests/unit/`) para regras de negócio (diretório `domain/`)
+- **OBS**: Todos os testes são executados com `pytest -v` na raíz no projeto com **venv** ativado.
 - Correções nos tipos de dados nos schemas de saída do `Pydantic`.
 
 
 ## ➡️ Próximas atualizações
+- Testes unitários estão em desenvolvimento para validar as regras de negócio e procedimento;
 - Análise para avaliar necessidade e utilidade de outros endpoints utilizando métodos **POST, PUT** e **DELETE**;
 - Criar o back-end para uma função de notificar o hotel pelo dashboard da aplicação sobre um novo pedido de serviço e demais relevantes notificações.
 
@@ -52,6 +55,7 @@ app/
     templates/   # Templates do Jinja2
     utils/   # Funcionalidades úteis (ex. validador de documentos)
 tests/
+    unit/    # Testes unitários
     conftest.py   # Arquivo de configuração dos testes
 .gitignore
 alembic.ini

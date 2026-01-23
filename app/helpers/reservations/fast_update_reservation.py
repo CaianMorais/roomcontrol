@@ -1,26 +1,28 @@
 import datetime
 from typing import Tuple
+from app.domain.reservation_rules import decide_fast_update
 
 def fast_update_reservation(reservation, room, db) -> Tuple[bool, str]:
-    # Atualiza a reserva de forma rápida pela tabela de reservas
-    # Retorna uma tupla com sucesso e mensagem
-    updated = False
-    if reservation.status == 'booked' and room.status == 'available':
-        reservation.status = 'checked_in'
-        check_in_now = datetime.datetime.now()
-        reservation.check_in = check_in_now
-        if check_in_now > reservation.check_out:
-            reservation.check_out = check_in_now + datetime.timedelta(days=1)
-        room.status = 'occupied'
-        updated = True
-    elif reservation.status == 'checked_in' and room.status == 'occupied':
-        reservation.status = 'checked_out'
-        reservation.check_out = datetime.datetime.now()
-        room.status = 'available'
-        updated = True
+    # usa regras definidas para decidir se é possível atualizar reserva e quarto
+    ok, new_reservation_status, new_room_status = decide_fast_update(
+        reservation.status,
+        room.status,
+    )
+    if not ok:
+        return False, "Não foi possível modificar esta reserva!"
 
-    if not updated:
-        return False, "Não foi possível modificar esta reserva, há algum conflito entre o status do quarto e o status da reserva."
+    now = datetime.datetime.now()
+    if new_reservation_status == 'checked_in':
+        reservation.status = 'checked_in'
+        reservation.check_in = now
+        if now > reservation.check_out:
+            reservation.check_out = now + datetime.timedelta(days=1)
+
+    elif new_reservation_status == 'checked_out':
+        reservation.status = 'checked_out'
+        reservation.check_out = now
+        
+    room.status = new_room_status
     
     try:
         db.commit()
