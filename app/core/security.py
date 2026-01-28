@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
+from fastapi import Security, HTTPException
+from fastapi.security import APIKeyHeader
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -30,6 +32,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 #CONFIGURAÇÃO DE TOKEN JWT
+#JWT PREPARADO PARA FUTURO USO EM INTEGRAÇÕES OU MICROSERVIÇOS
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
@@ -46,3 +49,12 @@ def decode_access_token(token: str):
         return payload
     except JWTError:
         return None
+    
+#API KEY HEADER CONFIGURATION
+api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
+
+def get_api_key(api_key: str = Security(api_key_header)):
+    if api_key == os.getenv("API_KEY"):
+        return api_key
+    else:
+        raise HTTPException(status_code=403, detail="API Key não autorizada.")

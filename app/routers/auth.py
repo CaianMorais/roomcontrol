@@ -8,7 +8,7 @@ from passlib.hash import bcrypt
 from app.core.config import get_db
 from app.models.hotel import Hotel
 from app.schemas.hotel import HotelCreate, HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
-from app.core.security import generate_csrf_token, validate_csrf_token, hash_password, verify_password, create_access_token, decode_access_token
+from app.core.security import generate_csrf_token, validate_csrf_token, hash_password, verify_password
 from app.utils.brdocs import is_valid_cnpj, format_cnpj, only_digits
 from app.utils.flash import add_flash_message, render
 from app.services.cnpj_ws import fetch_cnpj_situacao, CNPJWsError
