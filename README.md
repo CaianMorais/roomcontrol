@@ -1,15 +1,13 @@
-## 🔄️ Última Atualização 23/01/2026
-- Testes de integração dos endpoints da API configurados e testados (necessário instalar novas dependências);
-- Testes no endpoint usado pela lib JS `DataTables` para consultar dados de pedidos periodicamente, com objetivo de garantir a integridade dos dados e evitando quebras do template.
-- Testes unitários (diretório `tests/unit/`) para regras de negócio (diretório `domain/`)
-- **OBS**: Todos os testes são executados com `pytest -v` na raíz no projeto com **venv** ativado.
-- Correções nos tipos de dados nos schemas de saída do `Pydantic`.
-
+## 🔄️ Última Atualização 29/01/2026
+- Testes unitários para validar as regras de negócio foram desenvolvidas e executadas com `pytest -v` dando segurança as operações da aplicação;
+- Foi implementado técnicas de segurança básicas a endpoints que consultam dados sensíveis na API;
 
 ## ➡️ Próximas atualizações
-- Testes unitários estão em desenvolvimento para validar as regras de negócio e procedimento;
-- Análise para avaliar necessidade e utilidade de outros endpoints utilizando métodos **POST, PUT** e **DELETE**;
-- Criar o back-end para uma função de notificar o hotel pelo dashboard da aplicação sobre um novo pedido de serviço e demais relevantes notificações.
+- Expansão da lógica do sistema está em desenvolvimento, dando mais utilidades ao sistema e fazendo com que seja um projeto real e escalável;
+- O registro e login do hotel será uma exclusividade de um ou mais administradores do hotel;
+- Lógica para cadastrar colaboradores ao hotel que terão acesso somente a áreas operacionais, enquanto o acesso do hotel permanece sendo totalmente administrativo;
+- Registros de auditoria também estão presentes no próximo pacote de atualização, dando mais rastreabilidade a ações dentro do sistema;
+- Os endpoints da API passarão a ser consultados somente com uso de chaves da API que o administrador irá gerar no dashboard.
 
 # RoomControl
 

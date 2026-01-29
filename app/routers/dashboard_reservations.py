@@ -12,7 +12,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
 
 # import de funções da aplicação local
 from app.core.config import get_db
-from app.core.security import generate_csrf_token, validate_csrf_token
+from app.core.security import generate_csrf_token, get_api_key, validate_csrf_token
 from app.models.rooms import Rooms
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
@@ -41,7 +41,12 @@ router = APIRouter(
     dependencies=[Depends(require_session)]
 )
 
-api_router = APIRouter(prefix="/api", tags=["reservations"])
+api_router = APIRouter(
+    prefix="/api",
+    tags=["reservations"],
+    dependencies=[Depends(get_api_key)]
+)
+
 templates = Jinja2Templates(directory="app/templates")
 
 @api_router.get("/reservations", response_model=List[ReservationOut], summary="Filtrar reservas")

@@ -1,10 +1,11 @@
+import secrets
 from itsdangerous import URLSafeTimedSerializer
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
-from fastapi import Security, HTTPException
-from fastapi.security import APIKeyHeader
+from fastapi import Security, HTTPException, Depends
+from fastapi.security import APIKeyHeader, HTTPBasic, HTTPBasicCredentials
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -58,3 +59,24 @@ def get_api_key(api_key: str = Security(api_key_header)):
         return api_key
     else:
         raise HTTPException(status_code=403, detail="API Key não autorizada.")
+    
+security = HTTPBasic()
+
+def docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_user = secrets.compare_digest(
+        credentials.username,
+        os.getenv("DOCS_USERNAME")
+    )
+    correct_pass = secrets.compare_digest(
+        credentials.password,
+        os.getenv("DOCS_PASSWORD")
+    )
+
+    if not (correct_user and correct_pass):
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
+    return credentials.username

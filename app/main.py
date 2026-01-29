@@ -1,10 +1,12 @@
 import os
 import uvicorn
 from fastapi import FastAPI, Request, Depends
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import add_pagination
+from fastapi.openapi.docs import get_swagger_ui_html
+from app.core.security import docs_auth
 from app.utils.flash import render
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -14,7 +16,11 @@ from app.core.config import SessionLocal
 from app.models.guest import Guest
 from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services
 
-app = FastAPI(title="Room Control - API de Gerenciamento", swagger_ui_parameters={"defaultModelsExpandDepth": -1})
+app = FastAPI(
+    title="Room Control - API de Gerenciamento",
+    docs_url=None,  # Desabilita a rota padrão /docs
+    redoc_url=None,  # Desabilita a rota padrão /redoc
+)
 
 templates = Jinja2Templates(directory="app/templates")
 app.mount("/static", StaticFiles(directory="app/static/main"), name="static")
@@ -60,9 +66,23 @@ def home(request: Request, db: Session = Depends(get_db)):
 
 REDIRECT_STATUSES = {301, 302, 303, 307, 308}
 
+@app.get("/docs", include_in_schema=False, dependencies=[Depends(docs_auth)])
+def custom_docs():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Documentação",
+        swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png",
+        swagger_ui_parameters={"defaultModelsExpandDepth": -1}
+    )
+
 # Handler para erros HTTP
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if request.url.path == "/docs":
+        return Response(
+            status_code=exc.status_code,
+            headers=exc.headers
+        )
     # Se for código de redirect, respeite o Location
     if exc.status_code in REDIRECT_STATUSES:
         location = exc.headers.get("Location") if exc.headers else None
