@@ -14,7 +14,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import SessionLocal
 from app.models.guest import Guest
-from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services
+from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services, dashboard_api_keys
 
 app = FastAPI(
     title="Room Control - API de Gerenciamento",
@@ -56,6 +56,7 @@ app.include_router(dashboard_rooms.router)
 app.include_router(dashboard_guests.router)
 app.include_router(dashboard_reservations.router)
 app.include_router(dashboard_services.router)
+app.include_router(dashboard_api_keys.router)
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def home(request: Request, db: Session = Depends(get_db)):

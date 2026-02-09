@@ -22,3 +22,6 @@ class Hotel(Base):
 
     guests = relationship("Guest", back_populates="hotel")
     rooms = relationship("Rooms", back_populates="hotel")
+    api_keys = relationship("ApiKey", back_populates="hotel")
+    audit_logs = relationship("AuditLog", back_populates="hotel")
+    collaborator = relationship("Collaborator", back_populates="hotel")

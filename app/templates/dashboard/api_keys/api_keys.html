@@ -1,0 +1,152 @@
+{% extends "dashboard/partials/base.html" %}
+
+{% block title %}API Keys - {% if current_hotel %}{{ current_hotel.name }}{% endif %}{% endblock %}
+
+{% block content %}
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 d-flex align-items-stretch">
+            <div class="card w-100 shadow-lg">
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="card-title fw-semibold mb-4">Chaves</h5>
+                        <div>
+                            <!-- {% if has_filter %}
+                            <a class="btn btn-outline-warning mb-4"
+                                href="{{ url_for('guests') }}?per_page={{ pager.per_page }}">
+                                Limpar Filtros
+                            </a>
+                            {% endif %} -->
+                            <a id="new_api_key" class="btn btn-primary mb-4" href="javascript:void(0)">
+                                Nova Chave
+                            </a>
+                        </div>
+                    </div>
+                    {% include 'dashboard/partials/_per_page.html' %}
+                    <div class="table-responsive">
+                        <table class="table text-nowrap mb-0 align-middle">
+                            <thead class="text-dark fs-4">
+                                <tr>
+                                    <th class="border-bottom-0">
+                                        <h6 class="fw-semibold mb-0">ID</h6>
+                                    </th>
+                                    <th class="border-bottom-0">
+                                        <h6 class="fw-semibold mb-0">Nome</h6>
+                                    </th>
+                                    <th class="border-bottom-0">
+                                        <h6 class="fw-semibold mb-0">Ativo</h6>
+                                    </th>
+                                    <th class="border-bottom-0">
+                                        <h6 class="fw-semibold mb-0">Último uso</h6>
+                                    </th>
+                                    <th class="border-bottom-0">
+                                        <h6 class="fw-semibold mb-0">Ações</h6>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key in keys %}
+                                <tr class="align-items-center">
+                                    <td class="border-bottom-0">
+                                        <p class="fw-semibold mb-0">{{ key.id }}</p>
+                                    </td>
+                                    <td class="border-bottom-0">
+                                        <p class="fw-semibold mb-0">{{ key.name }}</p>
+                                    </td>
+                                    <td class="border-bottom-0">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-light rounded-5 fw-bold"><i
+                                                    class="ti fs-6 {{ 'ti-check text-success' if key.is_active else 'ti-x text-danger' }}"></i></span>
+                                        </div>
+                                    </td>
+                                    <td class="border-bottom-0">
+                                        <p class="mb-0 fw-normal">
+                                            {{ key.last_used_at.strftime("%d/%m/%Y %H:%M") if key.last_used_at else '' }}
+                                        </p>
+                                    </td>
+                                    <td class="border-bottom-0">
+                                        <div class="d-flex align-items-center justify-content-start gap-3 fs-6">
+                                            <a href="#"
+                                                class="text-success"><i class="ti ti-pencil"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% include 'dashboard/partials/_paginate.html' %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+const btnNewKey = document.getElementById("new_api_key");
+
+btnNewKey.addEventListener("click", async () => {
+    const { value: keyName } = await Swal.fire({
+        title: "Criar nova API Key",
+        text: "Defina um nome para identificar esta chave.",
+        input: "text",
+        inputPlaceholder: "Ex: Integração BI",
+        showCancelButton: true,
+        confirmButtonText: "Gerar chave",
+        cancelButtonText: "Cancelar",
+        inputValidator: (value) => {
+            if (!value) {
+                return "O nome da chave é obrigatório.";
+            }
+        }
+    });
+
+    if (!keyName) return;
+
+    Swal.fire({
+        title: "Gerando chave...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        const response = await fetch("/dashboard_api_keys/create", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name: keyName })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || data.message || "Erro ao gerar API Key");
+        }
+
+        await Swal.fire({
+            title: "API Key criada",
+            html: `
+                <p><strong>Copie esta chave agora.</strong></p>
+                <p>Ela <u>não poderá ser exibida novamente</u>.</p>
+                <pre style="user-select: all; word-break: break-all; background:#f4f4f4; padding:10px; border-radius:6px;">${data.api_key}</pre>
+            `,
+            icon: "success",
+            confirmButtonText: "Entendi"
+        })
+
+    } catch (error) {
+        Swal.fire({
+            title: "Erro",
+            text: error.message,
+            icon: "error"
+        });
+    }
+});
+</script>
+{% endblock %}
