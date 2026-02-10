@@ -34,6 +34,7 @@ from app.helpers.reservations.order_reservations import order_reservations
 from app.helpers.reservations.conflict_guest import conflict_guest
 from app.helpers.reservations.guest_availability import guest_availability
 from app.helpers.reservations.room_availability import room_availability
+from app.core.dependencies import get_api_hotel
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -44,13 +45,14 @@ router = APIRouter(
 api_router = APIRouter(
     prefix="/api",
     tags=["reservations"],
-    dependencies=[Depends(get_api_key)]
+    dependencies=[Depends(get_api_hotel)]
 )
 
 templates = Jinja2Templates(directory="app/templates")
 
 @api_router.get("/reservations", response_model=List[ReservationOut], summary="Filtrar reservas")
 def get_reservations(
+    hotel_id: int = Depends(get_api_hotel),
     hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
     guest_id: Optional[int] = Query(None, description="Filtrar pelo ID do hóspede"),
     guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
@@ -66,6 +68,7 @@ def get_reservations(
             joinedload(Reservations.room).joinedload(Rooms.hotel),
         )
     )
+    query = query.join(Rooms, Reservations.room_id == Rooms.id).join(Hotel, Rooms.hotel_id == Hotel.id).filter(Hotel.id == hotel_id)
 
     if hotel_name:
         query = query.join(Rooms, Reservations.room_id == Rooms.id).join(Hotel, Rooms.hotel_id == Hotel.id).filter(Hotel.name.ilike(f"%{hotel_name}%"))
@@ -229,8 +232,8 @@ def create_reservation(
         return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
 
     hotel_id = request.session.get("hotel_id")
-
-    guest = verify_guest_by_cpf(request, cpf, hotel_id, db)
+    
+    guest = verify_guest_by_cpf(request, cpf.replace(".", "").replace("-", ""), hotel_id, db)
     room = verify_room(request, room_id, hotel_id, db)
 
     reservation = verify_and_create_reservation(request, check_in, check_out, check_in_now, room, guest, db)

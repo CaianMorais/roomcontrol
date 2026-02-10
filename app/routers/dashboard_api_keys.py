@@ -40,7 +40,7 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/")
+@router.get("", response_class=HTMLResponse, include_in_schema=False)
 def api_keys(
     request: Request,
     db: Session = Depends(get_db),
@@ -74,7 +74,7 @@ def api_keys(
         }
     )
 
-@router.post("/create")
+@router.post("/create", include_in_schema=False)
 def create_api_key(
     request: Request,
     payload: CreateApiKeySchema,

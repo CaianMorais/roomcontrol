@@ -1,13 +1,10 @@
-## 🔄️ Última Atualização 29/01/2026
-- Testes unitários para validar as regras de negócio foram desenvolvidas e executadas com `pytest -v` dando segurança as operações da aplicação;
-- Foi implementado técnicas de segurança básicas a endpoints que consultam dados sensíveis na API;
+## 🔄️ Última Atualização 10/02/2026
+- Cada hotel pode gerar uma chave da API para extrair dados daquele hotel em específico, a chave da API deve ser colocada no header da requisição.
 
 ## ➡️ Próximas atualizações
-- Expansão da lógica do sistema está em desenvolvimento, dando mais utilidades ao sistema e fazendo com que seja um projeto real e escalável;
-- O registro e login do hotel será uma exclusividade de um ou mais administradores do hotel;
-- Lógica para cadastrar colaboradores ao hotel que terão acesso somente a áreas operacionais, enquanto o acesso do hotel permanece sendo totalmente administrativo;
-- Registros de auditoria também estão presentes no próximo pacote de atualização, dando mais rastreabilidade a ações dentro do sistema;
-- Os endpoints da API passarão a ser consultados somente com uso de chaves da API que o administrador irá gerar no dashboard.
+- Otimizar todas os endpoints da API para consultar dados do hotel referente a API Key.
+- Aplicar lógica para alimentar os registros de auditoria em todas as rotas relevantes.
+- Desenvolvimento de toda a lógica de cadastrar colaboradores/funcionários ao hotel e possibilitar autenticação.
 
 # RoomControl
 
@@ -135,6 +132,8 @@ uvicorn app.main:app --reload
 ```
 - A aplicação será iniciada em: http://127.0.0.1:8000
 - O Swagger será iniciado em: http://127.0.0.1:8000/docs
+
+**OBS**: É necessário gerar uma API Key, pelo login do hotel para consultar os dados no endpoints da API.
 
 ### 🔒 Segurança
 
