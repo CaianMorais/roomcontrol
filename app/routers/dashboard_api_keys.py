@@ -15,7 +15,7 @@ from sqlalchemy.exc import IntegrityError
 # import de funções da aplicação local
 
 from app.core.config import get_db
-from app.core.security import generate_csrf_token, get_api_key, validate_csrf_token
+from app.core.security import generate_csrf_token, validate_csrf_token
 from app.helpers.guests.guest_delete import guest_delete
 from app.helpers.guests.guest_updater import guest_updater
 from app.helpers.guests.guest_creator import guest_creator
@@ -50,7 +50,7 @@ def api_keys(
     hotel_id = request.session.get("hotel_id")
     if not hotel_id:
         add_flash_message(request, 'Hotel não reconhecido', 'warning')
-        return RedirectResponse(url="/dashboard_api_keys", status_code=303)
+        return RedirectResponse(url="/dashboard", status_code=303)
     
     query = db.query(ApiKey) \
         .filter(ApiKey.hotel_id == hotel_id) 
@@ -121,3 +121,40 @@ def create_api_key(
             "message": "Guarde esta chave. Ela não poderá ser exibida novamente."
         }
     )
+
+@router.get("/update/{api_key_id}", include_in_schema=False)
+def update_api_key(
+    request: Request,
+    api_key_id: int,
+    db: Session = Depends(get_db),
+):
+    hotel_id = request.session.get("hotel_id")
+
+    if not hotel_id:
+        add_flash_message(request, "Hotel não encontrado", "danger")
+        return RedirectResponse(url="/dashboard", status_code=303)
+    
+    key = db.query(ApiKey) \
+    .filter(ApiKey.id == api_key_id) \
+    .filter(ApiKey.hotel_id == hotel_id) \
+    .first()
+
+    if not key:
+        add_flash_message(request, "A chave não foi encontrada", "danger")
+        return RedirectResponse(url="/dashboard_api_keys", status_code=303)
+    
+    try:
+        if key.is_active:
+            key.is_active = False
+        else:
+            key.is_active = True
+
+        db.commit()
+        db.refresh(key)
+        add_flash_message(request, "Chave atualizada com sucesso", "success")
+    except IntegrityError:
+        db.rollback()
+        add_flash_message(request, "Erro ao atualizar o status da chave", "danger")
+        return RedirectResponse(url="/dashboard_api_keys", status_code=303)
+    
+    return RedirectResponse("/dashboard_api_keys", status_code=303)

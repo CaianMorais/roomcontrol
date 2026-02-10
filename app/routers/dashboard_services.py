@@ -15,6 +15,7 @@ from app.models.hotel import Hotel
 from app.utils.flash import render, add_flash_message
 from app.helpers.services.query_requests import query_requests
 from app.helpers.services.update_request_status import update_req_status
+from app.core.dependencies import get_api_hotel
 
 router = APIRouter(
     prefix='/dashboard_services',
@@ -24,7 +25,8 @@ router = APIRouter(
 
 api_router = APIRouter(
     prefix='/api',
-    tags=['services']
+    tags=['services'],
+    dependencies=[Depends(get_api_hotel)]
 )
 templates = Jinja2Templates(directory='app/templates')
 

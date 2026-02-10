@@ -7,8 +7,9 @@ from app.core.config import get_db
 from app.core.api_keys import hash_api_key
 from app.models.api_keys import ApiKey
 
+# pega a chave da api no header da requisição
 api_key_header = APIKeyHeader(
-    name="X-API-KEY",
+    name="API-KEY",
     auto_error=False
 )
 
@@ -16,14 +17,17 @@ def get_api_hotel(
     api_key: str = Security(api_key_header),
     db: Session = Depends(get_db)
 ) -> int:
+    # valida a existÊncia da key
     if not api_key:
         raise HTTPException(
             status_code=401,
             detail="API Key ausente"
         )
 
+    # gera o hash da key recebida no header
     key_hash = hash_api_key(api_key)
 
+    # consulta a key hashificada
     api_key_db = (
         db.query(ApiKey)
         .filter(
@@ -33,14 +37,16 @@ def get_api_hotel(
         .first()
     )
 
+    # valida que existe no banco
     if not api_key_db:
         raise HTTPException(
             status_code=403,
             detail="API Key inválida"
         )
 
-    # Atualiza último uso
+    # atualiza último uso
     api_key_db.last_used_at = datetime.now()
     db.commit()
 
+    # retorna o id do hotel
     return api_key_db.hotel_id

@@ -31,9 +31,6 @@
                             <thead class="text-dark fs-4">
                                 <tr>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">ID</h6>
-                                    </th>
-                                    <th class="border-bottom-0">
                                         <h6 class="fw-semibold mb-0">Nome</h6>
                                     </th>
                                     <th class="border-bottom-0">
@@ -43,16 +40,16 @@
                                         <h6 class="fw-semibold mb-0">Último uso</h6>
                                     </th>
                                     <th class="border-bottom-0">
-                                        <h6 class="fw-semibold mb-0">Ações</h6>
+                                        <h6 class="fw-semibold mb-0">Data de criação</h6>
+                                    </th>
+                                    <th class="border-bottom-0 text-center">
+                                        <h6 class="fw-semibold mb-0">Desativar</h6>
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for key in keys %}
                                 <tr class="align-items-center">
-                                    <td class="border-bottom-0">
-                                        <p class="fw-semibold mb-0">{{ key.id }}</p>
-                                    </td>
                                     <td class="border-bottom-0">
                                         <p class="fw-semibold mb-0">{{ key.name }}</p>
                                     </td>
@@ -64,13 +61,21 @@
                                     </td>
                                     <td class="border-bottom-0">
                                         <p class="mb-0 fw-normal">
-                                            {{ key.last_used_at.strftime("%d/%m/%Y %H:%M") if key.last_used_at else '' }}
+                                            {{ key.last_used_at.strftime("%d/%m/%Y %H:%M") if key.last_used_at else 'Sem uso' }}
                                         </p>
                                     </td>
                                     <td class="border-bottom-0">
-                                        <div class="d-flex align-items-center justify-content-start gap-3 fs-6">
-                                            <a href="#"
-                                                class="text-success"><i class="ti ti-pencil"></i></a>
+                                        <p class="mb-0 fw-normal">
+                                            {{ key.created_at.strftime("%d/%m/%Y %H:%M") }}
+                                        </p>
+                                    </td>
+                                    <td class="border-bottom-0">
+                                        <div class="d-flex align-items-center justify-content-center gap-3 fs-6">
+                                            {% if key.is_active %}
+                                                <a class="update_api_key text-danger" data-id="{{ key.id }}" data-name="{{ key.name }}" data-status="active" href="javascript:void(0)" title="Desativar chave"><i class="ti ti-lock"></i></a>
+                                            {% else %}
+                                                <a class="update_api_key text-success" data-id="{{ key.id }}" data-name="{{ key.name }}" data-status="inactive" href="javascript:void(0)" title="Ativar chave"><i class="ti ti-lock-open"></i></a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -85,68 +90,9 @@
         </div>
     </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-const btnNewKey = document.getElementById("new_api_key");
-
-btnNewKey.addEventListener("click", async () => {
-    const { value: keyName } = await Swal.fire({
-        title: "Criar nova API Key",
-        text: "Defina um nome para identificar esta chave.",
-        input: "text",
-        inputPlaceholder: "Ex: Integração BI",
-        showCancelButton: true,
-        confirmButtonText: "Gerar chave",
-        cancelButtonText: "Cancelar",
-        inputValidator: (value) => {
-            if (!value) {
-                return "O nome da chave é obrigatório.";
-            }
-        }
-    });
-
-    if (!keyName) return;
-
-    Swal.fire({
-        title: "Gerando chave...",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-    });
-
-    try {
-        const response = await fetch("/dashboard_api_keys/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ name: keyName })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.detail || data.message || "Erro ao gerar API Key");
-        }
-
-        await Swal.fire({
-            title: "API Key criada",
-            html: `
-                <p><strong>Copie esta chave agora.</strong></p>
-                <p>Ela <u>não poderá ser exibida novamente</u>.</p>
-                <pre style="user-select: all; word-break: break-all; background:#f4f4f4; padding:10px; border-radius:6px;">${data.api_key}</pre>
-            `,
-            icon: "success",
-            confirmButtonText: "Entendi"
-        })
-
-    } catch (error) {
-        Swal.fire({
-            title: "Erro",
-            text: error.message,
-            icon: "error"
-        });
-    }
-});
-</script>
+<script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
+<script src="{{ url_for('dashboard', path='js/api_key/update_api_key.js') }}" type="module"></script>
+<script src="{{ url_for('dashboard', path='js/api_key/create_api_key.js') }}"></script>
 {% endblock %}

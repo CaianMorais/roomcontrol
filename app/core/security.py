@@ -51,15 +51,7 @@ def decode_access_token(token: str):
     except JWTError:
         return None
     
-#API KEY HEADER CONFIGURATION
-api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
-
-def get_api_key(api_key: str = Security(api_key_header)):
-    if api_key == os.getenv("API_KEY"):
-        return api_key
-    else:
-        raise HTTPException(status_code=403, detail="API Key não autorizada.")
-    
+# AUTENTICAÇÃO PARA ACESSAR O /DOCS
 security = HTTPBasic()
 
 def docs_auth(credentials: HTTPBasicCredentials = Depends(security)):

@@ -14,7 +14,8 @@ from sqlalchemy.orm import Session, joinedload
 # import de funções da aplicação local
 
 from app.core.config import get_db
-from app.core.security import generate_csrf_token, get_api_key, validate_csrf_token
+from app.core.security import generate_csrf_token, validate_csrf_token
+from app.core.dependencies import get_api_hotel
 from app.helpers.guests.guest_delete import guest_delete
 from app.helpers.guests.guest_updater import guest_updater
 from app.helpers.guests.guest_creator import guest_creator
@@ -36,7 +37,7 @@ router = APIRouter(
 api_router = APIRouter(
     prefix="/api",
     tags=["guests"],
-    dependencies=[Depends(get_api_key)]
+    dependencies=[Depends(get_api_hotel)]
 )
 
 templates = Jinja2Templates(directory="app/templates")

@@ -16,6 +16,7 @@ from app.models.hotel import Hotel
 from app.helpers.rooms.object_mapper import tipos_map, coluna_map, room_capacities_map
 from app.helpers.rooms.room_creator import room_creator
 from app.helpers.rooms.room_editor import room_editor
+from app.core.dependencies import get_api_hotel
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -23,7 +24,11 @@ router = APIRouter(
     dependencies=[Depends(require_session)]
 )
 
-api_router = APIRouter(prefix="/api", tags=["rooms"])
+api_router = APIRouter(
+    prefix="/api",
+    tags=["rooms"],
+    dependencies=[Depends(get_api_hotel)]
+)
 templates = Jinja2Templates(directory="app/templates")
 
 @api_router.get("/rooms", response_model=List[RoomOut], summary="Filtrar quartos")
