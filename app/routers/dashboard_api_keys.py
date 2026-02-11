@@ -4,30 +4,20 @@ from typing import List, Optional
 
 #import de libs third-party
 
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
+from fastapi import APIRouter, HTTPException, Depends, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 # import de funções da aplicação local
 
 from app.core.config import get_db
-from app.core.security import generate_csrf_token, validate_csrf_token
-from app.helpers.guests.guest_delete import guest_delete
-from app.helpers.guests.guest_updater import guest_updater
-from app.helpers.guests.guest_creator import guest_creator
-from app.helpers.verify_guest import verify_guest_by_id
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
-from app.schemas.guest import GuestOut
-from app.models.guest import Guest
 from app.models.api_keys import ApiKey
-from app.helpers.guests.subquery_reservations import subquery_reservations
-from app.helpers.guests.filter_guests import filter_guests
-from app.helpers.guests.restore_guest import restore_guest
 from app.helpers.api_keys.create_key import generate_api_key, hash_api_key
 from app.helpers.register_audit import register_audit
 from app.schemas.api_keys import CreateApiKeySchema
@@ -53,7 +43,9 @@ def api_keys(
         return RedirectResponse(url="/dashboard", status_code=303)
     
     query = db.query(ApiKey) \
-        .filter(ApiKey.hotel_id == hotel_id) 
+        .filter(ApiKey.hotel_id == hotel_id) \
+        .order_by(ApiKey.is_active.desc()) \
+        .order_by(ApiKey.created_at.desc())
     
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)

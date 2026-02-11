@@ -1,0 +1,38 @@
+<form
+    action="{{ url_for('create_collaborator') if not collaborator else url_for('update_collaborator', collaborator_id=collaborator.id) }}"
+    method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="row">
+        <div class="mb-3 col-6">
+            <label for="firstname" class="form-label">Primeiro nome</label>
+            <input type="text" class="form-control" id="firstname" name="firstname" required
+            value="{{ collaborator.firstname if collaborator else '' }}">
+        </div>
+        <div class="mb-3 col-6">
+            <label for="lastname" class="form-label">Sobrenome</label>
+            <input type="text" class="form-control" id="lastname" name="lastname" required
+            value="{{ collaborator.lastname if collaborator else '' }}">
+        </div>
+    </div>
+    <div class="row">
+        <div class="mb-3 col-6">
+            <label for="cpf" class="form-label">CPF</label>
+            <input type="text" class="form-control" id="cpf" name="cpf" required
+            value="{{ collaborator.cpf if collaborator else '' }}" {% if collaborator %}readonly{% endif %}>
+            {% if collaborator %}<div class="form-text text-warning">Inalterável</div>{% endif %}
+        </div>
+        <div class="mb-3 col-6">
+            <label for="username" class="form-label">Nome de usuário</label>
+            <input type="text" class="form-control" id="username" name="username"
+                placeholder='Padrão: "nome.sobrenome"'
+                value="{{ collaborator.username if collaborator else '' }}">
+        </div>
+    </div>
+    {% if not collaborator %}
+    <button type="submit" class="btn btn-primary">Criar</button>
+    <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
+    {% else %}
+    <button type="submit" class="btn btn-primary">Editar</button>
+    <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
+    {% endif %}
+</form>

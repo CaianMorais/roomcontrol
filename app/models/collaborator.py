@@ -12,6 +12,8 @@ class Collaborator(Base):
     lastname = Column(String(255), nullable=False)
     username = Column(String(255), index=True, nullable=False)
     cpf = Column(String(14), unique=True, index=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    change_password = Column(Boolean, default=True, nullable=False)
     hotel_id = Column(Integer, ForeignKey("hotels.id", ondelete="CASCADE"), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)

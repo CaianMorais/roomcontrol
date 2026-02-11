@@ -37,9 +37,9 @@ def get_hotels(
     
     return hotels
 
-@router.get("", response_class=HTMLResponse, include_in_schema=False)
+@router.get("/hotel", response_class=HTMLResponse, include_in_schema=False)
 def get_registration_form(request: Request):
-    if request.session.get("hotel_id"):
+    if request.session.get("collaborator_id") or request.session.get("hotel_id"):
         return RedirectResponse(url="/dashboard", status_code=303)
     csrf_token = generate_csrf_token()
     return render(
@@ -106,42 +106,42 @@ async def register_hotel(
     csrf_token = form.get("csrf_token") or request.headers.get("X-CSRF-Token")
     if not validate_csrf_token(csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     sess_email = request.session.get('reg_email')
     sess_cnpj = request.session.get('reg_cnpj')
 
     if not sess_email or not sess_cnpj:
         add_flash_message(request, "Sessão expirada.", "danger")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     cnpj_digits = only_digits(cnpj)
     if str(email).strip().lower() != str(sess_email).strip().lower() or cnpj_digits != sess_cnpj:
         add_flash_message(request, "Dados não foram validados, adulteração detectada.", "danger")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     if not is_valid_cnpj(cnpj):
         add_flash_message(request, "CNPJ Inválido", "danger")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
 
     db_hotel = db.query(Hotel).filter(Hotel.cnpj == cnpj).first()
     if db_hotel:
         add_flash_message(request, "O hotel já existe em nossos registros", "danger")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
 
     if password != confirm_password:
         add_flash_message(request, "As senhas não conferem.", "danger")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     try:
         situ = await fetch_cnpj_situacao(cnpj_digits)
     except CNPJWsError as e:
         add_flash_message(request, str(e), "danger")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     if situ.lower() != "ativa":
         add_flash_message(request, "CNPJ com situação irregular", "danger")
-        return RedirectResponse(url='/auth', status_code=303)
+        return RedirectResponse(url='/auth/hotel', status_code=303)
 
     hashed_password = bcrypt.hash(password)
 
@@ -179,18 +179,18 @@ async def login(
             hotel = db.query(Hotel).filter(Hotel.cnpj == cnpj_digits).first()
             if not hotel:
                 add_flash_message(request, "Login ou CNPJ não encontrado.", "warning")
-                return RedirectResponse(url="/auth", status_code=303)
+                return RedirectResponse(url="/auth/hotel", status_code=303)
     else:
         add_flash_message(request, "Token de segurança inválido, tente novamente", "warning")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     if not verify_password(password, hotel.password):
         add_flash_message(request, "Senha incorreta.", "warning")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     if not hotel.is_active:
         add_flash_message(request, "O hotel está desativado no sistema", "warning")
-        return RedirectResponse(url="/auth", status_code=303)
+        return RedirectResponse(url="/auth/hotel", status_code=303)
     
     request.session['hotel_id'] = hotel.id
     request.session['hotel_name'] = hotel.name
@@ -203,4 +203,24 @@ async def login(
 def logout(request: Request):
     request.session.pop("hotel_id", None)
     request.session.pop("hotel_name", None)
-    return RedirectResponse(url="/auth", status_code=303)
+    request.session.pop("collaborator_id", None)
+    request.session.pop("is_admin", None)
+    return RedirectResponse(url="/", status_code=303)
+
+@router.get("/collaborator", response_class=HTMLResponse, include_in_schema=False)
+def auth_collaborator(
+    request: Request
+):
+    if request.session.get("collaborator_id") or request.session.get("hotel_id"):
+        return RedirectResponse(url="/dashboard", status_code=303)
+    csrf_token = generate_csrf_token()
+
+    return render(
+        templates,
+        request,
+        "/auth/collaborator_login.html",
+        {
+            "request": request,
+            "csrf_token": csrf_token
+        }
+    )
