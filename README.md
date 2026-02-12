@@ -1,10 +1,11 @@
-## 🔄️ Última Atualização 10/02/2026
-- Cada hotel pode gerar uma chave da API para extrair dados daquele hotel em específico, a chave da API deve ser colocada no header da requisição.
+## 🔄️ Última Atualização 12/02/2026
+- Lógica para criação de funcionários relacionados ao hotel totalmente criada (falta otimização e limpeza de código).
 
 ## ➡️ Próximas atualizações
 - Otimizar todas os endpoints da API para consultar dados do hotel referente a API Key.
+- Criar endpoints na API para consulta de colaboradores no hotel.
 - Aplicar lógica para alimentar os registros de auditoria em todas as rotas relevantes.
-- Desenvolvimento de toda a lógica de cadastrar colaboradores/funcionários ao hotel e possibilitar autenticação.
+- Otimização da lógica de todo o back-end e front-end de Colaboradores e API Keys.
 
 # RoomControl
 

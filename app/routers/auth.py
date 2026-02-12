@@ -245,7 +245,7 @@ def login_collaborator(
     )
 
     if not collaborator:
-        add_flash_message(request, "Credenciais inválidas", "danger")
+        add_flash_message(request, "Usuário não encontrado", "danger")
         return RedirectResponse("/auth/collaborator", status_code=303)
 
     # verifica se a senha informada bate com a salva

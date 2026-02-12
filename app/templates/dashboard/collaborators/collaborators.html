@@ -71,7 +71,9 @@
                                     <td class="border-bottom-0">
                                         <div class="d-flex align-items-center justify-content-start gap-3 fs-6">
                                             <a href="{{ url_for('edit_collaborator', collaborator_id=collaborator.id) }}" class="text-primary"><i class="ti ti-pencil"></i></a>
-                                            <a href="#" class="text-danger"><i class="ti ti-trash"></i></a>
+                                            <a href="javascript:void(0)" class="btn-delete-collaborator text-danger" data-id="{{ collaborator.id }}" data-name="{{ collaborator.firstname }}">
+                                                <i class="ti ti-trash"></i>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -87,5 +89,7 @@
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="{{ url_for('dashboard', path='js/tooltip.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
+<script src="{{ url_for('dashboard', path='js/collaborators/collaborators.js') }}" type="module"></script>
 {% endblock %}

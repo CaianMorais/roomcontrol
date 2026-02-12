@@ -149,7 +149,7 @@ def create_collaborator(
         db.commit()
         db.refresh(new_collaborator)
 
-        add_flash_message(request, "Colaborador cadastrado com sucesso", "success")
+        add_flash_message(request, "Colaborador cadastrado, no primeiro acesso a senha é o CPF.", "success")
 
     return RedirectResponse(url="/dashboard_collaborators", status_code=303)
 
@@ -216,11 +216,14 @@ def update_collaborator(
         add_flash_message(request, "Colaborador não encontrado", "warning")
         return RedirectResponse(url="/dashboard_collaborators", status_code=303)
     
+    # se username for vazio, predefine nome + sobrenome
     if username == "" or not username:
         username = f"{firstname.lower().strip()}+.+{lastname.lower().strip()}"
 
+    # se for redefinir senha define padrão o cpf
     if change_password:
         collaborator.password = hash_password(collaborator.cpf)
+        add_flash_message(request, "Senha redefinida, e deverá ser trocada no próximo login.", "warning")
 
     collaborator.firstname = firstname
     collaborator.lastname = lastname
@@ -233,3 +236,23 @@ def update_collaborator(
 
     add_flash_message(request, "Colaborador editado com sucesso", "success")
     return RedirectResponse(url="/dashboard_collaborators", status_code=303)
+
+@router.get("/delete/{collaborator_id}", response_class=HTMLResponse, include_in_schema=False)
+def delete_collaborator(
+    request: Request,
+    collaborator_id: int,
+    db: Session = Depends(get_db)
+):
+    hotel_id = request.session.get("hotel_id")
+    collaborator = db.query(Collaborator) \
+    .filter(Collaborator.id == collaborator_id) \
+    .filter(Collaborator.is_deleted == False) \
+    .filter(Collaborator.hotel_id == hotel_id) \
+    .first()
+
+    collaborator.is_deleted = True
+    db.commit()
+
+    add_flash_message(request, "Colaborador deletado com sucesso", "success")
+    return RedirectResponse(url="/dashboard_collaborators", status_code=303)
+

@@ -8,3 +8,22 @@ Inputmask({
     removeMaskOnSubmit: true,
     unmaskAsNumber: true,
 }).mask("#cpf");
+
+const deleteButtons = document.querySelectorAll(".btn-delete-collaborator");
+
+deleteButtons.forEach((button) => {
+    button.addEventListener("click", function() {
+        const id = this.dataset.id;
+        const name = this.dataset.name;
+
+        showAlert(
+            `Excluir o colaborador ${name}`,
+            `Essa ação não pode ser desfeita`,
+            'warning'
+        ).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/dashboard_collaborators/delete/${id}`
+            }
+        })
+    });
+})
