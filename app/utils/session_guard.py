@@ -16,14 +16,15 @@ def get_db():
 def require_session(request: Request, db=Depends(get_db)):
     hotel_id = request.session.get("hotel_id")
     hotel_name = request.session.get("hotel_name")
+    collaborator_id = request.session.get("collaborator_id")
 
     if not hotel_id:
         add_flash_message(request, "Faça login para acessar o painel", "warning")
-        raise HTTPException(status_code=307, headers={"Location": "/auth"})
+        raise HTTPException(status_code=307, headers={"Location": ""})
     
     if not db.query(Hotel).filter(Hotel.id == hotel_id).filter(Hotel.is_active == True).first():
         request.session.clear()
         add_flash_message(request, "Seu hotel foi desativado, ou não existe mais. Caso necessário, entre em contato com o suporte.", "danger")
-        raise HTTPException(status_code=307, headers={"Location": "/auth"})
+        raise HTTPException(status_code=307, headers={"Location": ""})
     
     return {"id": hotel_id, "name": hotel_name}

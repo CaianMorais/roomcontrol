@@ -24,15 +24,33 @@
         <div class="mb-3 col-6">
             <label for="username" class="form-label">Nome de usuário</label>
             <input type="text" class="form-control" id="username" name="username"
-                placeholder='Padrão: "nome.sobrenome"'
+                placeholder='Predefinido: "{{ collaborator.firstname.lower().strip() if collaborator else "nome" }}.{{ collaborator.lastname.lower().strip() if collaborator else "sobrenome" }}"'
                 value="{{ collaborator.username if collaborator else '' }}">
         </div>
     </div>
+    {% if collaborator %}
+    <div class="row mb-3">
+        <div class="col-6">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                {% if collaborator.is_active %}checked{% endif %}>
+                <label for="is_active" class="form-check-label">Ativo</label>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="change_password" name="change_password"
+                {% if collaborator.change_password %}checked{% endif %}>
+                <label for="change_password" class="form-check-label">Redefinir senha no próximo login</label>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% if not collaborator %}
     <button type="submit" class="btn btn-primary">Criar</button>
     <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
     {% else %}
-    <button type="submit" class="btn btn-primary">Editar</button>
+    <button type="submit" class="btn btn-primary">Salvar</button>
     <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
     {% endif %}
 </form>

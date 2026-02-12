@@ -7,6 +7,7 @@ from passlib.hash import bcrypt
 
 from app.core.config import get_db
 from app.models.hotel import Hotel
+from app.models.collaborator import Collaborator
 from app.schemas.hotel import HotelCreate, HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
 from app.core.security import generate_csrf_token, validate_csrf_token, hash_password, verify_password
 from app.utils.brdocs import is_valid_cnpj, format_cnpj, only_digits
@@ -211,8 +212,10 @@ def logout(request: Request):
 def auth_collaborator(
     request: Request
 ):
+    # verifica se nao tem sessão ativa
     if request.session.get("collaborator_id") or request.session.get("hotel_id"):
         return RedirectResponse(url="/dashboard", status_code=303)
+    
     csrf_token = generate_csrf_token()
 
     return render(
@@ -224,3 +227,103 @@ def auth_collaborator(
             "csrf_token": csrf_token
         }
     )
+
+@router.post("/collaborator", response_class=HTMLResponse, include_in_schema=False)
+def login_collaborator(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # consulta se existe um colaborador com esse username, ativo e não deletado
+    collaborator = (
+        db.query(Collaborator)
+        .filter(Collaborator.username == username)
+        .filter(Collaborator.is_active == True)
+        .filter(Collaborator.is_deleted == False)
+        .first()
+    )
+
+    if not collaborator:
+        add_flash_message(request, "Credenciais inválidas", "danger")
+        return RedirectResponse("/auth/collaborator", status_code=303)
+
+    # verifica se a senha informada bate com a salva
+    if not verify_password(password, collaborator.password):
+        add_flash_message(request, "Credenciais inválidas", "danger")
+        return RedirectResponse("/auth/collaborator", status_code=303)
+    
+    # força troca de senha se change_password for true
+    if collaborator.change_password:
+        request.session["force_change_password"] = True
+        request.session["collaborator_id"] = collaborator.id
+        request.session["hotel_id"] = collaborator.hotel_id
+        request.session["is_admin"] = False
+        add_flash_message(request, "Redefinição de senha necessária", "info")
+
+        return RedirectResponse(url="/auth/collaborator/change_password", status_code=303)
+
+    # login normal
+    request.session.clear()
+    request.session["hotel_id"] = collaborator.hotel_id
+    request.session["collaborator_id"] = collaborator.id
+    request.session["is_admin"] = False
+
+    return RedirectResponse(url="/dashboard", status_code=303)
+
+@router.get("/collaborator/change_password")
+def change_password_page(request: Request):
+
+    # verifica se realmente tem a exigencia de mudança de senha no request
+    # isso evita que a rota seja acessada pelo URL manual
+    if not request.session.get("force_change_password"):
+        return RedirectResponse("/dashboard", status_code=303)
+
+    return render(
+        templates,
+        request,
+        "auth/collaborator_change_password.html",
+        {
+            "csrf_token": generate_csrf_token()
+        }
+    )
+
+@router.post("/collaborator/change_password")
+def change_password(
+    request: Request,
+    new_password: str = Form(...),
+    confirm_password: str = Form(...),
+    csrf_token: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # valida o token
+    if not validate_csrf_token(csrf_token):
+        add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
+        return RedirectResponse(url="/auth/collaborator", status_code=303)
+    
+    # verifica se as senhas informadas sao iguais
+    if new_password != confirm_password:
+        add_flash_message(request, "As senhas não coincidem", "danger")
+        return RedirectResponse("/auth/collaborator/change_password", status_code=303)
+
+    # pega o id do colaborador na sessao
+    collaborator_id = request.session.get("collaborator_id")
+
+    # consulta o colaboradora para saber se ele não está inativo ou deletado
+    collaborator = db.query(Collaborator) \
+    .filter(Collaborator.id == collaborator_id) \
+    .filter(Collaborator.is_active) \
+    .filter(Collaborator.is_deleted == False) \
+    .first()
+
+    # salva a senha e desativa a exigencia de mudança de senha
+    collaborator.password = hash_password(new_password)
+    collaborator.change_password = False
+
+    db.commit()
+
+    # tira a exigencia da sessao depois de salvar a senha nova no banco
+    request.session.pop("force_change_password", None)
+
+    add_flash_message(request, "Senha alterada com sucesso", "success")
+    return RedirectResponse("/dashboard", status_code=303)

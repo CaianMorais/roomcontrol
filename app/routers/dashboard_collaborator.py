@@ -113,7 +113,7 @@ def create_collaborator(
     hotel_id = request.session.get("hotel_id")
 
     if username == "" or not username:
-        username = f"{firstname}+.+{lastname}"
+        username = f"{firstname.lower().strip()}+.+{lastname.lower().strip()}"
 
     collaborator = db.query(Collaborator) \
     .filter(Collaborator.cpf == cpf) \
@@ -181,7 +181,55 @@ def edit_collaborator(
 @router.post("/edit/{collaborator_id}", response_class=HTMLResponse, include_in_schema=False)
 def update_collaborator(
     request: Request,
-    guest_id: int,
+    collaborator_id: int,
+    firstname: str = Form(...),
+    lastname: str = Form(...),
+    username: str = Form(...),
+    is_active: Optional[bool] = Form(False),
+    change_password: Optional[bool] = Form(False),
+    csrf_token: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    return True
+    print(change_password)
+    # valida token
+    if not validate_csrf_token(csrf_token):
+        add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
+        return RedirectResponse(url="/dashboard", status_code=303)
+    
+    # captura o hotel
+    hotel_id = request.session.get("hotel_id")
+
+    # valida o hotel
+    if not hotel_id:
+        add_flash_message(request, "Hotel não reconhecido", "warning")
+        return RedirectResponse(url="/dashboard_collaborators", status_code=303)
+    
+    #verificar se colaborador existe
+    collaborator = db.query(Collaborator) \
+    .filter(Collaborator.id == collaborator_id) \
+    .filter(Collaborator.hotel_id == hotel_id) \
+    .filter(Collaborator.is_deleted == False) \
+    .first()
+
+    # valida que o colaborador existe
+    if not collaborator:
+        add_flash_message(request, "Colaborador não encontrado", "warning")
+        return RedirectResponse(url="/dashboard_collaborators", status_code=303)
+    
+    if username == "" or not username:
+        username = f"{firstname.lower().strip()}+.+{lastname.lower().strip()}"
+
+    if change_password:
+        collaborator.password = hash_password(collaborator.cpf)
+
+    collaborator.firstname = firstname
+    collaborator.lastname = lastname
+    collaborator.username = username
+    collaborator.is_active = is_active
+    collaborator.change_password = change_password
+
+    db.commit()
+    db.refresh(collaborator)
+
+    add_flash_message(request, "Colaborador editado com sucesso", "success")
+    return RedirectResponse(url="/dashboard_collaborators", status_code=303)
