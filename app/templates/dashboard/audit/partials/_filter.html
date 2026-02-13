@@ -1,0 +1,59 @@
+<div class="card w-100 shadow-lg">
+    <div class="card-body py-0 px-2">
+        <p class="d-inline-flex gap-1">
+        <h4 class="text-center">
+            <a class="" data-bs-toggle="collapse" href="#filtros_quartos" role="button" aria-expanded="false"
+                aria-controls="filtros_quartos">
+                Filtros
+            </a>
+        </h4>
+        </p>
+        <div class="collapse" id="filtros_quartos">
+            <div class="card card-body">
+                <form action="{{ url_for('audit') }}" method="GET">
+                    <div class="row">
+                        <div class="mb-3 col-6">
+                            <label for="name" class="form-label">Pesquisar usuário</label>
+                            <input type="text" class="form-control" name="name" id="name"
+                            value="{{ name if name else '' }}">
+                        </div>
+                        <div class="mb-3 col-3">
+                            <label for="action" class="form-label">Ação</label>
+                            <select class="form-select" name="action" id="action">
+                                <option value="">Todas</option>
+                                {% for key, label in ACTION_LABEL.items() %}
+                                    <option value="{{ key }}">{{ label }}</option>
+                                {%  endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3 col-3">
+                            <label for="entity" class="form-label">Entidade</label>
+                            <select class="form-select" name="entity" id="entity">
+                                <option value="">Todas</option>
+                                {% for key, label in ENTITY_LABEL.items() %}
+                                    <option value="{{ key }}">{{ label }}</option>
+                                {%  endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <label for="entity_id" class="form-label">Pesquisar identificador</label>
+                            <input type="number" class="form-control" name="entity_id" id="entity_id"
+                            value="{{ entity_id if entity_id else '' }}">
+                        </div>
+                        <div class="col-3">
+                            <label for="before" class="form-label">Antes de</label>
+                            <input type="datetime-local" class="form-control" name="before" id="before">
+                        </div>
+                        <div class="col-3">
+                            <label for="after" class="form-label">Depois de</label>
+                            <input type="datetime-local" class="form-control" name="after" id="after">
+                        </div>
+                    </div>
+                    <button class="btn btn-success" type="submit">Aplicar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

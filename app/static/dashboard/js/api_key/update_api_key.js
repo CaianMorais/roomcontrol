@@ -8,23 +8,23 @@ buttons.forEach((button) => {
         const keyName = this.dataset.name;
         const keyStatus = this.dataset.status;
 
-        let alertResult;
+        let alert;
 
         if (keyStatus === "active") {
-            alertResult = showAlert(
+            alert = showAlert(
                 `Desativar a chave ${keyName}?`,
                 'Essa chave não estará mais permitida a fazer consultas na API!',
                 'question'
             );
         }
         else {
-            alertResult = showAlert(
+            alert = showAlert(
                 `Ativar a chave ${keyName}?`,
                 'Essa chave vai poder fazer consultas na API!',
                 'question'
             )
         }
-        alertResult.then((result) => {
+        alert.then((result) => {
             if (result.isConfirmed) {
                 window.location.href = `/dashboard_api_keys/update/${keyId}`;
             }

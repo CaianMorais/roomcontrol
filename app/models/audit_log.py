@@ -19,7 +19,7 @@ class AuditLog(Base):
     action = Column(String(255), nullable=False)
     entity = Column(String(255), nullable=False)
     entity_id = Column(Integer, nullable=False)
-    timestamp = Column(DateTime, server_default=func.now(), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
     hotel = relationship("Hotel", back_populates="audit_logs")
     collaborator = relationship("Collaborator", back_populates="audit_logs")

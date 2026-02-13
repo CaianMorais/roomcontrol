@@ -1,0 +1,14 @@
+<div class="d-flex align-items-center justify-content-between">
+    <h5 class="card-title fw-semibold mb-4">Colaboradores</h5>
+    <div>
+        {% if has_filter %}
+            <a class="btn btn-outline-warning mb-4"
+               href="{{ url_for('collaborators') }}?per_page={{ pager.per_page }}">
+                Limpar Filtros
+            </a>
+        {% endif %}
+        <a class="btn btn-primary mb-4" href="{{ url_for('new_collaborator') }}">
+            Novo Colaborador
+        </a>
+    </div>
+</div>

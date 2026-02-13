@@ -1,0 +1,60 @@
+<table class="table text-nowrap mb-0 align-middle">
+    <thead class="text-dark fs-4">
+        <tr>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Nome</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Ativo</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Último uso</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Data de criação</h6>
+            </th>
+            <th class="border-bottom-0 text-center">
+                <h6 class="fw-semibold mb-0">Desativar</h6>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for key in keys %}
+        <tr class="align-items-center">
+            <td class="border-bottom-0">
+                <p class="fw-semibold mb-0">{{ key.name }}</p>
+            </td>
+            <td class="border-bottom-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light rounded-5 fw-bold">
+                        <i class="ti fs-6 {{ 'ti-check text-success' if key.is_active else 'ti-x text-danger' }}"></i>
+                    </span>
+                </div>
+            </td>
+            <td class="border-bottom-0">
+                <p class="mb-0 fw-normal">
+                    {{ key.last_used_at.strftime("%d/%m/%Y %H:%M") if key.last_used_at else 'Sem uso' }}
+                </p>
+            </td>
+            <td class="border-bottom-0">
+                <p class="mb-0 fw-normal">
+                    {{ key.created_at.strftime("%d/%m/%Y %H:%M") }}
+                </p>
+            </td>
+            <td class="border-bottom-0">
+                <div class="d-flex align-items-center justify-content-center gap-3 fs-6">
+                    {% if key.is_active %}
+                        <a class="update_api_key text-danger" data-id="{{ key.id }}" data-name="{{ key.name }}"
+                           data-status="active" href="javascript:void(0)" title="Desativar chave"><i class="ti ti-lock"></i>
+                        </a>
+                    {% else %}
+                        <a class="update_api_key text-success" data-id="{{ key.id }}" data-name="{{ key.name }}"
+                           data-status="inactive" href="javascript:void(0)" title="Ativar chave"><i class="ti ti-lock-open"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

@@ -5,7 +5,7 @@ btnNewKey.addEventListener("click", async () => {
         title: "Criar nova API Key",
         text: "Defina um nome para identificar esta chave.",
         input: "text",
-        inputPlaceholder: "Ex: Integração BI",
+        inputPlaceholder: "Ex.: Integração PowerBI",
         showCancelButton: true,
         confirmButtonText: "Gerar chave",
         cancelButtonText: "Cancelar",

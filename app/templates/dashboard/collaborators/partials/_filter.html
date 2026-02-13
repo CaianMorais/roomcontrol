@@ -1,0 +1,34 @@
+<div class="card w-100 shadow-lg">
+    <div class="card-body py-0 px-2">
+        <p class="d-inline-flex gap-1">
+        <h4 class="text-center">
+            <a class="" data-bs-toggle="collapse" href="#filtros_quartos" role="button" aria-expanded="false"
+                aria-controls="filtros_quartos">
+                Filtros
+            </a>
+        </h4>
+        </p>
+        <div class="collapse" id="filtros_quartos">
+            <div class="card card-body">
+                <form action="{{ url_for('collaborators') }}" method="GET">
+                    <div class="row">
+                        <div class="mb-3 col-6">
+                            <label for="search" class="form-label">Pesquisa (Nome ou CPF)</label>
+                            <input type="text" class="form-control" name="search" id="search"
+                            value="{{ search if search else '' }}">
+                        </div>
+                        <div class="mb-3 col-6">
+                            <label for="status" class="form-label">Situação</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="" {{ '' == status and 'selected' or '' }}>Todas</option>
+                                <option value="active" {{ status == 'active' and 'selected' or '' }} class="text-success">Ativo</option>
+                                <option value="inactive" {{ status == 'inactive' and 'selected' or '' }} class="text-danger">Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" type="submit">Aplicar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

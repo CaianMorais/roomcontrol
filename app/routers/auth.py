@@ -271,7 +271,7 @@ def login_collaborator(
 
     return RedirectResponse(url="/dashboard", status_code=303)
 
-@router.get("/collaborator/change_password")
+@router.get("/collaborator/change_password", response_class=HTMLResponse, include_in_schema=False)
 def change_password_page(request: Request):
 
     # verifica se realmente tem a exigencia de mudança de senha no request
@@ -288,7 +288,7 @@ def change_password_page(request: Request):
         }
     )
 
-@router.post("/collaborator/change_password")
+@router.post("/collaborator/change_password", response_class=HTMLResponse, include_in_schema=False)
 def change_password(
     request: Request,
     new_password: str = Form(...),

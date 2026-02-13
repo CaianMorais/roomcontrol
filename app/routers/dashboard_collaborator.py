@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
 
 # import de funções da aplicação local
 
@@ -53,14 +53,34 @@ def collaborators(
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=200),
+    search: Optional[str] = Query(""),
+    status: Optional[str] = Query(None),
 ):
     hotel_id = request.session.get("hotel_id")
+    has_filter = False
 
     query = db.query(Collaborator) \
     .filter(Collaborator.hotel_id == hotel_id) \
     .filter(Collaborator.is_deleted == False) \
     .order_by(Collaborator.is_active) \
     .order_by(Collaborator.created_at.desc()) \
+
+    if search:
+        query = query.filter(
+            or_(Collaborator.cpf.ilike(f"%{search}%"),
+                Collaborator.firstname.ilike(f"%{search}%"),
+                Collaborator.lastname.ilike(f"%{search}%")
+            )
+        )
+        has_filter=True
+
+    if status == "active":
+        query = query.filter(Collaborator.is_active == True)
+        has_filter = True
+
+    elif status == "inactive":
+        query = query.filter(Collaborator.is_active == False)
+        has_filter = True
 
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)
@@ -72,6 +92,9 @@ def collaborators(
         {
             "request": request,
             "collaborators": page_obj.items,
+            "has_filter" : has_filter,
+            "search": search,
+            "status": status,
             "pager": {
                 "page": page_obj.page,
                 "pages": page_obj.pages,
@@ -113,11 +136,10 @@ def create_collaborator(
     hotel_id = request.session.get("hotel_id")
 
     if username == "" or not username:
-        username = f"{firstname.lower().strip()}+.+{lastname.lower().strip()}"
+        username = f"{firstname.lower().strip()}.{lastname.lower().strip()}"
 
     collaborator = db.query(Collaborator) \
     .filter(Collaborator.cpf == cpf) \
-    .filter(Collaborator.username == username) \
     .first()
 
     if collaborator is not None and collaborator.is_deleted == False:
@@ -218,7 +240,7 @@ def update_collaborator(
     
     # se username for vazio, predefine nome + sobrenome
     if username == "" or not username:
-        username = f"{firstname.lower().strip()}+.+{lastname.lower().strip()}"
+        username = f"{firstname.lower().strip()}.{lastname.lower().strip()}"
 
     # se for redefinir senha define padrão o cpf
     if change_password:
