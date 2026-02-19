@@ -49,7 +49,7 @@ def audit(
     request: Request,
     db: Session = Depends(get_db),
     page: int = Query(1, ge=1),
-    per_page: int = Query(2, ge=1, le=200),
+    per_page: int = Query(20, ge=1, le=200),
     name: Optional[str] = Query(None),
     action: Optional[str] = Query(None),
     entity: Optional[str] = Query(None),
@@ -72,6 +72,31 @@ def audit(
                 Collaborator.lastname.ilike(f"%{name}%")
                 )
             )
+        
+    if action:
+        has_filter = True
+        query = query.filter(AuditLog.action == action)
+
+    if entity:
+        has_filter = True
+        query = query.filter(AuditLog.entity == entity)
+
+    if entity_id:
+        try:
+            has_filter = True
+            entity_id = int(entity_id)
+            query = query.filter(AuditLog.entity_id == entity_id)
+        except ValueError:
+            add_flash_message(request, "Erro ao pesquisar identificador", "warning")
+            return RedirectResponse(url='/dashboard_audit', status_code=303)
+        
+    if before:
+        has_filter = True
+        query = query.filter(AuditLog.created_at <= before)
+    
+    if after:
+        has_filter = True
+        query = query.filter(AuditLog.created_at >= after)
 
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)
@@ -83,7 +108,6 @@ def audit(
         {
             "request": request,
             "has_filter": has_filter,
-            "name" : name,
             "logs": page_obj.items,
             "pager": {
                 "page": page_obj.page,
@@ -91,6 +115,12 @@ def audit(
                 "per_page": page_obj.size,
                 "total": page_obj.total,
             },
+            "name" : name,
+            "action": action,
+            "entity": entity,
+            "entity_id": entity_id,
+            "before": before,
+            "after": after
         }
     )
 

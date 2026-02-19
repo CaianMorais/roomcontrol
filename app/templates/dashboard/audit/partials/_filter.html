@@ -22,7 +22,7 @@
                             <select class="form-select" name="action" id="action">
                                 <option value="">Todas</option>
                                 {% for key, label in ACTION_LABEL.items() %}
-                                    <option value="{{ key }}">{{ label }}</option>
+                                    <option value="{{ key }}" {% if action and action == key %}selected{% endif %}>{{ label }}</option>
                                 {%  endfor %}
                             </select>
                         </div>
@@ -31,7 +31,7 @@
                             <select class="form-select" name="entity" id="entity">
                                 <option value="">Todas</option>
                                 {% for key, label in ENTITY_LABEL.items() %}
-                                    <option value="{{ key }}">{{ label }}</option>
+                                    <option value="{{ key }}" {% if entity and entity == key %}selected{% endif %}>{{ label }}</option>
                                 {%  endfor %}
                             </select>
                         </div>
@@ -44,11 +44,13 @@
                         </div>
                         <div class="col-3">
                             <label for="before" class="form-label">Antes de</label>
-                            <input type="datetime-local" class="form-control" name="before" id="before">
+                            <input type="datetime-local" class="form-control" name="before" id="before"
+                            value="{{ before if before else ''}}">
                         </div>
                         <div class="col-3">
                             <label for="after" class="form-label">Depois de</label>
-                            <input type="datetime-local" class="form-control" name="after" id="after">
+                            <input type="datetime-local" class="form-control" name="after" id="after"
+                            value="{{ after if after else ''}}">
                         </div>
                     </div>
                     <button class="btn btn-success" type="submit">Aplicar</button>
