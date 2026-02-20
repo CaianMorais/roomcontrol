@@ -15,7 +15,7 @@ from app.models.hotel import Hotel
 from app.utils.flash import render, add_flash_message
 from app.helpers.services.query_requests import query_requests
 from app.helpers.services.update_request_status import update_req_status
-from app.core.dependencies import get_api_hotel
+from app.core.dependencies import get_api_access
 
 router = APIRouter(
     prefix='/dashboard_services',
@@ -26,23 +26,29 @@ router = APIRouter(
 api_router = APIRouter(
     prefix='/api',
     tags=['services'],
-    dependencies=[Depends(get_api_hotel)]
+    dependencies=[Depends(get_api_access)]
 )
+
+api_table_router = APIRouter(
+    prefix='/api/table',
+    tags=['dashboard'],
+)
+
 templates = Jinja2Templates(directory='app/templates')
 
 ###################### API START ######################
 @api_router.get('/services_requests', response_model=List[ServicesOut], summary="Filtrar pedidos de serviços")
 def get_services_requests(
-    request: Request,
+    access: dict = Depends(get_api_access),
     reservation_id: Optional[int] = Query(None, description="Filtrar pelo número da reserva"),
     guest_cpf: Optional[int] = Query(None, description="Filtrar pelo CPF do hóspede"),
     guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
     room_number: Optional[str] = Query(None, description="Filtrar pelo número do quarto"),
-    hotel_id: Optional[int] = Query(None, description="Filtrar pelo ID do hotel"),
-    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
     status: Optional[Literal['pending', 'in_progress', 'completed']] = Query(None, description="Filtrar pelo status do pedido"),
+    hotel_id: Optional[int] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
+    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
     db: Session = Depends(get_db)
-):
+):      
     query = (
         db.query(Services)
         .options(
@@ -50,6 +56,20 @@ def get_services_requests(
             joinedload(Services.reservation).joinedload(Reservations.room).joinedload(Rooms.hotel)
         )
     )
+
+    if not access["is_global"]:
+        query = query.join(Rooms, Services.room_id == Rooms.id).join(
+            Hotel, Rooms.hotel_id == Hotel.id
+        ).filter(Hotel.id == access["hotel_id"])
+    else:
+        if hotel_id:
+            query = query.join(Rooms, Services.room_id == Rooms.id).join(
+                Hotel, Rooms.hotel_id == Hotel.id
+            ).filter(Hotel.id == hotel_id)
+        if hotel_name:
+            query = query.join(Rooms, Services.room_id == Rooms.id).join(
+                Hotel, Rooms.hotel_id == Hotel.id
+            ).filter(Hotel.name.ilike(f'%{hotel_name}%'))
 
     if reservation_id:
         query = query.filter(Services.reservation_id == reservation_id)
@@ -59,17 +79,8 @@ def get_services_requests(
         query = query.join(Guest, Services.guest_id == Guest.id).filter(Guest.name.ilike(f'%{guest_name}%'))
     if room_number:
         query = query.join(Rooms, Services.room_id == Rooms.id).filter(Rooms.room_number == room_number)
-    if hotel_id:
-        query = query.join(Rooms, Services.room_id == Rooms.id).join(
-            Hotel, Rooms.hotel_id == Hotel.id
-        ).filter(Hotel.id == hotel_id)
-    if hotel_name:
-        query = query.join(Rooms, Services.room_id == Rooms.id).join(
-            Hotel, Rooms.hotel_id == Hotel.id
-        ).filter(Hotel.name.ilike(f'%{hotel_name}%'))
     if status:
         query = query.filter(Services.status.ilike(f'%{status}%'))
-
 
     requests = query.all()
 
@@ -78,24 +89,28 @@ def get_services_requests(
     
     return requests
 
-@api_router.get('/table_services_requests', response_model=List[TableServicesOut], summary="Filtrar dados para a tabela de pedidos de serviço na view")
+@api_table_router.get('/table_services_requests', response_model=List[TableServicesOut], include_in_schema=False)
 def get_table_services_requests(
     request: Request,
-    hotel_id: int,
     db: Session = Depends(get_db)
 ):
+    hotel_id = request.session.get("hotel_id")
+
+    if not hotel_id:
+        raise HTTPException(status_code=401)
+    
+    print('teste')
+
     query = (
         db.query(Services)
         .options(
             joinedload(Services.reservation).joinedload(Reservations.guest),
             joinedload(Services.reservation).joinedload(Reservations.room).joinedload(Rooms.hotel)
         )
+        .join(Rooms, Services.room_id == Rooms.id)
+        .join(Hotel, Rooms.hotel_id == Hotel.id)
+        .filter(Hotel.id == hotel_id)
     )
-
-    if hotel_id == request.session.get("hotel_id"):
-        query = query.join(Rooms, Services.room_id == Rooms.id).join(
-            Hotel, Rooms.hotel_id == Hotel.id
-        ).filter(Hotel.id == hotel_id)
 
     requests = query.all()
 

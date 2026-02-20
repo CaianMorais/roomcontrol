@@ -12,7 +12,7 @@ function carregaTabelaPedidos() {
         ]],
         ajax: {
             method: 'GET',
-            url: `/api/table_services_requests?hotel_id=${hotel_id}`,
+            url: `/api/table/table_services_requests`,
             dataSrc: function (json) {
                 if (json && json.length) return json;
                 return [];

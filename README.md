@@ -1,11 +1,14 @@
-## 🔄️ Última Atualização 12/02/2026
+## 🔄️ Última Atualização 20/02/2026
+- Criado a lógica para uso de dois tipos de API Keys, chave global e chave normal, sendo a global capaz de consultar todos os dados de todos os hotéis e a normal capaz de consultar dados do hotel em que foi criada.
 - Lógica para criação de funcionários relacionados ao hotel totalmente criada (falta otimização e limpeza de código).
+- Endpoint para consultar Colaboradores, sendo exclusiva para chave global da API.
+- Otimizações para limitar filtros nos endpoints, tendo filtros exclusivos para usuários da chave global.
+- Acesso de colaborador já disponível com os níveis de acesso limitado a ações operacionais, enquanto as ações administrativas ficam exclusivas para o login de administração do hotel no sistema.
 
 ## ➡️ Próximas atualizações
-- Otimizar todas os endpoints da API para consultar dados do hotel referente a API Key.
-- Criar endpoints na API para consulta de colaboradores no hotel.
-- Aplicar lógica para alimentar os registros de auditoria em todas as rotas relevantes.
-- Otimização da lógica de todo o back-end e front-end de Colaboradores e API Keys.
+- Aplicar lógica para alimentar os registros de auditoria em todas as rotas que executam ações relevantes.
+- Otimização da lógica de todo o back-end e front-end de Colaboradores, API Keys e Registros de Auditoria
+- 
 
 # RoomControl
 

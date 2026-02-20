@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
 
 from app.core.config import get_db
+from app.core.dependencies import get_api_access
 from app.models.hotel import Hotel
 from app.models.collaborator import Collaborator
 from app.schemas.hotel import HotelCreate, HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
@@ -15,19 +16,29 @@ from app.utils.flash import add_flash_message, render
 from app.services.cnpj_ws import fetch_cnpj_situacao, CNPJWsError
 
 router = APIRouter(prefix="/auth", tags=["hotels"])
-api_router = APIRouter(prefix="/api", tags=["hotels"])
+
+api_router = APIRouter(
+    prefix="/api",
+    tags=["hotels"],
+    dependencies=[Depends(get_api_access)]
+)
+
 templates = Jinja2Templates(directory="app/templates")
 
-@api_router.get("/hotels", response_model=List[HotelOut], summary="Filtrar hotéis")
+@api_router.get("/hotels", response_model=List[HotelOut], summary="Filtrar hotéis (Exclusivo para chave global)")
 def get_hotels(
+    access: dict = Depends(get_api_access),
     cnpj: Optional[str] = Query(None, description="Filtrar pelo CNPJ do hotel"),
     name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
     db: Session = Depends(get_db)
 ):
+    if not access["is_global"]:
+        raise HTTPException(status_code=403, detail="API Key não autorizada")
+    
     query = db.query(Hotel)
 
     if cnpj:
-        query = query.filter(Hotel.cnpj == cnpj)
+        query = query.filter(Hotel.cnpj.ilike(f"%{cnpj}%"))
     if name:
         query = query.filter(Hotel.name.ilike(f"%{name}%"))
 
@@ -162,7 +173,8 @@ async def register_hotel(
     db.add(new_hotel)
     db.commit()
     db.refresh(new_hotel)
-    return RedirectResponse(url="/", status_code=303)
+    add_flash_message(request, "Hotel cadastrado com sucesso!", "success")
+    return RedirectResponse(url="/auth/hotel", status_code=303)
 
 @router.post("/login", include_in_schema=False)
 async def login(
@@ -172,7 +184,7 @@ async def login(
     db: Session = Depends(get_db),
 ):    
     form = await request.form()
-    csrf_token = form.get("csrf_token") or request.headers.get("X-CSRF-Token")
+    csrf_token = form.get("csrf_token")
     if validate_csrf_token(csrf_token):
         hotel = db.query(Hotel).filter(Hotel.login == login).first()
         if not hotel:
@@ -193,6 +205,7 @@ async def login(
         add_flash_message(request, "O hotel está desativado no sistema", "warning")
         return RedirectResponse(url="/auth/hotel", status_code=303)
     
+    request.session.clear()
     request.session['hotel_id'] = hotel.id
     request.session['hotel_name'] = hotel.name
 
@@ -205,7 +218,7 @@ def logout(request: Request):
     request.session.pop("hotel_id", None)
     request.session.pop("hotel_name", None)
     request.session.pop("collaborator_id", None)
-    request.session.pop("is_admin", None)
+    request.session.clear()
     return RedirectResponse(url="/", status_code=303)
 
 @router.get("/collaborator", response_class=HTMLResponse, include_in_schema=False)
@@ -255,10 +268,12 @@ def login_collaborator(
     
     # força troca de senha se change_password for true
     if collaborator.change_password:
+        request.session.clear()
         request.session["force_change_password"] = True
-        request.session["collaborator_id"] = collaborator.id
         request.session["hotel_id"] = collaborator.hotel_id
-        request.session["is_admin"] = False
+        request.session["hotel_name"] = collaborator.hotel.name
+        request.session["collaborator_id"] = collaborator.id
+        request.session["collaborator_name"] = collaborator.firstname + " " + collaborator.lastname
         add_flash_message(request, "Redefinição de senha necessária", "info")
 
         return RedirectResponse(url="/auth/collaborator/change_password", status_code=303)
@@ -266,8 +281,9 @@ def login_collaborator(
     # login normal
     request.session.clear()
     request.session["hotel_id"] = collaborator.hotel_id
+    request.session["hotel_name"] = collaborator.hotel.name
     request.session["collaborator_id"] = collaborator.id
-    request.session["is_admin"] = False
+    request.session["collaborator_name"] = collaborator.firstname + ' ' + collaborator.lastname
 
     return RedirectResponse(url="/dashboard", status_code=303)
 

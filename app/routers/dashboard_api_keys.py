@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.core.config import get_db
 from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session
+from app.utils.session_guard import require_session, require_admin_session
 from app.models.api_keys import ApiKey
 from app.helpers.api_keys.create_key import generate_api_key, hash_api_key
 from app.helpers.register_audit import register_audit
@@ -25,7 +25,7 @@ from app.schemas.api_keys import CreateApiKeySchema
 router = APIRouter(
     prefix="/dashboard_api_keys",
     tags=["api_keys"],
-    dependencies=[Depends(require_session)]
+    dependencies=[Depends(require_admin_session)]
 )
 
 templates = Jinja2Templates(directory="app/templates")

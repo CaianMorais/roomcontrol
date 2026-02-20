@@ -50,6 +50,9 @@ app.include_router(dashboard_services.api_router)
 app.include_router(dashboard_collaborator.api_router)
 app.include_router(dashboard_audit.api_router)
 
+#INCLUSAO DOS ENDPOINTS UTILIZADOS PARA CONSULTA DO DASHBOARD
+app.include_router(dashboard_services.api_table_router)
+
 #INCLUSAO DAS ROTAS DE PAGINAS
 app.include_router(auth.router)
 app.include_router(guest.router)

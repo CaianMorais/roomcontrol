@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import get_db
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.core.dependencies import get_api_hotel
+from app.core.dependencies import get_api_hotel, get_api_access
 from app.helpers.guests.guest_delete import guest_delete
 from app.helpers.guests.guest_updater import guest_updater
 from app.helpers.guests.guest_creator import guest_creator
@@ -24,6 +24,7 @@ from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 from app.schemas.guest import GuestOut
 from app.models.guest import Guest
+from app.models.hotel import Hotel
 from app.helpers.guests.subquery_reservations import subquery_reservations
 from app.helpers.guests.filter_guests import filter_guests
 from app.helpers.guests.restore_guest import restore_guest
@@ -37,24 +38,35 @@ router = APIRouter(
 api_router = APIRouter(
     prefix="/api",
     tags=["guests"],
-    dependencies=[Depends(get_api_hotel)]
+    dependencies=[Depends(get_api_access)]
 )
 
 templates = Jinja2Templates(directory="app/templates")
 
 @api_router.get("/guests", response_model=List[GuestOut], summary="Filtrar hóspedes")
 def get_guests(
+    access: dict = Depends(get_api_access),
     guest_cpf: Optional[str] = Query(None, description="Filtrar pelo CPF do hóspede"),
     guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
-    hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel"),
+    hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
+    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Guest).options(joinedload(Guest.hotel)).filter(Guest.is_deleted == False)
+    query = db.query(Guest).options(joinedload(Guest.hotel)) \
+    .filter(Guest.is_deleted == False)
 
-    if hotel_id:
-        query = query.filter(Guest.hotel_id == hotel_id)
+    if not access["is_global"]:
+        query = query.filter(Guest.hotel_id == access["hotel_id"])
+
+    else:
+        if hotel_id:
+            query = query.filter(Guest.hotel_id == hotel_id)
+        if hotel_name:
+            query = query.join(Hotel, Guest.hotel_id == Hotel.id) \
+            .filter(Hotel.name.ilike(f"%{hotel_name}%"))
+
     if guest_cpf:
-        query = query.filter(Guest.cpf == guest_cpf)
+        query = query.filter(Guest.cpf.ilike(f"%{guest_cpf}%"))
     if guest_name:
         query = query.filter(Guest.name.ilike(f"%{guest_name}%"))
 

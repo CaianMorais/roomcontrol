@@ -21,9 +21,10 @@ from app.helpers.guests.guest_updater import guest_updater
 from app.helpers.guests.guest_creator import guest_creator
 from app.helpers.verify_guest import verify_guest_by_id
 from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session
-from app.schemas.guest import GuestOut
+from app.utils.session_guard import require_session, require_admin_session
+from app.schemas.collaborator import CollaboratorOut
 from app.models.collaborator import Collaborator
+from app.models.hotel import Hotel
 from app.helpers.guests.subquery_reservations import subquery_reservations
 from app.helpers.guests.filter_guests import filter_guests
 from app.helpers.guests.restore_guest import restore_guest
@@ -31,21 +32,53 @@ from app.helpers.api_keys.create_key import generate_api_key, hash_api_key
 from app.helpers.register_audit import register_audit
 from app.schemas.api_keys import CreateApiKeySchema
 from app.core.security import hash_password
-from app.core.dependencies import get_api_hotel
+from app.core.dependencies import get_api_hotel, get_api_access
 
 router = APIRouter(
     prefix="/dashboard_collaborators",
     tags=["collaborators"],
-    dependencies=[Depends(require_session)]
+    dependencies=[Depends(require_admin_session)]
 )
 
 api_router = APIRouter(
     prefix="/api",
     tags=["collaborators"],
-    dependencies=[Depends(get_api_hotel)]
+    dependencies=[Depends(get_api_access)]
 )
 
 templates = Jinja2Templates(directory="app/templates")
+
+@api_router.get("/collaborators", response_model=List[CollaboratorOut], summary="Filtrar colaboradores (Exclusivo para chave global)")
+def get_collaborators(
+    access: dict = Depends(get_api_access),
+    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
+    firstname: Optional[str] = Query(None, description="Filtrar pelo primeiro nome"),
+    lastname: Optional[str] = Query(None, description="Filtrar pelo último nome"),
+    cpf: Optional[str] = Query(None, description="Filtrar pelo CPF"),
+    db: Session = Depends(get_db)
+):
+    if not access["is_global"]:
+        raise HTTPException(status_code=403, detail="API Key não autorizada")
+    
+    query = db.query(Collaborator) \
+    .options(joinedload(Collaborator.hotel)) \
+    .filter(Collaborator.is_deleted == False)
+
+    if hotel_name:
+        query = query.join(Hotel, Collaborator.hotel_id == Hotel.id).filter(Hotel.name.ilike(f"%{hotel_name}%"))
+    if firstname:
+        query = query.filter(Collaborator.firstname.ilike(f"%{firstname}%"))
+    if lastname:
+        query = query.filter(Collaborator.lastname.ilike(f"%{lastname}%"))
+    if cpf:
+        query = query.filter(Collaborator.cpf.ilike(f"%{cpf}%"))
+
+    collaborators = query.all()
+
+    if not collaborators:
+        raise HTTPException(status_code=404, detail="Nenhum pedido encontrado")
+    
+    return collaborators
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def collaborators(

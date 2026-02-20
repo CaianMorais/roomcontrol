@@ -100,6 +100,7 @@
                                 <span class="hide-menu">Quartos</span>
                             </a>
                         </li>
+                        {% if not request.session.get('collaborator_id') %}
                         <li class="nav-small-cap">
                             <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
                             <span class="hide-menu">Administração</span>
@@ -128,7 +129,8 @@
                                 <span class="hide-menu">Auditoria</span>
                             </a>
                         </li>
-                        <li class="nav-small-cap">
+                        {% endif %}
+                        {# <li class="nav-small-cap">
                             <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
                             <span class="hide-menu">EXTRA</span>
                         </li>
@@ -139,7 +141,7 @@
                                 </span>
                                 <span class="hide-menu">Suporte</span>
                             </a>
-                        </li>
+                        </li> #}
                     </ul>
                 </nav>
                 <!-- End Sidebar navigation -->
@@ -168,7 +170,7 @@
                     </ul>
                     {% if current_hotel %}
                     <div>
-                        <p class="m-0 p-0">Painel <strong>{{ current_hotel.name }}</strong></p>
+                        <p class="m-0 p-0">Painel <strong>{{ current_hotel.name }}</strong>, logado como <strong>{{ current_collaborator.name if current_collaborator.name else 'Administrador' }}</strong></p>
                     </div>
                     {% endif %}
                     <div class="navbar-collapse justify-content-end px-0" id="navbarNav">

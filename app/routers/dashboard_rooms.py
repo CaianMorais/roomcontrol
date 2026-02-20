@@ -16,7 +16,7 @@ from app.models.hotel import Hotel
 from app.helpers.rooms.object_mapper import tipos_map, coluna_map, room_capacities_map
 from app.helpers.rooms.room_creator import room_creator
 from app.helpers.rooms.room_editor import room_editor
-from app.core.dependencies import get_api_hotel
+from app.core.dependencies import get_api_access
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -27,26 +27,27 @@ router = APIRouter(
 api_router = APIRouter(
     prefix="/api",
     tags=["rooms"],
-    dependencies=[Depends(get_api_hotel)]
+    dependencies=[Depends(get_api_access)]
 )
 templates = Jinja2Templates(directory="app/templates")
 
 @api_router.get("/rooms", response_model=List[RoomOut], summary="Filtrar quartos")
 def get_rooms(
-    request: Request,
-    hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel"),
-    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
+    access: dict = Depends(get_api_access),
+    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
+    hotel_id: Optional[int] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
     db: Session = Depends(get_db)
-):
-    if request.session.get("Hotel_id"):
-        if request.session.get("Hotel_id") != hotel_id:
-            return HTTPException(status_code=404, detail="Erro!")
+):      
     query = db.query(Rooms).options(joinedload(Rooms.hotel))
 
-    if hotel_id:
-        query = query.filter(Rooms.hotel_id == hotel_id)
-    if hotel_name:
-        query = query.join(Hotel, Rooms.hotel_id == Hotel.id).filter(Hotel.name.ilike(f'%{hotel_name}%'))
+    if not access["is_global"]:
+        query = query.filter(Rooms.hotel_id == access["hotel_id"])
+
+    if access["is_global"]:
+        if hotel_name:
+            query = query.filter(Hotel.name.ilike(f"%{hotel_name}%"))
+        if hotel_id:
+            query = query.filter(Hotel.id == hotel_id)
 
     rooms = query.all()
 

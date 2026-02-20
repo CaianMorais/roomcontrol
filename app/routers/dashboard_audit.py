@@ -22,7 +22,7 @@ from app.helpers.guests.guest_updater import guest_updater
 from app.helpers.guests.guest_creator import guest_creator
 from app.helpers.verify_guest import verify_guest_by_id
 from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session
+from app.utils.session_guard import require_session, require_admin_session
 from app.schemas.guest import GuestOut
 from app.models.audit_log import AuditLog
 from app.models.collaborator import Collaborator
@@ -33,7 +33,7 @@ from app.helpers.guests.restore_guest import restore_guest
 router = APIRouter(
     prefix="/dashboard_audit",
     tags=["audit"],
-    dependencies=[Depends(require_session)]
+    dependencies=[Depends(require_admin_session)]
 )
 
 api_router = APIRouter(

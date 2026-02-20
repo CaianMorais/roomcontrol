@@ -21,6 +21,10 @@ def render(templates: Jinja2Templates, request: Request, template_name: str,
         "current_hotel": {
             "id": request.session.get("hotel_id"),
             "name": request.session.get("hotel_name")
+        },
+        "current_collaborator": {
+            "id": request.session.get("collaborator_id"),
+            "name": request.session.get("collaborator_name")
         }
     }
 
