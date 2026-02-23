@@ -135,7 +135,7 @@ def new_collaborator(
     return render(
         templates,
         request,
-        "dashboard/collaborators/new_collaborator.html",
+        "dashboard/collaborators/form_collaborator.html",
         {
             "csrf_token": csrf_token
         }
@@ -158,7 +158,7 @@ def create_collaborator(
     hotel_id = request.session.get("hotel_id")
 
     if username == "" or not username:
-        username = f"{firstname.lower().strip()}.{lastname.lower().strip()}"
+        username = f"{firstname.lower().strip().replace(" ","")}.{lastname.lower().strip().replace(" ","")}"
 
     collaborator = db.query(Collaborator) \
     .filter(Collaborator.cpf == cpf) \
@@ -215,7 +215,7 @@ def edit_collaborator(
     return render(
         templates,
         request,
-        "dashboard/collaborators/new_collaborator.html",
+        "dashboard/collaborators/form_collaborator.html",
         {
             "collaborator": collaborator,
             "csrf_token": csrf_token

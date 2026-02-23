@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session
 
 # import do current-app
 from app.core.config import get_db
-from app.helpers.api_keys.create_key import generate_api_key, hash_api_key
+from app.helpers.api_keys.create_key import generate_api_key, hash_api_key, create_key
+from app.helpers.api_keys.update_key import update_key
 from app.models.api_keys import ApiKey
 from app.schemas.api_keys import CreateApiKeySchema
 from app.utils.flash import add_flash_message, render
@@ -71,36 +72,14 @@ def create_api_key(
     if not hotel_id:
         raise HTTPException(status_code=401, detail="Não autenticado")
 
+    # gera a chave e salva numa variavel
     raw_key = generate_api_key()
+    # hashifica a chave para salvar no banco
     key_hash = hash_api_key(raw_key)
+    # salva no banco
+    create_key(db, hotel_id, payload.name, key_hash)
 
-    api_key = ApiKey(
-        hotel_id=hotel_id,
-        name=payload.name,
-        key_hash=key_hash
-    )
-
-    try:
-        db.add(api_key)
-        db.commit()
-        db.refresh(api_key)
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=409,
-            detail="Erro ao gerar API Key. Tente novamente."
-        )
-
-    # Auditoria (opcional, mas altamente recomendada)
-    # register_audit(
-    #     db=db,
-    #     hotel_id=hotel_id,
-    #     collaborator_id=request.session.get("collaborator_id"),
-    #     action="create",
-    #     entity="api_key",
-    #     entity_id=api_key.id
-    # )
-
+    # retorna a resposta em json com a variavel da chave.
     return JSONResponse(
         status_code=status.HTTP_201_CREATED,
         content={
@@ -130,18 +109,6 @@ def update_api_key(
         add_flash_message(request, "A chave não foi encontrada", "danger")
         return RedirectResponse(url="/dashboard_api_keys", status_code=303)
     
-    try:
-        if key.is_active:
-            key.is_active = False
-        else:
-            key.is_active = True
-
-        db.commit()
-        db.refresh(key)
-        add_flash_message(request, "Chave atualizada com sucesso", "success")
-    except IntegrityError:
-        db.rollback()
-        add_flash_message(request, "Erro ao atualizar o status da chave", "danger")
-        return RedirectResponse(url="/dashboard_api_keys", status_code=303)
+    update_key(db, key, request)
     
     return RedirectResponse("/dashboard_api_keys", status_code=303)

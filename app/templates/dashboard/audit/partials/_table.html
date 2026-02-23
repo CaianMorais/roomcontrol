@@ -1,0 +1,57 @@
+<table class="table text-nowrap mb-0 align-middle" id="audit">
+    <thead class="text-dark fs-4">
+        <tr>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Registro</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Usuário</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Ação</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Entidade</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Identificador</h6>
+            </th>
+            <th class="border-bottom-0">
+                <h6 class="fw-semibold mb-0">Data da ação</h6>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr class="align-items-center">
+            <td class="border-bottom-0">
+                <p class="fw-semibold mb-0">{{ log.AuditLog.id }}</p>
+            </td>
+            <td class="border-bottom-0">
+                <p class="fw-semibold mb-0">{{ log.Collaborator.firstname + " " + log.Collaborator.lastname }}</p>
+            </td>
+            <td class="border-bottom-0">
+                <p class="fw-semibold mb-0">
+                    {{ ACTION_LABEL.get(log.AuditLog.action|string, 'Desconhecido') }}
+                </p>
+                {# <span class="fw-normal">Web Designer</span> #}
+            </td>
+            <td class="border-bottom-0">
+                <p class="fw-semibold mb-0">
+                    {{ ENTITY_LABEL.get(log.AuditLog.entity|string, 'Desconhecido') }}
+                </p>
+            </td>
+            <td class="border-bottom-0">
+                <p class="fw-semibold mb-0">
+                    #{{ log.AuditLog.entity_id }}
+                </p>
+            </td>
+            <td class="border-bottom-0">
+                <p class="fw-semibold mb-0">
+                    {{ log.AuditLog.created_at.strftime("%d/%m/%Y %H:%M:%S") }}
+                </p>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
