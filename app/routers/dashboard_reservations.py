@@ -20,9 +20,9 @@ from app.schemas.reservations import ReservationOut
 from app.models.reservations import Reservations
 from app.models.guest import Guest
 from app.models.hotel import Hotel
-from app.helpers.paginate import paginate
 from app.helpers.verify_guest import verify_guest_by_id, verify_guest_by_cpf
 from app.helpers.verify_room import verify_room
+from app.helpers.register_audit import register_audit
 from app.helpers.reservations.booked_checkin import booked_to_checkin
 from app.helpers.reservations.checkin_to_checkout import checkin_to_checkout
 from app.helpers.reservations.cancel_reservation import cancel_reservation
@@ -34,7 +34,7 @@ from app.helpers.reservations.order_reservations import order_reservations
 from app.helpers.reservations.conflict_guest import conflict_guest
 from app.helpers.reservations.guest_availability import guest_availability
 from app.helpers.reservations.room_availability import room_availability
-from app.core.dependencies import get_api_hotel, get_api_access
+from app.core.dependencies import get_api_access
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -116,6 +116,7 @@ def reservations(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=200),
 ):
+    # captura o hotel e inicia a query
     hotel_id = request.session.get("hotel_id")
     has_filter = False
 
@@ -124,16 +125,19 @@ def reservations(
         .join(Guest, Guest.id == Reservations.guest_id) \
         .filter(Rooms.hotel_id == hotel_id) \
 
+    # se tiver algum dos filtros, joga pra helper que faz os filtros
     if (search or room or status or (interval_in and check_in) or (interval_out and check_out)):
         has_filter = True
         query = filter_reservations(request, has_filter, query, search, room, status, interval_in, check_in, interval_out, check_out)
 
+    # ordena a query
     query = order_reservations(query)
 
+    # joga no paginate
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)
 
-             
+    # renderiza
     return render(
         templates,
         request,
@@ -158,16 +162,19 @@ def new_reservation(
     db: Session = Depends(get_db),
     guest_id: Optional[int] = Query(None, description="ID do hóspede para pré-seleção")
 ):
+    # captura o hotel
     hotel_id = request.session.get("hotel_id")
     if not hotel_id:
         add_flash_message(request, "Hotel não selecionado.", "danger")
         return RedirectResponse(url="/dashboard", status_code=303)
     
+    # se tiver guest, já inicia o formulário com ele instanciadp
     if guest_id:
         guest = verify_guest_by_id(request, guest_id, hotel_id, db)
     else:
         guest = []
 
+    # inicia uma lista de quartos vazia para buscar disponibilidade depois
     rooms = []
 
     csrf_token = generate_csrf_token()
@@ -194,7 +201,7 @@ def check_availability(
     hotel_id = request.session.get("hotel_id")
     guest_conflict = None
 
-    # se tiver hospede específicado
+    # se tiver hospede específicado verifica se tem conflito de datas
     if guest_id:
         guest_conflict = conflict_guest(guest_id, check_in, check_out, db)
         available_guests = []
@@ -238,16 +245,23 @@ def create_reservation(
     check_in_now: bool = Form(False),
     csrf_token: str = Form(...)
 ):
+    # valida token
     if not validate_csrf_token(csrf_token):
         add_flash_message(request, "Token de segurança inválido", "danger")
         return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
 
+    # captura hotel
     hotel_id = request.session.get("hotel_id")
     
+    # localiza hospede e quarto
     guest = verify_guest_by_cpf(request, cpf.replace(".", "").replace("-", ""), hotel_id, db)
     room = verify_room(request, room_id, hotel_id, db)
 
+    # verifica disponibilidade e cria a reserva
     reservation = verify_and_create_reservation(request, check_in, check_out, check_in_now, room, guest, db)
+
+    # registra log
+    register_audit(db, hotel_id, 'create', 'reservation', reservation.id, request.session.get("collaborator_id"))
 
     add_flash_message(request, "Reserva criada com sucesso!", "success")
     return RedirectResponse(url=f"/dashboard_reservations/manage/{reservation.id}", status_code=303)
@@ -258,18 +272,24 @@ def update_reservation(
     reservation_id: int,
     db: Session = Depends(get_db),
 ):
+    # captura o hotel
     hotel_id = request.session.get('hotel_id')
+
+    # localiza a reserva
     reservation = db.query(Reservations).filter(Reservations.id == reservation_id).first()
     if not reservation:
         raise HTTPException(status_code=404, detail="Reserva não encontrada")
     
+    # localiza o quarto e verifica se ele pertence ao hotel
     room = db.query(Rooms).filter(Rooms.id == reservation.room_id).first()
     verify_room(request, room.id, hotel_id, db)
     
+    # localiza o hospede vinculado a reserva
     guest = db.query(Guest).filter(Guest.id == reservation.guest_id) \
     .filter(Guest.hotel_id == hotel_id) \
     .first()
     
+    # atualiza a reserva rapidamente pela tabela
     success, msg = fast_update_reservation(reservation, room, db)
 
     if not success:
@@ -279,6 +299,8 @@ def update_reservation(
                 "message": msg,
             },
         )
+    # se tiver sucesso, registra log
+    register_audit(db, hotel_id, 'update', 'reservation', reservation.id, request.session.get("collaborator_id"))
     # Só leva reservation.status pro front se for sucesso (é como o js sabe que deu certo)
     return {
         "id": reservation.id,
@@ -296,8 +318,10 @@ def manage_reservation(
     cancel: Optional[bool] = Query(False),
     db: Session = Depends(get_db)
 ):
+    # captura o hotel
     hotel_id = request.session.get('hotel_id')
 
+    # localiza a reserva
     reservation = db.query(Reservations, Rooms.room_number, Guest, Rooms) \
         .join(Rooms, Rooms.id == Reservations.room_id) \
         .join(Guest, Guest.id == Reservations.guest_id) \
@@ -309,9 +333,12 @@ def manage_reservation(
         add_flash_message(request, "Reserva não encontrada", "warning")
         return RedirectResponse(url='/dashboard_reservations', status_code=303)
     
+    # utiliza o helper que atualiza a situação da reserva
+    # baseado no parametro true trazido na URL
     booked_to_checkin(request, check_in, reservation, db)
     checkin_to_checkout(request, check_out, reservation, db)
     cancel_reservation(request, cancel, reservation, db)
+    # recalcula o preço das diárias 
     price = calc_price(reservation)
 
     return render(
@@ -331,21 +358,27 @@ def update_request_auth(
     reservation_id: int,
     db: Session = Depends(get_db)
 ):
-    
+    # captura o hotel e a reserva
+    hotel_id = request.session.get("hotel_id")
     reservation = db.query(Reservations).filter(Reservations.id == reservation_id).first()
 
+    # se a reserva estiver habilitada a solicitar serviços
+    # tira a permissao e registra log
     if reservation.allow_request_services:
         reservation.allow_request_services = False
         db.commit()
         db.refresh(reservation)
+        register_audit(db, hotel_id, 'update', 'reservation', reservation.id, request.session.get("collaborator_id"))
         return JSONResponse({
             "ok": True,
             "message": "O hóspede não está mais autorizado a solicitar serviços para essa reserva"
         })
+    # senao habilita e salva log
     else:
         reservation.allow_request_services = True
         db.commit()
         db.refresh(reservation)
+        register_audit(db, hotel_id, 'update', 'reservation', reservation.id, request.session.get("collaborator_id"))
         return JSONResponse({
             "ok": True,
             "message": "O hóspede está autorizado a solicitar serviços para essa reserva"

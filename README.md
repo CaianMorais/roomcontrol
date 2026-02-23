@@ -38,7 +38,7 @@ Backend
 - Framework: __FastAPI__
 - Banco de dados: __MySQL__ (SQLAlchemy ORM)
 - Migrações: __Alembic__
-- Autenticação e sessão: __cookies + CSRF token__
+- Autenticação e sessão: __Starlette + cookies + CSRF token__
 - Estrutura de pastas:
 
 ```bash
@@ -110,12 +110,17 @@ pip install -r requirements.txt
 
 4- Crie o .env e configure as variáveis de ambiente:
 ``` bash
-SECRET_KEY=uma_chave_segura
-
 DB_HOST=localhost
 DB_NAME=roomcontrol
 DB_USER=root
 DB_PASSWORD=password
+
+SECRET_KEY=uma_chave_segura
+
+GLOBAL_API_KEY="SUA_CHAVE_GLOBAL_DA_API_AQUI"
+
+DOCS_USERNAME="admin"
+DOCS_PASSWORD="admin"
 ```
 
 5- Crie o banco e rode as migrations:
@@ -143,7 +148,7 @@ uvicorn app.main:app --reload
 
 - CSRF token incluído em todos os forms para evitar ataques de cross-site.
 - Sessões baseadas em cookie com SessionMiddleware do Starlette.
-- Rotas administrativas protegidas pelo decorator require_session.
+- Rotas administrativas protegidas pelo decorator require_admin_session.
 ### 👩‍💻 Resumo das tecnologias utilizadas
 
 - __Backend__: Python, FastAPI, Pydantic, SQLAlchemy, Alembic, MySQL

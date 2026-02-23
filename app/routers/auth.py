@@ -1,19 +1,23 @@
+# import de libs built-in
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
+
+# import de libs third-party
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
 from passlib.hash import bcrypt
+from sqlalchemy.orm import Session
 
+# import do current-app
 from app.core.config import get_db
 from app.core.dependencies import get_api_access
-from app.models.hotel import Hotel
+from app.core.security import generate_csrf_token, hash_password, validate_csrf_token, verify_password
 from app.models.collaborator import Collaborator
-from app.schemas.hotel import HotelCreate, HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
-from app.core.security import generate_csrf_token, validate_csrf_token, hash_password, verify_password
-from app.utils.brdocs import is_valid_cnpj, format_cnpj, only_digits
+from app.models.hotel import Hotel
+from app.schemas.hotel import HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
+from app.services.cnpj_ws import CNPJWsError, fetch_cnpj_situacao
+from app.utils.brdocs import is_valid_cnpj, only_digits
 from app.utils.flash import add_flash_message, render
-from app.services.cnpj_ws import fetch_cnpj_situacao, CNPJWsError
 
 router = APIRouter(prefix="/auth", tags=["hotels"])
 

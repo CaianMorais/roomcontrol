@@ -1,5 +1,6 @@
 import datetime
 from app.utils.flash import add_flash_message
+from app.helpers.register_audit import register_audit
 from fastapi import HTTPException
 
 def checkin_to_checkout(request, check_out, reservation, db):
@@ -10,6 +11,7 @@ def checkin_to_checkout(request, check_out, reservation, db):
         db.commit()
         db.refresh(reservation.Reservations)
         db.refresh(reservation.Rooms)
+        register_audit(db, request.session.get("hotel_id"), 'update', 'reservation', reservation.Reservations.id, request.session.get("collaborator_id"))
         add_flash_message(request, "Reserva atualizada com sucesso!", 'success')
     elif check_out and (reservation.Reservations.status != 'checked_in' or reservation.Rooms.status != 'occupied'):
         raise HTTPException(status_code=303, headers={"Location": f'/dashboard_reservations/manage/{reservation.Reservations.id}'})

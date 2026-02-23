@@ -1,5 +1,6 @@
 from app.models.services import Services
 from fastapi.responses import JSONResponse
+from app.helpers.register_audit import register_audit
 
 def update_req_status(request, db, payload, new_status):
     if new_status not in ("pending", "in_progress", "completed"):
@@ -54,6 +55,7 @@ def update_req_status(request, db, payload, new_status):
     service.status = new_status
     db.commit()
     db.refresh(service)
+    register_audit(db, request.session.get("hotel_id"), 'update', 'service', service_id, request.session.get("collaborator_id"))
     return JSONResponse(
         {
             "ok": True,

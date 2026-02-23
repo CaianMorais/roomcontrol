@@ -1,34 +1,22 @@
-# import de libs padrao
-import datetime
-from typing import List, Optional
+# import de libs built-in
+from typing import Optional
 
-#import de libs third-party
-
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
+# import de libs third-party
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
-from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
+from sqlalchemy.orm import Session
 
-# import de funções da aplicação local
-
+# import do current-app
 from app.core.config import get_db
-from app.core.security import generate_csrf_token, validate_csrf_token
 from app.core.dependencies import get_api_hotel
-from app.helpers.guests.guest_delete import guest_delete
-from app.helpers.guests.guest_updater import guest_updater
-from app.helpers.guests.guest_creator import guest_creator
-from app.helpers.verify_guest import verify_guest_by_id
-from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session, require_admin_session
-from app.schemas.guest import GuestOut
 from app.models.audit_log import AuditLog
 from app.models.collaborator import Collaborator
-from app.helpers.guests.subquery_reservations import subquery_reservations
-from app.helpers.guests.filter_guests import filter_guests
-from app.helpers.guests.restore_guest import restore_guest
+from app.utils.flash import add_flash_message, render
+from app.utils.session_guard import require_admin_session
 
 router = APIRouter(
     prefix="/dashboard_audit",

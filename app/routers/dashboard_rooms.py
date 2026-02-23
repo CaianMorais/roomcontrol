@@ -1,22 +1,27 @@
+# import de libs built-in
 from decimal import Decimal
-from app.core.config import get_db
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
+
+# import de libs third-party
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 
+# import do current-app
+from app.core.config import get_db
+from app.core.dependencies import get_api_access
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session
-from app.schemas.rooms import RoomOut
-from app.models.rooms import Rooms
-from app.models.reservations import Reservations
-from app.models.hotel import Hotel
-from app.helpers.rooms.object_mapper import tipos_map, coluna_map, room_capacities_map
+from app.helpers.register_audit import register_audit
+from app.helpers.rooms.object_mapper import coluna_map, room_capacities_map, tipos_map
 from app.helpers.rooms.room_creator import room_creator
 from app.helpers.rooms.room_editor import room_editor
-from app.core.dependencies import get_api_access
+from app.models.hotel import Hotel
+from app.models.reservations import Reservations
+from app.models.rooms import Rooms
+from app.schemas.rooms import RoomOut
+from app.utils.flash import add_flash_message, render
+from app.utils.session_guard import require_session
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -82,7 +87,7 @@ def rooms(
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
     # inicia a query
-    query = db.query(Rooms).filter_by(hotel_id=hotel_id)
+    query = db.query(Rooms).filter_by(hotel_id=hotel_id).filter(Rooms.is_deleted == False)
 
     ROOM_TYPE_MAP = tipos_map()
     ORDER_MAP = coluna_map()
@@ -216,7 +221,8 @@ def create_room(
     price = Decimal(price)
     
     # instancia o novo quarto
-    room_creator(request, hotel_id, room_number, room_type, capacity_adults, capacity_children,capacity_total, price, db)
+    new_room = room_creator(request, hotel_id, room_number, room_type, capacity_adults, capacity_children,capacity_total, price, db)
+    register_audit(db, hotel_id, 'create', 'room', new_room.id, request.session.get("collaborator_id"))
     return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
 @router.get("/edit/{room_id}", response_class=HTMLResponse, include_in_schema=False)
@@ -226,7 +232,10 @@ def edit_room(
     db: Session = Depends(get_db),
     next: Optional[str] = Query(None),
 ):
-    room = db.query(Rooms).filter_by(id=room_id, hotel_id=request.session.get("hotel_id")).first()
+    room = db.query(Rooms) \
+        .filter_by(id=room_id, hotel_id=request.session.get("hotel_id")) \
+        .filter(Rooms.is_deleted == False) \
+        .first()
 
     if room.status == 'occupied':
         add_flash_message(request, "Apenas visualização, não é possível alterar quartos ocupados.", 'secondary')
@@ -280,7 +289,11 @@ def update_room(
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
     # verifica se o quarto existe
-    room = db.query(Rooms).filter_by(id=room_id, hotel_id=hotel_id).first()
+    room = db.query(Rooms) \
+        .filter_by(id=room_id, hotel_id=hotel_id) \
+        .filter(Rooms.is_deleted == False) \
+        .first()
+    
     if not room:
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
@@ -323,8 +336,8 @@ def update_room(
     price = Decimal(price)
 
     # atualiza os dados do quarto
-    room_editor(request, room, room_number, room_type, capacity_adults, capacity_children, capacity_total, price, is_active, comments, db)
-
+    room = room_editor(request, room, room_number, room_type, capacity_adults, capacity_children, capacity_total, price, is_active, comments, db)
+    register_audit(db, hotel_id, 'update', 'room', room.id, request.session.get("collaborator_id"))
     if next:
         return RedirectResponse(url=next, status_code=303)
     return RedirectResponse(url="/dashboard_rooms", status_code=303)
@@ -332,7 +345,10 @@ def update_room(
 @router.get("/delete/{room_id}", include_in_schema=False)
 def delete_room(room_id: int, request: Request, db: Session = Depends(get_db
 )):
-    room = db.query(Rooms).filter_by(id=room_id, hotel_id=request.session.get("hotel_id")).first()
+    room = db.query(Rooms) \
+        .filter_by(id=room_id, hotel_id=request.session.get("hotel_id")) \
+        .filter(Rooms.is_deleted == False) \
+        .first()
 
     if not room:
         add_flash_message(request, "Quarto não encontrado.", "warning")
@@ -344,7 +360,8 @@ def delete_room(room_id: int, request: Request, db: Session = Depends(get_db
         add_flash_message(request, "O quarto não pode ser modificado enquanto ele estiver ocupado", 'warning')
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
-    db.delete(room)
+    room.is_deleted = True
     db.commit()
+    register_audit(db, room.hotel_id, 'delete', 'room', room.id, request.session.get("collaborator_id"))
     add_flash_message(request, f"Quarto {room.room_number} excluído com sucesso.", "success")
     return RedirectResponse(url="/dashboard_rooms", status_code=303)

@@ -17,7 +17,7 @@ from app.models.guest import Guest
 from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services, dashboard_api_keys, dashboard_collaborator, dashboard_audit
 
 app = FastAPI(
-    title="Room Control - API de Gerenciamento",
+    title="RoomControl - Management API REST",
     docs_url=None,  # Desabilita a rota padrão /docs
     redoc_url=None,  # Desabilita a rota padrão /redoc
 )
@@ -41,13 +41,13 @@ add_pagination(app)
 
 #INCLUSAO DAS ROTAS DE API
 app.include_router(auth.api_router)
+app.include_router(dashboard_collaborator.api_router)
 app.include_router(guest.api_router)
 app.include_router(dashboard.api_router)
 app.include_router(dashboard_rooms.api_router)
 app.include_router(dashboard_guests.api_router)
 app.include_router(dashboard_reservations.api_router)
 app.include_router(dashboard_services.api_router)
-app.include_router(dashboard_collaborator.api_router)
 app.include_router(dashboard_audit.api_router)
 
 #INCLUSAO DOS ENDPOINTS UTILIZADOS PARA CONSULTA DO DASHBOARD

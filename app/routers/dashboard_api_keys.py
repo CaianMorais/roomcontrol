@@ -1,26 +1,21 @@
-# import de libs padrao
-import datetime
-from typing import List, Optional
+# import de libs built-in
 
-#import de libs third-party
-
-from fastapi import APIRouter, HTTPException, Depends, Query, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+# import de libs third-party
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-# import de funções da aplicação local
-
+# import do current-app
 from app.core.config import get_db
-from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session, require_admin_session
-from app.models.api_keys import ApiKey
 from app.helpers.api_keys.create_key import generate_api_key, hash_api_key
-from app.helpers.register_audit import register_audit
+from app.models.api_keys import ApiKey
 from app.schemas.api_keys import CreateApiKeySchema
+from app.utils.flash import add_flash_message, render
+from app.utils.session_guard import require_admin_session
 
 router = APIRouter(
     prefix="/dashboard_api_keys",

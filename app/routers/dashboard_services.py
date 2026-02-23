@@ -1,21 +1,26 @@
-from fastapi import APIRouter, Body, Depends, Request, Query, HTTPException
+# import de libs built-in
+from typing import List, Literal, Optional
+
+# import de libs third-party
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from app.utils.session_guard import require_session
-from app.core.config import get_db
-from app.schemas.services import ServicesOut
-from app.schemas.table_services import TableServicesOut
-from typing import List, Optional, Literal
 from sqlalchemy.orm import Session, joinedload
-from app.models.services import Services
-from app.models.reservations import Reservations
-from app.models.rooms import Rooms
-from app.models.guest import Guest
-from app.models.hotel import Hotel
-from app.utils.flash import render, add_flash_message
+
+# import do current-app
+from app.core.config import get_db
+from app.core.dependencies import get_api_access
 from app.helpers.services.query_requests import query_requests
 from app.helpers.services.update_request_status import update_req_status
-from app.core.dependencies import get_api_access
+from app.models.guest import Guest
+from app.models.hotel import Hotel
+from app.models.reservations import Reservations
+from app.models.rooms import Rooms
+from app.models.services import Services
+from app.schemas.services import ServicesOut
+from app.schemas.table_services import TableServicesOut
+from app.utils.flash import add_flash_message, render
+from app.utils.session_guard import require_session
 
 router = APIRouter(
     prefix='/dashboard_services',
@@ -98,8 +103,6 @@ def get_table_services_requests(
 
     if not hotel_id:
         raise HTTPException(status_code=401)
-    
-    print('teste')
 
     query = (
         db.query(Services)
@@ -124,8 +127,9 @@ def get_table_services_requests(
 @router.get('', response_class=HTMLResponse, include_in_schema=False)
 def services_requests(
     request: Request,
-    db: Session = Depends(get_db)
 ):
+    # essa rota não consulta no banco
+    # o JS consulta diretamente na API
     if not request.session.get("hotel_id"):
         add_flash_message(request, 'Não foi identificado o ID do hotel na sua sessão, tente novamente', 'error')
         return RedirectResponse(url="/logout", status_code=303)

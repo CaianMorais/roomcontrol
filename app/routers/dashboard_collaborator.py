@@ -1,11 +1,10 @@
 # import de libs padrao
-import datetime
 from typing import List, Optional
 
 #import de libs third-party
 
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
@@ -16,23 +15,13 @@ from sqlalchemy import or_
 
 from app.core.config import get_db
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.helpers.guests.guest_delete import guest_delete
-from app.helpers.guests.guest_updater import guest_updater
-from app.helpers.guests.guest_creator import guest_creator
-from app.helpers.verify_guest import verify_guest_by_id
 from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session, require_admin_session
+from app.utils.session_guard import require_admin_session
 from app.schemas.collaborator import CollaboratorOut
 from app.models.collaborator import Collaborator
 from app.models.hotel import Hotel
-from app.helpers.guests.subquery_reservations import subquery_reservations
-from app.helpers.guests.filter_guests import filter_guests
-from app.helpers.guests.restore_guest import restore_guest
-from app.helpers.api_keys.create_key import generate_api_key, hash_api_key
-from app.helpers.register_audit import register_audit
-from app.schemas.api_keys import CreateApiKeySchema
 from app.core.security import hash_password
-from app.core.dependencies import get_api_hotel, get_api_access
+from app.core.dependencies import get_api_access
 
 router = APIRouter(
     prefix="/dashboard_collaborators",

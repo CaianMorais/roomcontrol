@@ -1,15 +1,19 @@
-from typing import List, Optional
-from fastapi import Query, Request, Form, Depends, APIRouter
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from sqlalchemy.orm import Session
-from fastapi.templating import Jinja2Templates
+# import de libs built-in
+from typing import Optional
 
-from app.models.services import Services
+# import de libs third-party
+from fastapi import APIRouter, Depends, Form, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+
+# import do current-app
 from app.core.config import get_db
-from app.core.security import validate_csrf_token, generate_csrf_token
-from app.utils.flash import render, add_flash_message
+from app.core.security import generate_csrf_token, validate_csrf_token
 from app.helpers.guest_access.access import find_guest, find_reservation, find_services
 from app.helpers.guest_access.request_service import create_request_service
+from app.models.services import Services
+from app.utils.flash import add_flash_message, render
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter(prefix="/guests", tags=["guests"])
