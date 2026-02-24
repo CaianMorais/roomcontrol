@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 # import do current-app
 from app.core.config import get_db
 from app.core.dependencies import get_api_hotel
+from app.helpers.audit.filter_logs import filter_logs
 from app.models.audit_log import AuditLog
 from app.models.collaborator import Collaborator
 from app.utils.flash import add_flash_message, render
@@ -46,6 +47,11 @@ def audit(
     after: Optional[str] = Query(None),
 ):
     hotel_id = request.session.get("hotel_id")
+
+    if not hotel_id:
+        add_flash_message(request, "Hotel não localizado", 'danger')
+        return RedirectResponse(url='/dashboard', status_code=303)
+
     has_filter = False
 
     query = db.query(AuditLog, Collaborator) \
@@ -53,38 +59,9 @@ def audit(
     .join(Collaborator, Collaborator.id == AuditLog.collaborator_id) \
     .order_by(AuditLog.id.desc())
 
-    if name:
+    if name or action or entity or entity_id or before or after:
+        query = filter_logs(request, query, name, action, entity, entity_id, before, after)
         has_filter = True
-        query = query.filter(
-            or_(Collaborator.firstname.ilike(f"%{name}%"),
-                Collaborator.lastname.ilike(f"%{name}%")
-                )
-            )
-        
-    if action:
-        has_filter = True
-        query = query.filter(AuditLog.action == action)
-
-    if entity:
-        has_filter = True
-        query = query.filter(AuditLog.entity == entity)
-
-    if entity_id:
-        try:
-            has_filter = True
-            entity_id = int(entity_id)
-            query = query.filter(AuditLog.entity_id == entity_id)
-        except ValueError:
-            add_flash_message(request, "Erro ao pesquisar identificador", "warning")
-            return RedirectResponse(url='/dashboard_audit', status_code=303)
-        
-    if before:
-        has_filter = True
-        query = query.filter(AuditLog.created_at <= before)
-    
-    if after:
-        has_filter = True
-        query = query.filter(AuditLog.created_at >= after)
 
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)

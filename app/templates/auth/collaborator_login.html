@@ -53,6 +53,15 @@
                                             <label for="password" class="form-label">Senha</label>
                                             <input type="password" class="form-control" name="password" id="password" required placeholder="Digite sua senha">
                                         </div>
+                                        <div class="mb-4">
+                                            <label for="hotel" class="form-label">Hotel</label>
+                                            <select class="form-select" name="hotel" id="hotel" required>
+                                                <option value="">Selecione o hotel que deseja acessar</option>
+                                                {% for hotel in hotels %}
+                                                <option value="{{ hotel.id }}">{{ hotel.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
                                         <button type="submit" class="btn btn-primary w-100 py-8 fs-4 mb-2 rounded-2">Entrar</button>
                                     </form>
                                 </div>

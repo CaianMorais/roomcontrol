@@ -227,11 +227,14 @@ def logout(request: Request):
 
 @router.get("/collaborator", response_class=HTMLResponse, include_in_schema=False)
 def auth_collaborator(
-    request: Request
+    request: Request,
+    db: Session = Depends(get_db)
 ):
     # verifica se nao tem sessão ativa
     if request.session.get("collaborator_id") or request.session.get("hotel_id"):
         return RedirectResponse(url="/dashboard", status_code=303)
+    
+    hotels = db.query(Hotel).filter(Hotel.is_active).all()
     
     csrf_token = generate_csrf_token()
 
@@ -241,6 +244,7 @@ def auth_collaborator(
         "/auth/collaborator_login.html",
         {
             "request": request,
+            "hotels": hotels,
             "csrf_token": csrf_token
         }
     )
@@ -250,16 +254,16 @@ def login_collaborator(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
+    hotel: int = Form(...),
     db: Session = Depends(get_db)
 ):
     # consulta se existe um colaborador com esse username, ativo e não deletado
-    collaborator = (
-        db.query(Collaborator)
-        .filter(Collaborator.username == username)
-        .filter(Collaborator.is_active == True)
-        .filter(Collaborator.is_deleted == False)
+    collaborator = db.query(Collaborator) \
+        .filter(Collaborator.is_active == True) \
+        .filter(Collaborator.is_deleted == False) \
+        .filter(Collaborator.username == username) \
+        .filter(Collaborator.hotel_id == hotel) \
         .first()
-    )
 
     if not collaborator:
         add_flash_message(request, "Usuário não encontrado", "danger")

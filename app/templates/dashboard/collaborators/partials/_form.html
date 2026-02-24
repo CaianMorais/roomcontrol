@@ -1,17 +1,13 @@
-<form
-    action="{{ url_for('create_collaborator') if not collaborator else url_for('update_collaborator', collaborator_id=collaborator.id) }}"
-    method="POST" enctype="multipart/form-data">
+<form action="{{ url_for('create_collaborator') if not collaborator else url_for('update_collaborator', collaborator_id=collaborator.id) }}" method="POST" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div class="row">
         <div class="mb-3 col-6">
             <label for="firstname" class="form-label">Primeiro nome</label>
-            <input type="text" class="form-control" id="firstname" name="firstname" required
-            value="{{ collaborator.firstname if collaborator else '' }}">
+            <input type="text" class="form-control" id="firstname" name="firstname" required value="{{ collaborator.firstname if collaborator else '' }}">
         </div>
         <div class="mb-3 col-6">
             <label for="lastname" class="form-label">Sobrenome</label>
-            <input type="text" class="form-control" id="lastname" name="lastname" required
-            value="{{ collaborator.lastname if collaborator else '' }}">
+            <input type="text" class="form-control" id="lastname" name="lastname" required value="{{ collaborator.lastname if collaborator else '' }}">
         </div>
     </div>
     <div class="row">

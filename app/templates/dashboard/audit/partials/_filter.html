@@ -10,7 +10,7 @@
         </p>
         <div class="collapse" id="filtros_quartos">
             <div class="card card-body">
-                <form action="{{ url_for('audit') }}" method="GET">
+                <form action="{{ url_for('audit') }}" method="GET" id="audit_filter">
                     <div class="row">
                         <div class="mb-3 col-6">
                             <label for="name" class="form-label">Pesquisar usuário</label>
@@ -43,15 +43,15 @@
                             value="{{ entity_id if entity_id else '' }}">
                         </div>
                         <div class="col-3">
-                            <label for="before" class="form-label">Antes de</label>
-                            <input type="datetime-local" class="form-control" name="before" id="before"
-                            value="{{ before if before else ''}}">
-                        </div>
-                        <div class="col-3">
                             <label for="after" class="form-label">Depois de</label>
                             <input type="datetime-local" class="form-control" name="after" id="after"
                             value="{{ after if after else ''}}">
                         </div>
+                        <div class="col-3">
+                            <label for="before" class="form-label">Antes de</label>
+                            <input type="datetime-local" class="form-control" name="before" id="before"
+                            value="{{ before if before else ''}}">
+                        </div>     
                     </div>
                     <button class="btn btn-success" type="submit">Aplicar</button>
                 </form>

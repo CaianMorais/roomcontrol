@@ -49,7 +49,7 @@
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-{#<script src="https://cdn.datatables.net/2.3.5/js/dataTables.min.js"></script>#}
-{#<script src="https://cdn.datatables.net/2.3.5/js/dataTables.bootstrap5.min.js"></script>#}
-{#<script src="{{ url_for('dashboard', path='js/audit/table_requests.js') }}"></script>#}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
+<script src="{{ url_for('dashboard', path='js/audit/filter.js') }}" type="module"></script>
 {% endblock %}

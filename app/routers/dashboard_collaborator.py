@@ -15,6 +15,9 @@ from sqlalchemy import or_
 
 from app.core.config import get_db
 from app.core.security import generate_csrf_token, validate_csrf_token
+from app.helpers.collaborators.filter_collaborators import filter_collaborators
+from app.helpers.collaborators.collaborator_creator import collaborator_creator
+from app.helpers.collaborators.restore_collaborator import restore_collaborator
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_admin_session
 from app.schemas.collaborator import CollaboratorOut
@@ -78,32 +81,28 @@ def collaborators(
     search: Optional[str] = Query(""),
     status: Optional[str] = Query(None),
 ):
+    # captura e valida o hotel
     hotel_id = request.session.get("hotel_id")
+
+    if not hotel_id:
+        add_flash_message(request, "Hotel não localizado", 'danger')
+        return RedirectResponse(url='/dashboard', status_code=303)
+    
     has_filter = False
 
+    # inicia a query
     query = db.query(Collaborator) \
     .filter(Collaborator.hotel_id == hotel_id) \
     .filter(Collaborator.is_deleted == False) \
     .order_by(Collaborator.is_active) \
     .order_by(Collaborator.created_at.desc()) \
 
-    if search:
-        query = query.filter(
-            or_(Collaborator.cpf.ilike(f"%{search}%"),
-                Collaborator.firstname.ilike(f"%{search}%"),
-                Collaborator.lastname.ilike(f"%{search}%")
-            )
-        )
-        has_filter=True
-
-    if status == "active":
-        query = query.filter(Collaborator.is_active == True)
+    # faz o filtro (se tiver)
+    if search or status:
+        query = filter_collaborators(query, search, status)
         has_filter = True
 
-    elif status == "inactive":
-        query = query.filter(Collaborator.is_active == False)
-        has_filter = True
-
+    # paginação
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)
 
@@ -151,49 +150,38 @@ def create_collaborator(
     cpf: str = Form(...),
     username: str = Form(...)
 ):
+    #valida o token e o hotel
     if not validate_csrf_token(csrf_token):
         add_flash_message(request, "Token de segurança inválido", "danger")
         return RedirectResponse(url="/dashboard_collaborators/new", status_code=303)
     
     hotel_id = request.session.get("hotel_id")
+    if not hotel_id:
+        add_flash_message(request, "Hotel não localizado", 'danger')
+        return RedirectResponse(url='/dashboard', status_code=303)
 
+    # se não foi definido username, predefine no formato "nome.sobrenome"
     if username == "" or not username:
         username = f"{firstname.lower().strip().replace(" ","")}.{lastname.lower().strip().replace(" ","")}"
 
+    # consulta para saber se existe um colaborador com esse cpf cadastrado
     collaborator = db.query(Collaborator) \
     .filter(Collaborator.cpf == cpf) \
+    .filter(Collaborator.hotel_id == hotel_id) \
     .first()
 
+    # se tiver, nao toma nenhuma ação
     if collaborator is not None and collaborator.is_deleted == False:
         add_flash_message(request, "Esse colaborador já está cadastrado no seu hotel", "danger")
-        return RedirectResponse(url="/dashboard_guests/new", status_code=303)
+        return RedirectResponse(url="/dashboard_collaborators/new", status_code=303)
     
+    # se tiver e estiver deletado, apenas restaura atualizando com as novas infos
     elif collaborator is not None and collaborator.is_deleted == True:
-        collaborator.firstname = firstname
-        collaborator.lastname = lastname
-        collaborator.username = username
-        collaborator.is_deleted = False
-        collaborator.is_active = True
+        restore_collaborator(request, db, collaborator, firstname, lastname, username)
 
-        db.commit()
-        db.refresh(collaborator)
-
+    # se não tiver, cria um novo
     elif collaborator is None:
-        new_collaborator = Collaborator(
-            firstname = firstname,
-            lastname = lastname,
-            username = username,
-            cpf = cpf,
-            hotel_id = hotel_id,
-            password = hash_password(cpf),
-            change_password = True
-        )
-
-        db.add(new_collaborator)
-        db.commit()
-        db.refresh(new_collaborator)
-
-        add_flash_message(request, "Colaborador cadastrado, no primeiro acesso a senha é o CPF.", "success")
+        collaborator_creator(request, db, firstname, lastname, username, cpf, hotel_id)
 
     return RedirectResponse(url="/dashboard_collaborators", status_code=303)
 
@@ -234,7 +222,6 @@ def update_collaborator(
     csrf_token: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    print(change_password)
     # valida token
     if not validate_csrf_token(csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")

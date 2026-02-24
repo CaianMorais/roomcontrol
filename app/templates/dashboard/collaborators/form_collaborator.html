@@ -20,6 +20,11 @@
                         {% include 'dashboard/collaborators/partials/_form.html' %}
                     </div>
                 </div>
+                {% if not collaborator %}
+                <h6 class="text-info text-center">
+                    No primeiro acesso o colaborador deve usar o <strong>CPF</strong> (sem pontuação e sem hífen) como senha.
+                </h6>
+                {% endif %}
             </div>
         </div>
     </div>
