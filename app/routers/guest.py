@@ -23,7 +23,7 @@ api_router = APIRouter(prefix="/api", tags=["api_guests"])
 def guest(
     request: Request,
 ):
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
     request.session['csrf_token'] = csrf_token
     return render(
         templates,

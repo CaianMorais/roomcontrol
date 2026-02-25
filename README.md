@@ -1,14 +1,13 @@
-## 🔄️ Última Atualização 20/02/2026
-- Criado a lógica para uso de dois tipos de API Keys, chave global e chave normal, sendo a global capaz de consultar todos os dados de todos os hotéis e a normal capaz de consultar dados do hotel em que foi criada.
-- Lógica para criação de funcionários relacionados ao hotel totalmente criada (falta otimização e limpeza de código).
-- Endpoint para consultar Colaboradores, sendo exclusiva para chave global da API.
-- Otimizações para limitar filtros nos endpoints, tendo filtros exclusivos para usuários da chave global.
-- Acesso de colaborador já disponível com os níveis de acesso limitado a ações operacionais, enquanto as ações administrativas ficam exclusivas para o login de administração do hotel no sistema.
+## 🔄️ Última Atualização 25/02/2026
+- Todas as ações do sistema estão gerando logs quando ações são tomadas por um colaborador.
+- Otimizações no back-end e front-end dos novos módulos Colaboradores, API Keys e Registros de Auditoria.
+- Melhoria de segurnaça: geração e validação de CSRF Token aprimoradas com token assinado, único e vinculado à sessão ativa.
+- Login de funcionário agora tem um select com o hotel o qual o funcionário está entrando, podendo ter um login para múltiplos hotéis **(sistema multi-tenant)**.
 
 ## ➡️ Próximas atualizações
-- Aplicar lógica para alimentar os registros de auditoria em todas as rotas que executam ações relevantes.
-- Otimização da lógica de todo o back-end e front-end de Colaboradores, API Keys e Registros de Auditoria
-- 
+
+- Desenvolvimento das **Services** para definir a regra de negócio da aplicação e desenvolvimento dos **Repositories** para centralizar os acessos aos dados SQL, visando reduzir as routers e manter apenas validações básicas e a coordenação do fluxo HTTP.
+- Endpoint com métodos `POST`, `PUT` e `DELETE` para possibilitar a manipulação de dados através de outros sistemas e oferecendo autonomia dos dados aos usuários da API embarcada ao sistema.
 
 # RoomControl
 

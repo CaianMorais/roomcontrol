@@ -134,7 +134,7 @@ def guests(
 
 @router.get("/new", response_class=HTMLResponse, include_in_schema=False)
 def new_guest(request: Request, db: Session = Depends(get_db)):
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
     return render(
         templates,
         request,
@@ -156,7 +156,7 @@ def create_guest(
     csrf_token: str = Form(...)
 ):
     # valida o token
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança inválido", "danger")
         return RedirectResponse(url="/dashboard_guests/new", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -193,7 +193,7 @@ def edit_guest(
     db: Session = Depends(get_db),
 ):
     guest = verify_guest_by_id(request, guest_id, request.session.get("hotel_id"), db)
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
     return render(
         templates,
         request,
@@ -217,7 +217,7 @@ def update_guest(
 ):
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
         return RedirectResponse(url="/auth", status_code=303)
 

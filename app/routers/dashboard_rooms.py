@@ -165,7 +165,7 @@ def rooms(
 
 @router.get("/new", response_class=HTMLResponse, include_in_schema=False)
 def new_room(request: Request):
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
     return render(templates, request, "dashboard/rooms/new_room.html", {"csrf_token": csrf_token})
 
 @router.post("/new", response_class=HTMLResponse, include_in_schema=False)
@@ -181,7 +181,7 @@ def create_room(
     db: Session = Depends(get_db)
 ):
     # valida o CSRF token
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
         return RedirectResponse(url="/auth", status_code=303)
     
@@ -246,7 +246,7 @@ def edit_room(
         add_flash_message(request, "Quarto não encontrado.", "warning")
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
     
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
 
     return render(
         templates, 
@@ -276,7 +276,7 @@ def update_room(
     db: Session = Depends(get_db)
 ):
     # valida o CSRF token
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
         return RedirectResponse(url="/auth", status_code=303)
 

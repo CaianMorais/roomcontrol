@@ -18,6 +18,8 @@ from app.core.security import generate_csrf_token, validate_csrf_token
 from app.helpers.collaborators.filter_collaborators import filter_collaborators
 from app.helpers.collaborators.collaborator_creator import collaborator_creator
 from app.helpers.collaborators.restore_collaborator import restore_collaborator
+from app.helpers.collaborators.collaborator_updater import collaborator_updater
+from app.helpers.collaborators.format_username import format_username
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_admin_session
 from app.schemas.collaborator import CollaboratorOut
@@ -129,7 +131,7 @@ def collaborators(
 def new_collaborator(
     request: Request,
 ):
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
 
     return render(
         templates,
@@ -151,7 +153,7 @@ def create_collaborator(
     username: str = Form(...)
 ):
     #valida o token e o hotel
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança inválido", "danger")
         return RedirectResponse(url="/dashboard_collaborators/new", status_code=303)
     
@@ -159,10 +161,6 @@ def create_collaborator(
     if not hotel_id:
         add_flash_message(request, "Hotel não localizado", 'danger')
         return RedirectResponse(url='/dashboard', status_code=303)
-
-    # se não foi definido username, predefine no formato "nome.sobrenome"
-    if username == "" or not username:
-        username = f"{firstname.lower().strip().replace(" ","")}.{lastname.lower().strip().replace(" ","")}"
 
     # consulta para saber se existe um colaborador com esse cpf cadastrado
     collaborator = db.query(Collaborator) \
@@ -198,7 +196,7 @@ def edit_collaborator(
     .filter(Collaborator.hotel_id == hotel_id) \
     .first()
 
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
 
     return render(
         templates,
@@ -223,7 +221,7 @@ def update_collaborator(
     db: Session = Depends(get_db)
 ):
     # valida token
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
         return RedirectResponse(url="/dashboard", status_code=303)
     
@@ -246,26 +244,10 @@ def update_collaborator(
     if not collaborator:
         add_flash_message(request, "Colaborador não encontrado", "warning")
         return RedirectResponse(url="/dashboard_collaborators", status_code=303)
-    
-    # se username for vazio, predefine nome + sobrenome
-    if username == "" or not username:
-        username = f"{firstname.lower().strip()}.{lastname.lower().strip()}"
 
-    # se for redefinir senha define padrão o cpf
-    if change_password:
-        collaborator.password = hash_password(collaborator.cpf)
-        add_flash_message(request, "Senha redefinida, e deverá ser trocada no próximo login.", "warning")
+    # função para atualizar um colaborador ja existente
+    collaborator_updater(request, db, collaborator, change_password, firstname, lastname, username, is_active)
 
-    collaborator.firstname = firstname
-    collaborator.lastname = lastname
-    collaborator.username = username
-    collaborator.is_active = is_active
-    collaborator.change_password = change_password
-
-    db.commit()
-    db.refresh(collaborator)
-
-    add_flash_message(request, "Colaborador editado com sucesso", "success")
     return RedirectResponse(url="/dashboard_collaborators", status_code=303)
 
 @router.get("/delete/{collaborator_id}", response_class=HTMLResponse, include_in_schema=False)

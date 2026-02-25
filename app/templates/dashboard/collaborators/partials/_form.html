@@ -18,10 +18,17 @@
             {% if collaborator %}<div class="form-text text-warning">Inalterável</div>{% endif %}
         </div>
         <div class="mb-3 col-6">
-            <label for="username" class="form-label">Nome de usuário</label>
+            <label for="username" class="form-label">Nome de usuário
+                <a type="button" class="" data-bs-toggle="tooltip"
+                    data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                    title="Ao salvar, o nome de usuário passa por formatações como: todas as letras ficam minúsculas, e espaços em branco são removidos">
+                    <i class="ti ti-info-circle"></i>
+                </a>
+            </label>
             <input type="text" class="form-control" id="username" name="username"
                 placeholder='Predefinido: "{{ collaborator.firstname.lower().strip() if collaborator else "nome" }}.{{ collaborator.lastname.lower().strip() if collaborator else "sobrenome" }}"'
                 value="{{ collaborator.username if collaborator else '' }}">
+            <span class="text-warning">Se deixado em branco, é predefinido <strong>"nome.sobrenome"</strong></span>
         </div>
     </div>
     {% if collaborator %}

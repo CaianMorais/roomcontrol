@@ -177,7 +177,7 @@ def new_reservation(
     # inicia uma lista de quartos vazia para buscar disponibilidade depois
     rooms = []
 
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
     return render(
         templates,
         request,
@@ -246,7 +246,7 @@ def create_reservation(
     csrf_token: str = Form(...)
 ):
     # valida token
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança inválido", "danger")
         return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
 

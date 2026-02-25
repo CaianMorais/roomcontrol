@@ -57,7 +57,7 @@ def get_hotels(
 def get_registration_form(request: Request):
     if request.session.get("collaborator_id") or request.session.get("hotel_id"):
         return RedirectResponse(url="/dashboard", status_code=303)
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
     return render(
         templates,
         request,
@@ -91,7 +91,7 @@ async def register_check(request: Request, payload: RegisterHotelStep1In, db: Se
 
 @router.get('/register/step2', response_class=HTMLResponse, include_in_schema=False)
 def register_step2_partial(request: Request, email: str, cnpj: str):
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
     email = request.session.get("reg_email")
     cnpj_digits = request.session.get("reg_cnpj")
     if not email or not cnpj_digits:
@@ -120,7 +120,7 @@ async def register_hotel(
 ):
     form = await request.form()
     csrf_token = form.get("csrf_token") or request.headers.get("X-CSRF-Token")
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
         return RedirectResponse(url="/auth/hotel", status_code=303)
     
@@ -189,7 +189,7 @@ async def login(
 ):    
     form = await request.form()
     csrf_token = form.get("csrf_token")
-    if validate_csrf_token(csrf_token):
+    if validate_csrf_token(request, csrf_token):
         hotel = db.query(Hotel).filter(Hotel.login == login).first()
         if not hotel:
             cnpj_digits = only_digits(login)
@@ -236,7 +236,7 @@ def auth_collaborator(
     
     hotels = db.query(Hotel).filter(Hotel.is_active).all()
     
-    csrf_token = generate_csrf_token()
+    csrf_token = generate_csrf_token(request)
 
     return render(
         templates,
@@ -308,7 +308,7 @@ def change_password_page(request: Request):
         request,
         "auth/collaborator_change_password.html",
         {
-            "csrf_token": generate_csrf_token()
+            "csrf_token": generate_csrf_token(request)
         }
     )
 
@@ -321,7 +321,7 @@ def change_password(
     db: Session = Depends(get_db)
 ):
     # valida o token
-    if not validate_csrf_token(csrf_token):
+    if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
         return RedirectResponse(url="/auth/collaborator", status_code=303)
     
