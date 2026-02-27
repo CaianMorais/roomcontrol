@@ -74,10 +74,11 @@ def require_collaborator_session(
     if not collaborator:
         request.session.clear()
         add_flash_message(request, "Autenticação necessária", "danger")
-        raise HTTPException(status_code=307, headers={"Location": "/auth/collaborator"})
+        raise HTTPException(status_code=303, headers={"Location": "/auth/collaborator"})
 
     return collaborator
 
 def require_session(request: Request):
     if not request.session.get("hotel_id"):
-        raise HTTPException(status_code=307, headers={"Location": ""})
+        add_flash_message(request, "Autenticação necessária", "danger")
+        raise HTTPException(status_code=303, headers={"Location": "/"})

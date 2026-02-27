@@ -28,7 +28,11 @@ app.mount("/dashboard", StaticFiles(directory="app/static/dashboard"), name="das
 app.mount("/guests_access", StaticFiles(directory='app/static/guests_access'), name="guests_access")
 
 #criptografia das sessões
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "your_secret_key"))
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY", "your_secret_key"),
+    max_age=86400
+)
 
 def get_db():
     db = SessionLocal()

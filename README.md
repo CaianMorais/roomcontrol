@@ -1,12 +1,12 @@
-## 🔄️ Última Atualização 25/02/2026
+## 🔄️ Última Atualização 27/02/2026
 - Todas as ações do sistema estão gerando logs quando ações são tomadas por um colaborador.
-- Otimizações no back-end e front-end dos novos módulos Colaboradores, API Keys e Registros de Auditoria.
-- Melhoria de segurnaça: geração e validação de CSRF Token aprimoradas com token assinado, único e vinculado à sessão ativa.
+- Melhoria de segurança: geração e validação de CSRF Token aprimoradas com token assinado, único e vinculado à sessão ativa.
 - Login de funcionário agora tem um select com o hotel o qual o funcionário está entrando, podendo ter um login para múltiplos hotéis **(sistema multi-tenant)**.
+- Router `dashboard_guests.py` totalmente otimizada para o padrão **Unit of Work** contando com Services para controlar transações e Repositories para persistência e acesso aos dados.
 
 ## ➡️ Próximas atualizações
 
-- Desenvolvimento das **Services** para definir a regra de negócio da aplicação e desenvolvimento dos **Repositories** para centralizar os acessos aos dados SQL, visando reduzir as routers e manter apenas validações básicas e a coordenação do fluxo HTTP.
+- (Neste momento, em andamento) Desenvolvimento das **Services** para definir a regra de negócio da aplicação e desenvolvimento dos **Repositories** para centralizar os acessos aos dados SQL, visando **consistência na arquitetura do software** e mantendo apenas validações básicas e a coordenação do fluxo HTTP.
 - Endpoint com métodos `POST`, `PUT` e `DELETE` para possibilitar a manipulação de dados através de outros sistemas e oferecendo autonomia dos dados aos usuários da API embarcada ao sistema.
 
 # RoomControl
@@ -45,13 +45,16 @@ alembic/
     versions/
     env.py
 app/
-    core/   # Configs do SQLAlchemy, CSRF-Token e Encrypt
+    core/   # Configs do SQLAlchemy, CSRF-Token, Encrypt e API Keys
     helpers/  # Funções criadas para evitar repetição e código longo nas routers
     models/   # Models SQLAlchemy
+    repositories/   # Controla a persistência e manipulação dos dados
     routers/   # Rotas organizadas por módulo
     schemas/   # Schemas do Pydantic para definir as respostas da API
+    services/   # Define a regra de negócios e prepara transações
     templates/   # Templates do Jinja2
     utils/   # Funcionalidades úteis (ex. validador de documentos)
+    main.py     # Builda e inicia aplicação com Uvicorn
 tests/
     unit/    # Testes unitários
     conftest.py   # Arquivo de configuração dos testes
@@ -80,6 +83,11 @@ Funcionalidades:
 - Formulários de login e registro com validação de CSRF
 - Atualização dinâmica de selects (quartos e hóspedes)
 - Filtros avançados de reservas e quartos
+
+Decisões técnicas sobre a arquitetura:
+
+- Método Service e Repostiories adotado para **definição de regras de negócios, validações e preparar alterações com o ORM (SQLAlchemy)** e **contrução de queries, inserções, atualizações, remoções e persistência (camada que conversa com o banco de dados)**, respectivamente. Conforme o projeto foi ficando maior, decidi por adotar esse estilo de arquitetura mais limpa conhecida como **Unit of Work** onde a Service "não sabe que o banco existe e controla a transação" e o Repository apenas modifica, persiste e acessa os objetos.
+
 ### ⚙️ Como rodar o projeto
 
 Pré-requisitos para rodar o projeto:
@@ -141,7 +149,7 @@ uvicorn app.main:app --reload
 - A aplicação será iniciada em: http://127.0.0.1:8000
 - O Swagger será iniciado em: http://127.0.0.1:8000/docs
 
-**OBS**: É necessário gerar uma API Key, pelo login do hotel para consultar os dados no endpoints da API.
+**OBS**: É necessário gerar uma API Key, pelo login do hotel para consultar os dados no endpoints da API ou use a `GLOBAL_API_KEY` configurada em `.env`.
 
 ### 🔒 Segurança
 

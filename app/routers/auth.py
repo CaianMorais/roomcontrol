@@ -15,7 +15,7 @@ from app.core.security import generate_csrf_token, hash_password, validate_csrf_
 from app.models.collaborator import Collaborator
 from app.models.hotel import Hotel
 from app.schemas.hotel import HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
-from app.services.cnpj_ws import CNPJWsError, fetch_cnpj_situacao
+from app.utils.cnpj_ws import CNPJWsError, fetch_cnpj_situacao
 from app.utils.brdocs import is_valid_cnpj, only_digits
 from app.utils.flash import add_flash_message, render
 

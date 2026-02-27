@@ -16,19 +16,15 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.config import get_db
 from app.core.security import generate_csrf_token, validate_csrf_token
 from app.core.dependencies import get_api_access
-from app.helpers.guests.guest_delete import guest_delete
-from app.helpers.guests.guest_updater import guest_updater
-from app.helpers.guests.guest_creator import guest_creator
+from app.helpers.guests.valid_phone_number import valid_phone_number_on_create, valid_phone_number_on_edit
 from app.helpers.register_audit import register_audit
-from app.helpers.verify_guest import verify_guest_by_id
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 from app.schemas.guest import GuestOut
 from app.models.guest import Guest
 from app.models.hotel import Hotel
-from app.helpers.guests.subquery_reservations import subquery_reservations
-from app.helpers.guests.filter_guests import filter_guests
-from app.helpers.guests.restore_guest import restore_guest
+
+from app.services.guest_service import GuestService
 
 router = APIRouter(
     prefix="/dashboard_guests",
@@ -92,23 +88,15 @@ def guests(
     # captura o hotel e inicia subquery
     has_filter = False
     hotel_id = request.session.get("hotel_id")
-    subquery = subquery_reservations(db)
 
-    # captura a data de check-in, status e a reserva para a tabela de hospedes
-    query = db.query(
-        Guest,
-        subquery.c.reservation_check_in,
-        subquery.c.reservation_status,
-        subquery.c.reservation_id
-    ).outerjoin(
-        subquery,
-        Guest.id == subquery.c.guest_id
-    ).filter(Guest.hotel_id == hotel_id, Guest.is_deleted == False)
+    # Service para listar os hóspedes
+    query = GuestService.list_guests(db, hotel_id)
 
     # filtra os hospedes
     if name or cpf:
         has_filter = True
-        query = filter_guests(request, name, cpf, query)
+        query = GuestService.filter_guests(db, name, cpf, query)
+        add_flash_message(request, "Filtro aplicado", "success")
 
     # paginação
     params = Params(page=page, size=per_page)
@@ -133,7 +121,7 @@ def guests(
     )
 
 @router.get("/new", response_class=HTMLResponse, include_in_schema=False)
-def new_guest(request: Request, db: Session = Depends(get_db)):
+def new_guest(request: Request):
     csrf_token = generate_csrf_token(request)
     return render(
         templates,
@@ -155,33 +143,35 @@ def create_guest(
     phone_number: str = Form(...),
     csrf_token: str = Form(...)
 ):
+    print(phone_number)
     # valida o token
     if not validate_csrf_token(request, csrf_token):
-        add_flash_message(request, "Token de segurança inválido", "danger")
-        return RedirectResponse(url="/dashboard_guests/new", status_code=status.HTTP_303_SEE_OTHER)
+        add_flash_message(request, "Token de segurança inválido.", "danger")
+        return RedirectResponse(url=request.url_for("new_guest"), status_code=303)
 
-    # captura o hotel e o hospede
+    # pega o id do hotel na sessão e faz validações
     hotel_id = request.session.get("hotel_id")
-    guest = db.query(Guest).filter(Guest.cpf == cpf).filter(Guest.hotel_id == hotel_id).first()
+    if not hotel_id or not name or not cpf:
+        add_flash_message(request, "Erro ao cadastrar.", "danger")
+        return RedirectResponse(url=request.url_for("new_guest"), status_code=303)
 
-    # se o hospede ja estiver cadastrado e nao esta deletado
-    if guest is not None and guest.is_deleted == False:
-        add_flash_message(request, "CPF já cadastrado no seu hotel", "danger")
-        return RedirectResponse(url="/dashboard_guests/new", status_code=303)
-    
-    # ja tem cadastro mas esta deletado, restaura atualizando dados
-    elif guest is not None and guest.is_deleted == True:
-        restore_guest(request, db, name, email, cpf, phone_number, hotel_id)
-    
-    # não tem cadastro, faz o cadastro
-    elif guest is None:
-        guest = guest_creator(request, name, cpf, email, phone_number, hotel_id, db)
+    # Service para criar o hóspede
+    guest, error = GuestService.create_guest(
+        db, hotel_id, name, cpf, email, phone_number
+    )
+
+    if error:
+        add_flash_message(request, error, "danger")
+        return RedirectResponse(request.url_for("new_guest"), status_code=303)
 
     # registra log
     register_audit(db, hotel_id, 'create', 'guest', guest.id, request.session.get("collaborator_id"))
 
+    # validação do phone_number (não interrompe em caso não validação)
+    valid_phone_number_on_create(request, phone_number)
+
     return RedirectResponse(
-        url=f"/dashboard_reservations/new?guest_id={guest.id}",
+        url=request.url_for("edit_guest", guest_id=guest.id, guest_cpf=guest.cpf),
         status_code=303,
     )
 
@@ -192,7 +182,15 @@ def edit_guest(
     next: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    guest = verify_guest_by_id(request, guest_id, request.session.get("hotel_id"), db)
+    # localiza hotel e o hospede
+    hotel_id = request.session.get("hotel_id")
+    guest = GuestService.get_guest(db, guest_id, hotel_id)
+
+    # validações basicas 
+    if not hotel_id or not guest:
+        add_flash_message(request, "Erro ao localizar.", "danger")
+        return RedirectResponse(url=request.url_for("guests"), status_code=303)
+    
     csrf_token = generate_csrf_token(request)
     return render(
         templates,
@@ -217,18 +215,29 @@ def update_guest(
 ):
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
-    if not validate_csrf_token(request, csrf_token):
-        add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
-        return RedirectResponse(url="/auth", status_code=303)
 
-    # localiza o hospede, atualiza e salva log
-    guest = verify_guest_by_id(request, guest_id, hotel_id, db)
-    guest_updater(request, guest, email, phone_number, db)
+    # localiza o hospede
+    guest = GuestService.get_guest(db, guest_id, hotel_id)
+
+    # validações básicas
+    if not validate_csrf_token(request, csrf_token):
+        add_flash_message(request, "Token de segurança inválido.", "danger")
+        return RedirectResponse(url=request.url_for("guests"), status_code=303)
+    
+    valid = valid_phone_number_on_edit(request, phone_number, guest)
+    if not valid:
+        return RedirectResponse(url=request.url_for("edit_guest", guest_id=guest.id, guest_cpf=guest.cpf), status_code=303)
+    
+    # atualiza o hospede com os novos dados recebidos
+    GuestService.update_guest(db, guest, email, phone_number)
+    add_flash_message(request, "Hóspede atualizado com sucesso", "success")
+
+    # registra log
     register_audit(db, hotel_id, 'update', 'guest', guest.id, request.session.get("collaborator_id"))
 
     if next:
         return RedirectResponse(url=next, status_code=303)
-    return RedirectResponse(url="/dashboard_guests", status_code=303)
+    return RedirectResponse(url=request.url_for("guests"), status_code=303)
 
 @router.get("/delete/{guest_id}/{guest_cpf}", response_class=HTMLResponse, include_in_schema=False)
 def delete_guest(
@@ -236,11 +245,17 @@ def delete_guest(
     request: Request,
     db: Session = Depends(get_db)
 ):
+    # captura o hotel
     hotel_id = request.session.get("hotel_id")
-    guest = verify_guest_by_id(request, guest_id, hotel_id, db)
-    guest_delete(request, db, guest)
+
+    #localiza o hospede 
+    guest = GuestService.get_guest(db, guest_id, hotel_id)
+    
+    # soft-delete na service
+    GuestService.delete_guest(db, guest)
+    add_flash_message(request, "Hóspede excluído com sucesso!", "success")
+
+    # registra log
     register_audit(db, hotel_id, 'delete', 'guest', guest.id, request.session.get("collaborator_id"))
 
-    return RedirectResponse(url="/dashboard_guests", status_code=303)
-    
-
+    return RedirectResponse(url=request.url_for("guests"), status_code=303)

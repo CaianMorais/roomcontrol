@@ -8,6 +8,7 @@ Inputmask({
     rightAlign: false,
     removeMaskOnSubmit: true,
     unmaskAsNumber: true,
+    autoUnmask: true,
 }).mask("#cpf");
 
 Inputmask({
@@ -16,6 +17,7 @@ Inputmask({
     rightAlign: false,
     removeMaskOnSubmit: true,
     unmaskAsNumber: true,
+    autoUnmask: true,
 }).mask("#phone_number");
 
 // edit_guests.html
