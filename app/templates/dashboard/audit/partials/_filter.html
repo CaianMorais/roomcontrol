@@ -11,13 +11,13 @@
         <div class="collapse" id="filtros_quartos">
             <div class="card card-body">
                 <form action="{{ url_for('audit') }}" method="GET" id="audit_filter">
-                    <div class="row">
-                        <div class="mb-3 col-6">
+                    <div class="row mb-3 ">
+                        <div class="col-6">
                             <label for="name" class="form-label">Pesquisar usuário</label>
                             <input type="text" class="form-control" name="name" id="name"
                             value="{{ name if name else '' }}">
                         </div>
-                        <div class="mb-3 col-3">
+                        <div class="col-3">
                             <label for="action" class="form-label">Ação</label>
                             <select class="form-select" name="action" id="action">
                                 <option value="">Todas</option>
@@ -26,7 +26,7 @@
                                 {%  endfor %}
                             </select>
                         </div>
-                        <div class="mb-3 col-3">
+                        <div class="col-3">
                             <label for="entity" class="form-label">Entidade</label>
                             <select class="form-select" name="entity" id="entity">
                                 <option value="">Todas</option>
@@ -36,7 +36,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="row mb-4">
+                    <div class="row mb-3">
                         <div class="col-6">
                             <label for="entity_id" class="form-label">Pesquisar identificador</label>
                             <input type="number" class="form-control" name="entity_id" id="entity_id"

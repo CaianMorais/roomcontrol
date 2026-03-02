@@ -56,7 +56,7 @@ def audit(
 
     query = db.query(AuditLog, Collaborator) \
     .filter(AuditLog.hotel_id == hotel_id) \
-    .join(Collaborator, Collaborator.id == AuditLog.collaborator_id) \
+    .outerjoin(Collaborator, Collaborator.id == AuditLog.collaborator_id) \
     .order_by(AuditLog.id.desc())
 
     if name or action or entity or entity_id or before or after:

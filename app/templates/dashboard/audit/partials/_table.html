@@ -28,7 +28,13 @@
                 <p class="fw-semibold mb-0">{{ log.AuditLog.id }}</p>
             </td>
             <td class="border-bottom-0">
-                <p class="fw-semibold mb-0">{{ log.Collaborator.firstname + " " + log.Collaborator.lastname }}</p>
+                <p class="fw-semibold mb-0">
+                {% if log.Collaborator %}
+                    {{ log.Collaborator.firstname + " " + log.Collaborator.lastname }}
+                {% else %}
+                    Admin
+                {% endif %}
+                </p>
             </td>
             <td class="border-bottom-0">
                 <p class="fw-semibold mb-0">
