@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from app.models.guest import Guest
 from app.models.reservations import Reservations
 from app.models.rooms import Rooms
-from sqlalchemy import select
 
 class GuestRepository:
 

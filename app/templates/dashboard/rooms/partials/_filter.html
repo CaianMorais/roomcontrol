@@ -16,19 +16,23 @@
                             <label for="criteria" class="form-label">Critério</label>
                             <select class="form-select" name="criteria" id="criteria">
                                 <option value="">Selecione o critério do filtro</option>
-                                <option value="room_number">Número do quarto</option>
-                                <option value="price">Preço (diária)</option>
-                                <option value="capacity_adults">Capacidade de Adultos</option>
-                                <option value="capacity_children">Capacidade de Crianças</option>
-                                <option value="capacity_total">Capacidade Total</option>
+                                <option value="room_number" {% if criteria == 'room_number' %}selected{% endif %}>Número do quarto</option>
+                                <option value="price" {% if criteria == 'price' %}selected{% endif %}>Preço (diária)</option>
+                                <option value="capacity_adults" {% if criteria == 'capacity_adults' %}selected{% endif %}>Capacidade de Adultos</option>
+                                <option value="capacity_children" {% if criteria == 'capacity_children' %}selected{% endif %}>Capacidade de Crianças</option>
+                                <option value="capacity_total" {% if criteria == 'capacity_total' %}selected{% endif %}>Capacidade Total</option>
                             </select>
                         </div>
                         <div class="mb-3 col-6">
-                            <label for="order" class="form-label">Ordem</label>
+                            <label for="order" class="form-label">Ordem <a type="button" class="" data-bs-toggle="tooltip"
+                                data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                                title="Critério sem ordem: será ordenado por padrão CRESCENTE">
+                                <i class="ti ti-info-circle"></i>
+                            </a></label>
                             <select class="form-select" name="order" id="order">
                                 <option value="">Selecione a ordem</option>
-                                <option value="cres">Crescente</option>
-                                <option value="decres">Decrescente</option>
+                                <option value="cres" {% if order == 'cres' %}selected{% endif %}>Crescente</option>
+                                <option value="decres" {% if order == 'decres' %}selected{% endif %}>Decrescente</option>
                             </select>
                         </div>
                     </div>
@@ -37,29 +41,29 @@
                             <label class="form-label">Tipo</label>
                             <div class="row">
                                 <div class="form-check col-6">
-                                    <input class="form-check-input" type="checkbox" id="solteiro" name="solteiro">
+                                    <input class="form-check-input" type="checkbox" id="solteiro" name="solteiro" {% if solteiro %}checked{% endif %}>
                                     <label class="form-check-label" for="solteiro">Solteiro</label>
                                 </div>
                                 <div class="form-check col-6">
-                                    <input class="form-check-input" type="checkbox" id="duplo" name="duplo">
+                                    <input class="form-check-input" type="checkbox" id="duplo" name="duplo" {% if duplo %}checked{% endif %}>
                                     <label class="form-check-label" for="duplo">Duplo</label>
                                 </div>
                                 <div class="form-check col-6">
-                                    <input class="form-check-input" type="checkbox" id="casal" name="casal">
+                                    <input class="form-check-input" type="checkbox" id="casal" name="casal" {% if casal %}checked{% endif %}>
                                     <label class="form-check-label" for="casal">Casal</label>
                                 </div>
                                 <div class="form-check col-6">
-                                    <input class="form-check-input" type="checkbox" id="triplo" name="triplo">
+                                    <input class="form-check-input" type="checkbox" id="triplo" name="triplo" {% if triplo %}checked{% endif %}>
                                     <label class="form-check-label" for="triplo">Triplo</label>
                                 </div>
                                 <div class="form-check col-6">
                                     <input class="form-check-input" type="checkbox" id="triplo_com_casal"
-                                        name="triplo_com_casal">
+                                        name="triplo_com_casal" {% if triplo_com_casal %}checked{% endif %}>
                                     <label class="form-check-label" for="triplo_com_casal">Triplo (com casal)</label>
                                 </div>
                                 <div class="form-check col-6">
                                     <input class="form-check-input" type="checkbox" id="personalizado"
-                                        name="personalizado">
+                                        name="personalizado" {% if personalizado %}checked{% endif %}>
                                     <label class="form-check-label" for="personalizado">Personalizado</label>
                                 </div>
                             </div>
@@ -67,15 +71,15 @@
                         <div class="col-6">
                             <label class="form-label">Situação</label>
                             <div class="form-check col-4">
-                                <input class="form-check-input" type="checkbox" id="available" name="available">
+                                <input class="form-check-input" type="checkbox" id="available" name="available" {% if available %}checked{% endif %}>
                                 <label class="form-check-label text-success" for="available">Disponível</label>
                             </div>
                             <div class="form-check col-4">
-                                <input class="form-check-input" type="checkbox" id="occupied" name="occupied">
+                                <input class="form-check-input" type="checkbox" id="occupied" name="occupied" {% if occupied %}checked{% endif %}>
                                 <label class="form-check-label text-danger" for="occupied">Ocupado</label>
                             </div>
                             <div class="form-check col-4">
-                                <input class="form-check-input" type="checkbox" id="maintenance" name="maintenance">
+                                <input class="form-check-input" type="checkbox" id="maintenance" name="maintenance" {% if maintenance %}checked{% endif %}>
                                 <label class="form-check-label text-secondary" for="maintenance">Manutenção</label>
                             </div>
                         </div>

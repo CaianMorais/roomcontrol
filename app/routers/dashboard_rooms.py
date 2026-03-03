@@ -23,6 +23,8 @@ from app.schemas.rooms import RoomOut
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 
+from app.services.room_service import RoomsService
+
 router = APIRouter(
     prefix="/dashboard_rooms",
     tags=["rooms"],
@@ -80,6 +82,7 @@ def rooms(
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
     has_filter = False
+    room_types = []
 
     # valida o hotel
     if not hotel_id:
@@ -87,71 +90,13 @@ def rooms(
         return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
     # inicia a query
-    query = db.query(Rooms).filter_by(hotel_id=hotel_id).filter(Rooms.is_deleted == False)
+    #query = db.query(Rooms).filter_by(hotel_id=hotel_id).filter(Rooms.is_deleted == False)
+    query = RoomsService.list_rooms(db, hotel_id)
 
-    ROOM_TYPE_MAP = tipos_map()
-    ORDER_MAP = coluna_map()
-
-    # MARCA AS FLAGS COM TRUE OU FALSE QUE FORAM MARCADAS NO FILTRO
-    selected_type_flags = {
-        "solteiro": solteiro,
-        "duplo": duplo,
-        "casal": casal,
-        "triplo": triplo,
-        "triplo_com_casal": triplo_com_casal,
-        "personalizado": personalizado,
-    }
-
-    # ITERA SOBRE AS FLAGS PARA ADICIONAR RESGATAR O 
-    # VALOR DOS SELECIONADOS (TRUE) NA LISTA TOOM_TYPE_MAP
-    room_types = [t for flag, on in selected_type_flags.items() if on for t in ROOM_TYPE_MAP[flag]]
-    if room_types:
-        # SE TIVER ITENS NA LISTA, FAZ A CONSULTA
-        query = query.filter(Rooms.type.in_(room_types))
-
-    # MARCA AS FLAGS QUE FORAM MARCADAS NO FILTRO
-    status_flags = {
-        "available": available,
-        "occupied": occupied,
-        "maintenance": maintenance,
-    }
-
-    #ITERA SOBRE AS FLAGS PARA FAZER A LISTA DE STATUS SELECIONADOS NO FILTRO
-    statuses = [name for name, on in status_flags.items() if on]
-    if statuses:
-        query = query.filter(Rooms.status.in_(statuses))
-
-    # ORDENAÇÃO DOS QUARTOS, PRIORIZANDO OS ATIVOS ACIMA
-    order_cols = [Rooms.is_active.desc()]
-
-    # PEGA O CRITERIO DE ORDENAÇÃO NO FILTRO E BUSCA ELE NO MAPPING
-    col = ORDER_MAP.get(criteria or "")
-    if col is not None:
-        # SE HOVER CRITERIO DE ORDENAÇÃO, PEGA A ORDENAÇÃO
-        if order == "decres":
-            order_cols.append(col.desc())
-        else:
-            # SENAO O PADRAO É ASC
-            order_cols.append(col.asc())
-    else:
-        # SE NAO HOUVER CRITERIO DE ORDENAÇÃO
-        # O PADRÃO SERÁ PELO NUMERO DO QUARTO CRESCENTE
-        order_cols.append(Rooms.room_number.asc())
-
-    query = query.order_by(*order_cols)
+    if criteria or order or solteiro or duplo or casal or triplo or triplo_com_casal or personalizado or available or occupied or maintenance:
+        query, has_filter = RoomsService.filter_rooms(query, solteiro, duplo, casal, triplo, triplo_com_casal, personalizado, available, occupied, maintenance, criteria, order)
 
     rooms = query.all()
-
-    # SE TIVER ALGUM FILTRO ATIVO, MUDA A VARIAVEL PRA SABER
-    # SE HÁ QUARTOS NA VARIAVEL DA CONSULTA OU NÃO
-    has_filter = bool(
-        room_types or statuses or (criteria in ORDER_MAP)
-    )
-    if has_filter:
-        if rooms:
-            add_flash_message(request, f"Filtro aplicado: {len(rooms)} quartos encontrados.", "info")
-        else:
-            add_flash_message(request, "Nenhum quarto encontrado com esses filtros.", "warning")
 
     return render(
         templates,
@@ -159,7 +104,18 @@ def rooms(
         "dashboard/rooms/rooms.html",
         {
             "rooms": rooms,
-            "has_filter": has_filter
+            "has_filter": has_filter,
+            "criteria": criteria,
+            "order": order,
+            "solteiro": solteiro,
+            "duplo": duplo,
+            "casal": casal,
+            "triplo": triplo,
+            "triplo_com_casal": triplo_com_casal,
+            "personalizado": personalizado,
+            "available": available,
+            "occupied": occupied,
+            "maintenance": maintenance
         }
     )
 

@@ -7,9 +7,11 @@ class GuestService:
     def list_guests(db, hotel_id):
         return GuestRepository.guests_with_active_reservations(db, hotel_id)
     
+    @staticmethod
     def filter_guests(db, name, cpf, query):
         return GuestRepository.filter_guests_by_name_or_cpf(db, name, cpf, query)
     
+    @staticmethod
     def get_guest(db, guest_id, hotel_id):
         guest = GuestRepository.find_by_id(db, guest_id, hotel_id)
         if guest:
