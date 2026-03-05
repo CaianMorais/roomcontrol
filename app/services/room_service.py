@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 from app.repositories.room_repository import RoomsRepository
 from app.models.rooms import Rooms
-from app.helpers.rooms.object_mapper import tipos_map, coluna_map
+from app.helpers.rooms.object_mapper import room_capacities_map, tipos_map, coluna_map
 
 class RoomsService:
 
@@ -65,3 +67,103 @@ class RoomsService:
         )
         
         return query, has_filter
+    
+    @staticmethod
+    def create_room(db, hotel_id, room_number, room_type, capacity_adults, capacity_children, capacity_total, price, is_active, comments):
+
+        existing = RoomsRepository.find_by_room_number(db, room_number, hotel_id)
+
+        if existing and not existing.is_deleted:
+            return None, "Número de quarto já cadastrado no seu hotel"
+        
+        room_capacities = room_capacities_map()
+
+        if room_type in room_capacities:
+            # pega as capacidades do quarto no map
+            capacity_adults, capacity_children = room_capacities[room_type]
+        elif room_type == "9":
+            # se o tipo for personalizado, depende dos dados do form
+            if capacity_adults is None or capacity_children is None:
+                return None, "Capacidades de adultos e crianças são obrigatórias para quartos personalizados"
+        else:
+            return None, "Tipo de quarto é inválido."
+        
+        # calcula a capacidade total após definir a capacidade
+        capacity_total = capacity_adults + capacity_children
+
+        # formata o preço pra decimal
+        price = Decimal(price)
+
+        new_room = Rooms(
+            hotel_id=hotel_id,
+            room_number=room_number,
+            type=room_type,
+            capacity_adults=capacity_adults,
+            capacity_children=capacity_children,
+            capacity_total=capacity_total,
+            price=price,
+            status='available',
+            is_active=is_active,
+            comments=comments
+        )
+
+        return RoomsRepository.create(db, new_room), None
+
+    @staticmethod
+    def get_room(db, room_id, hotel_id):
+        room = RoomsRepository.find_by_id(db, room_id, hotel_id)
+        if room:
+            return room, None
+        else:
+            return None, "Quarto não encontrado"
+
+    @staticmethod
+    def update_room(db, room, room_number, room_type, capacity_adults, capacity_children, capacity_total, price, is_active, comments):
+        if room.is_active == True and room.is_active != is_active:
+            # consulta se há alguma reserva ativa para esse quarto
+            reservations = RoomsRepository.check_active_reservations(db, room)
+            for r in reservations:
+                if r.status in ['booked', 'checked_in']:
+                    return None, "O quarto não pode ser desativado pois possui reservas ativas."
+        
+        # define a capacidade com base no tipo do quarto (pra não depender dos dados do form)
+        room_capacities = room_capacities_map()
+        
+        if room_type in room_capacities:
+            # pega as capacidades do quarto no map
+            capacity_adults, capacity_children = room_capacities[room_type]
+        elif room_type == "9":
+            # se o tipo for personalizado, depende dos dados do form
+            if capacity_adults is None or capacity_children is None:
+                return None, "É necessário preencher a capacidade de adultos e crianças."
+        else:
+            return None, "Tipo de quarto é inválido."
+        
+        # calcula a capacidade total após definir a capacidade
+        capacity_total = capacity_adults + capacity_children
+        
+        # formata o preço pra decimal
+        price = Decimal(price)
+
+        room.room_number = room_number
+        room.type = room_type
+        room.capacity_adults = capacity_adults
+        room.capacity_children = capacity_children
+        room.capacity_total = capacity_total
+        room.price = price
+        room.is_active = is_active
+        room.comments = comments
+
+        return RoomsRepository.update(db, room), None
+
+    @staticmethod
+    def delete_room(db, room):
+        if room.status == 'occupied':
+            return None, "O quarto não pode ser modificado enquanto ele estiver ocupado"
+        
+        reservations = RoomsRepository.check_active_reservations(db, room)
+        for r in reservations:
+            if r.status in ['booked', 'checked_in']:
+                return None, "O quarto não pode ser removido pois possui reservas ativas."
+            
+        return RoomsRepository.soft_delete(db, room), None

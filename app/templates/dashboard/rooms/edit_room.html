@@ -11,9 +11,14 @@
                 <h5 class="card-title fw-semibold mb-4">Editar Quarto</h5>
                 <div class="card">
                     <div class="card-body">
-                        {% include 'dashboard/rooms/partials/_form_edit.html' %}
+                        {% include 'dashboard/rooms/partials/_form.html' %}
                     </div>
                 </div>
+                {% if room and room.status == 'occupied' %}
+                    <div class="alert alert-warning" role="alert">
+                        Este quarto está ocupado e não pode ser editado.
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

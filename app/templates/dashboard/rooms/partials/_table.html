@@ -19,6 +19,7 @@
         <a class="btn btn-primary mb-4" href="{{ url_for('new_room') }}">Novo Quarto</a>
     </div>
 </div>
+{% include 'dashboard/partials/_per_page.html' %}
 <div class="table-responsive">
     <table class="table text-nowrap mb-0 align-middle">
         <thead class="text-dark fs-4">
@@ -100,3 +101,4 @@
         </tbody>
     </table>
 </div>
+{% include 'dashboard/partials/_paginate.html' %}

@@ -1,6 +1,6 @@
-<form action="{{ url_for('update_room', room_id=room.id) if room.status != 'occupied' else '' }}" method="POST"
+<form action="{{ url_for('create_room') if not room else url_for('update_room', room_id=room.id) if room.status != 'occupied' else '' }}" method="POST"
     enctype="multipart/form-data">
-    {% if room.status != 'occupied' %}
+    {% if (room and room.status != 'occupied') or not room %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     {% endif %}
     {% if next %}
@@ -10,7 +10,7 @@
         <div class="mb-3 col-4">
             <label for="room_number" class="form-label">Número do quarto</label>
             <input type="text" class="form-control" id="room_number" name="room_number"
-                value="{{ room.room_number if room else '' }}">
+                value="{{ room.room_number if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' %}readonly{% endif %} required>
         </div>
         <div class="mb-3 col-8">
             <label for="room_type" class="form-label">Tipo do quarto
@@ -20,7 +20,7 @@
                     <i class="ti ti-info-circle"></i>
                 </a>
             </label>
-            <select class="form-select" required name="room_type" id="room_type">
+            <select class="form-select" required name="room_type" id="room_type" autocomplete="off" {% if room and room.status == 'occupied' %}disabled{% endif %}>
                 <option value="">Selecione o tipo de quarto</option>
                 <optgroup label="1 cama">
                     <option value="1" {% if room and room.type=="1" %}selected{% endif %}>Solteiro</option>
@@ -58,7 +58,7 @@
                 </a>
             </label>
             <input type="number" class="form-control" id="capacity_adults" name="capacity_adults" required
-                value="{{ room.capacity_adults if room else '' }}">
+                value="{{ room.capacity_adults if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' %}readonly{% endif %} required>
         </div>
         <div class="mb-3 col-4">
             <label for="capacity_children" class="form-label">Crianças (até 17 anos)
@@ -69,7 +69,7 @@
                 </a>
             </label>
             <input type="number" class="form-control" id="capacity_children" name="capacity_children" required
-                value="{{ room.capacity_children if room else '' }}">
+                value="{{ room.capacity_children if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' %}readonly{% endif %} required>
         </div>
         <div class="mb-3 col-4">
             <label for="capacity_total" class="form-label">Total
@@ -79,19 +79,27 @@
                 </a>
             </label>
             <input type="number" class="form-control" id="capacity_total" name="capacity_total" required
-                value="{{ room.capacity_total if room else '' }}">
+                value="{{ room.capacity_total if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' %}readonly{% endif %} required>
         </div>
     </div>
     <div class="row">
         <div class="mb-3 col-6">
-            <label for="price" class="form-label">Preço (diária)</label>
+            <label for="price" class="form-label">Preço (diária)
+                {% if room and room.price %}
+                <a type="button" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+                    data-bs-custom-class="custom-tooltip"
+                    data-bs-title="O valor de possíveis reservas será atualizado conforme atualização do preço da diária.">
+                    <i class="ti ti-info-circle"></i>
+                </a>
+                {% endif %}
+            </label>
             <input type="text" class="form-control" id="price" name="price"
-                value="{{ '%.2f'|format(room.price)|replace('.', ',') }}">
+                {% if room and room.price %}value="{{ '%.2f'|format(room.price)|replace('.', ',') }}" {% endif %} autocomplete="off"  {% if room and room.status == 'occupied' %}readonly{% endif %} required>
         </div>
         <div class="mb-3 col-6 align-items-end justify-content-start d-flex">
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if room.is_active
-                    %}checked{% endif %}>
+                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if room and not room.is_active
+                    %} unchecked {% else %} checked {% endif %} {% if room and room.status == 'occupied' %}disabled{% endif %}>
                 <label class="form-check-label" for="is_active">
                     Quarto ativo
                 </label>
@@ -102,14 +110,16 @@
         <div class="mb-3 col-12">
             <label for="comments" class="form-label">Observações (o hóspede pode ver as observações do quarto no painel
                 de hóspedes)</label>
-            <textarea class="form-control" id="comments" name="comments"
-                placeholder="Ex.: 'Controle da televisão dentro da gaveta da mesa de cabeceira.'">{{ room.comments if room.comments else '' }}</textarea>
+            <textarea class="form-control" id="comments" name="comments" autocomplete="off"
+                placeholder="Ex.: 'Controle da televisão dentro da gaveta da mesa de cabeceira.'"  {% if room and room.status == 'occupied' %}readonly{% endif %} required>{{ room.comments if room and room.comments else '' }}</textarea>
         </div>
     </div>
-    {% if room.status != 'occupied' %}
+    {% if room and room.status != 'occupied' %}
     <button type="submit" class="btn btn-primary">Editar</button>
-    {% else %}
-    <a class="btn btn-primary opacity-25 me-1" style="cursor: not-allowed;">Editar</button>
-        {% endif %}
-        <a href="javascript:history.back()" class="btn btn-outline-danger">Voltar</a>
+    {% elif room and room.status == 'occupied' %}
+    <a class="btn btn-primary opacity-25 me-1" style="cursor: not-allowed;">Editar</a>
+    {% elif not room %}
+    <button type="submit" class="btn btn-primary">Criar</button>
+    {% endif %}
+    <a href="{{ url_for('rooms') }}" class="btn btn-outline-danger">Voltar</a>
 </form>

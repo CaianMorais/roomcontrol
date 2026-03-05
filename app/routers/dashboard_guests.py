@@ -143,7 +143,6 @@ def create_guest(
     phone_number: str = Form(...),
     csrf_token: str = Form(...)
 ):
-    print(phone_number)
     # valida o token
     if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança inválido.", "danger")
