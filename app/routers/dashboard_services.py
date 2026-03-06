@@ -34,9 +34,10 @@ api_router = APIRouter(
     dependencies=[Depends(get_api_access)]
 )
 
-api_table_router = APIRouter(
-    prefix='/api/table',
-    tags=['dashboard'],
+internal_api_router = APIRouter(
+    prefix='/internal_api',
+    tags=['services'],
+    dependencies=[Depends(require_session)]
 )
 
 templates = Jinja2Templates(directory='app/templates')
@@ -94,7 +95,7 @@ def get_services_requests(
     
     return requests
 
-@api_table_router.get('/table_services_requests', response_model=List[TableServicesOut], include_in_schema=False)
+@internal_api_router.get('/table_services_requests', response_model=List[TableServicesOut], include_in_schema=False)
 def get_table_services_requests(
     request: Request,
     db: Session = Depends(get_db)
@@ -102,7 +103,7 @@ def get_table_services_requests(
     hotel_id = request.session.get("hotel_id")
 
     if not hotel_id:
-        raise HTTPException(status_code=401)
+        raise HTTPException(status_code=400, detail="Hotel não reconhecido")
 
     query = (
         db.query(Services)

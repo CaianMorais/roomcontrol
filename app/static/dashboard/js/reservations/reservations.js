@@ -80,7 +80,7 @@ const roomInput = document.getElementById("room");
 async function updateRooms(hotel_id) {
 
     try {
-        const url = `/api/rooms?hotel_id=${hotel_id}`;
+        const url = `/internal_api/rooms/`;
         const res = await fetch(url);
         const data = await res.json();
 

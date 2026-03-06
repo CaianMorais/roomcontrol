@@ -35,6 +35,7 @@ from app.helpers.reservations.conflict_guest import conflict_guest
 from app.helpers.reservations.guest_availability import guest_availability
 from app.helpers.reservations.room_availability import room_availability
 from app.core.dependencies import get_api_access
+from app.services.reservation_service import ReservationService
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -120,15 +121,15 @@ def reservations(
     hotel_id = request.session.get("hotel_id")
     has_filter = False
 
-    query = db.query(Reservations, Rooms.room_number, Guest.name, Guest.id) \
-        .join(Rooms, Rooms.id == Reservations.room_id) \
-        .join(Guest, Guest.id == Reservations.guest_id) \
-        .filter(Rooms.hotel_id == hotel_id) \
+    query = ReservationService.list_reservations(db, hotel_id)
 
     # se tiver algum dos filtros, joga pra helper que faz os filtros
     if (search or room or status or (interval_in and check_in) or (interval_out and check_out)):
         has_filter = True
-        query = filter_reservations(request, has_filter, query, search, room, status, interval_in, check_in, interval_out, check_out)
+        query, error = ReservationService.filter_reservations(query, search, room, status, interval_in, check_in, interval_out, check_out)
+        if error:
+            add_flash_message(request, error, "danger")
+            return RedirectResponse(url=request.url_for('reservations'), status_code=303)
 
     # ordena a query
     query = order_reservations(query)
@@ -136,6 +137,11 @@ def reservations(
     # joga no paginate
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)
+
+    if not page_obj.items:
+        add_flash_message(request, 'Nenhuma reserva encontrada com os filtros aplicados.', "warning")
+        return RedirectResponse(url=request.url_for('reservations'), status_code=303)
+
 
     # renderiza
     return render(

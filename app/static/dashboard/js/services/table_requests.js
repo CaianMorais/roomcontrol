@@ -12,7 +12,7 @@ function carregaTabelaPedidos() {
         ]],
         ajax: {
             method: 'GET',
-            url: `/api/table/table_services_requests`,
+            url: `/internal_api/table_services_requests`,
             dataSrc: function (json) {
                 if (json && json.length) return json;
                 return [];

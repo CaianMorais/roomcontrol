@@ -38,6 +38,13 @@ api_router = APIRouter(
     tags=["rooms"],
     dependencies=[Depends(get_api_access)]
 )
+
+internal_api_router = APIRouter(
+    prefix="/internal_api",
+    tags=["rooms"],
+    dependencies=[Depends(require_session)]
+)
+
 templates = Jinja2Templates(directory="app/templates")
 
 @api_router.get("/rooms", response_model=List[RoomOut], summary="Filtrar quartos")
@@ -46,7 +53,7 @@ def get_rooms(
     hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
     hotel_id: Optional[int] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
     db: Session = Depends(get_db)
-):      
+):
     query = db.query(Rooms).options(joinedload(Rooms.hotel))
 
     if not access["is_global"]:
@@ -63,6 +70,23 @@ def get_rooms(
     if not rooms:
         raise HTTPException(status_code=404, detail="Nenhum quarto encontrado")
     
+    return rooms
+
+@internal_api_router.get("/rooms", include_in_schema=False)
+def get_rooms_for_reservations_filter(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    hotel_id = request.session.get("hotel_id")
+    if not hotel_id:
+        raise HTTPException(status_code=400, detail="Hotel não reconhecido")
+    
+    rooms = db.query(Rooms) \
+        .options(joinedload(Rooms.hotel)) \
+        .filter(Rooms.is_deleted == False) \
+        .filter(Rooms.hotel_id == hotel_id) \
+        .all()
+
     return rooms
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
@@ -282,7 +306,7 @@ def delete_room(room_id: int, request: Request, db: Session = Depends(get_db
     
     # usa a service para deletar e valida se é possivel
     deleted_room, error = RoomsService.delete_room(db, room)
-    if error:
+    if error and not deleted_room:
         add_flash_message(request, error, "warning")
         return RedirectResponse(url=request.url_for("rooms"), status_code=303)
 
