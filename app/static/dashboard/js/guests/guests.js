@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             showAlert(
                 `Você tem certeza?`,
-                `Essa ação é irreversível!`,
+                `As reservas ativas associadas a este hóspede serão canceladas e os quartos serão liberados.`,
                 'warning'
             ).then((result) => {
                 if (result.isConfirmed) {

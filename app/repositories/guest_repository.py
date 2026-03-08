@@ -85,7 +85,8 @@ class GuestRepository:
             db.query(Guest)
             .filter(
                 Guest.id == guest_id,
-                Guest.hotel_id == hotel_id
+                Guest.hotel_id == hotel_id,
+                Guest.is_deleted == False
             )
             .first()
         )
@@ -105,5 +106,19 @@ class GuestRepository:
 
     @staticmethod
     def soft_delete(db: Session, guest: Guest):
+        reservations = db.query(Reservations) \
+        .filter(Reservations.guest_id == guest.id) \
+        .filter(Reservations.status.in_(["booked", "checked_in"])) \
+        .all()
+
+        for reservation in reservations:
+            if reservation.status == "checked_in":
+                rooms = db.query(Rooms) \
+                .filter(Rooms.id == reservation.room_id) \
+                .filter(Rooms.status == 'occupied') \
+                .first()
+                rooms.status = "available"
+            reservation.status = "canceled"
+
         guest.is_deleted = True
         db.commit()

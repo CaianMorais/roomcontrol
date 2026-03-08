@@ -138,7 +138,7 @@ def reservations(
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)
 
-    if not page_obj.items:
+    if not page_obj.items and has_filter:
         add_flash_message(request, 'Nenhuma reserva encontrada com os filtros aplicados.', "warning")
         return RedirectResponse(url=request.url_for('reservations'), status_code=303)
 
@@ -293,7 +293,12 @@ def update_reservation(
     # localiza o hospede vinculado a reserva
     guest = db.query(Guest).filter(Guest.id == reservation.guest_id) \
     .filter(Guest.hotel_id == hotel_id) \
+    .filter(Guest.is_deleted == False) \
     .first()
+    
+    if not guest:
+        add_flash_message(request, 'Essa reserva não possui um hóspede ativo.', "warning")
+        return RedirectResponse(url=request.url_for('reservations'), status_code=303)
     
     # atualiza a reserva rapidamente pela tabela
     success, msg = fast_update_reservation(reservation, room, db)

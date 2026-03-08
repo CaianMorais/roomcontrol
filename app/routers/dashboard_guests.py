@@ -187,7 +187,7 @@ def edit_guest(
 
     # validações basicas 
     if not hotel_id or not guest:
-        add_flash_message(request, "Erro ao localizar.", "danger")
+        add_flash_message(request, "Erro ao localizar hóspede.", "danger")
         return RedirectResponse(url=request.url_for("guests"), status_code=303)
     
     csrf_token = generate_csrf_token(request)

@@ -48,7 +48,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for reservation, room_number, name, guest_id in reservations %}
+            {% for reservation, room_number, is_deleted, name, guest_id in reservations %}
             <tr class="align-items-center">
                 <td class="border-bottom-0">
                     <p class="fw-semibold mb-0">{{ reservation.id }}</p>
@@ -57,7 +57,7 @@
                     <p class="fw-semibold mb-0">{{ room_number }}</p>
                 </td>
                 <td class="border-bottom-0">
-                    <p class="fw-semibold mb-0">{{ name }}</p>
+                    <p class="fw-semibold mb-0">{{ name if not is_deleted else 'Excluído' }}</p>
                     {# <span class="fw-normal">Web Designer</span> #}
                 </td>
                 <td class="border-bottom-0">

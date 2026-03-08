@@ -10,7 +10,7 @@ class ReservationRepository:
     @staticmethod
     def base_query(db: Session, hotel_id: int):
         return (
-            db.query(Reservations, Rooms.room_number, Guest.name, Guest.id)
+            db.query(Reservations, Rooms.room_number, Guest.is_deleted, Guest.name, Guest.id)
             .join(Rooms, Rooms.id == Reservations.room_id)
             .join(Guest, Guest.id == Reservations.guest_id)
             .filter(Rooms.hotel_id == hotel_id)

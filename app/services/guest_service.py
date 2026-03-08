@@ -31,6 +31,11 @@ class GuestService:
         if phone_number and len(phone_number) < 10:
             phone_number = None
 
+        if email == '':
+            email = None
+        if phone_number == '':
+            phone_number = None
+
         # se existir e estiver como deletado, restaura atualizando os dados
         if existing and existing.is_deleted:
             existing.name = name
