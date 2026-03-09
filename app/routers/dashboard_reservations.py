@@ -36,6 +36,8 @@ from app.helpers.reservations.guest_availability import guest_availability
 from app.helpers.reservations.room_availability import room_availability
 from app.core.dependencies import get_api_access
 from app.services.reservation_service import ReservationService
+from app.services.guest_service import GuestService
+from app.services.room_service import RoomsService
 
 router = APIRouter(
     prefix="/dashboard_reservations",
@@ -170,13 +172,10 @@ def new_reservation(
 ):
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
-    if not hotel_id:
-        add_flash_message(request, "Hotel não selecionado.", "danger")
-        return RedirectResponse(url="/dashboard", status_code=303)
     
     # se tiver guest, já inicia o formulário com ele instanciadp
     if guest_id:
-        guest = verify_guest_by_id(request, guest_id, hotel_id, db)
+        guest = GuestService.get_guest(db, guest_id, hotel_id)
     else:
         guest = []
 
@@ -204,18 +203,20 @@ def check_availability(
     check_out: datetime.datetime = Query(...),
     guest_id: Optional[int] = Query(None),
 ):
+    #captura o hotel
     hotel_id = request.session.get("hotel_id")
+    # inicia a variavel de conflito do hospede
     guest_conflict = None
 
     # se tiver hospede específicado verifica se tem conflito de datas
     if guest_id:
-        guest_conflict = conflict_guest(guest_id, check_in, check_out, db)
+        guest_conflict = ReservationService.guest_has_conflict(db, guest_id, check_in, check_out)
         available_guests = []
     else:
-        available_guests = guest_availability(hotel_id, check_in, check_out, db)
+        available_guests = ReservationService.get_available_guests(db, hotel_id, check_in, check_out)
     
-    # Quartos disponíveis
-    available_rooms = room_availability(db, check_in, check_out, hotel_id)
+    # envia as datas para a service verificar os quartos disponiveis na data desejada
+    available_rooms = ReservationService.get_available_rooms(db, check_in, check_out, hotel_id)
 
     return {
         "guest_conflict": bool(guest_conflict),

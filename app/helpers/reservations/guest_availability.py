@@ -10,6 +10,7 @@ def guest_availability(hotel_id, check_in, check_out, db):
 
     available_guests = db.query(Guest).filter(
         Guest.hotel_id == hotel_id,
+        Guest.is_deleted == False,
         ~Guest.id.in_(reserved_guest_ids)
     ).all()
 

@@ -1,10 +1,10 @@
 <ul>
     <li class="d-flex justify-content-between">
-        <strong>Hóspede: </strong>{{ reservation.Guest.name }}
+        <strong>Hóspede: </strong>{{ reservation.Guest.name if not reservation.Guest.is_deleted else 'Excluído' }}
     </li>
     <hr class="mx-0 my-2">
     <li class="d-flex justify-content-between">
-        <strong>Nº do quarto: </strong>{{ reservation.room_number }}
+        <strong>Nº do quarto: </strong>{{ reservation.room_number if not reservation.Rooms.is_deleted else '-' }}
     </li>
     <hr class="mx-0 my-2">
     {% if reservation.Reservations.status == 'booked' %}

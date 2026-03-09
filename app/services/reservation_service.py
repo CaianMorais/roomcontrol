@@ -7,6 +7,7 @@ class ReservationService:
     def list_reservations(db, hotel_id):
         return ReservationRepository.get_reservations(db, hotel_id)
     
+    @staticmethod
     def filter_reservations(query, search, room, status, interval_in, check_in, interval_out, check_out):
         check_in_dt = None
         check_out_dt = None
@@ -32,3 +33,15 @@ class ReservationService:
         )
 
         return query, None
+
+    @staticmethod
+    def guest_has_conflict(db, guest_id, check_in, check_out):
+        return ReservationRepository.check_guest_conflict(db, guest_id, check_in, check_out)
+    
+    @staticmethod
+    def get_available_guests(db, hotel_id, check_in, check_out):
+        return ReservationRepository.check_available_guests(db, hotel_id, check_in, check_out)
+    
+    @staticmethod
+    def get_available_rooms(db, check_in, check_out, hotel_id):
+        return ReservationRepository.check_available_rooms(db, hotel_id, check_in, check_out)

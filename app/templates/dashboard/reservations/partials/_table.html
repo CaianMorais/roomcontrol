@@ -48,16 +48,16 @@
             </tr>
         </thead>
         <tbody>
-            {% for reservation, room_number, is_deleted, name, guest_id in reservations %}
+            {% for reservation, room_is_deleted, room_number, guest_is_deleted, name, guest_id in reservations %}
             <tr class="align-items-center">
                 <td class="border-bottom-0">
                     <p class="fw-semibold mb-0">{{ reservation.id }}</p>
                 </td>
                 <td class="border-bottom-0">
-                    <p class="fw-semibold mb-0">{{ room_number }}</p>
+                    <p class="fw-semibold mb-0">{{ room_number if not room_is_deleted else '-' }}</p>
                 </td>
                 <td class="border-bottom-0">
-                    <p class="fw-semibold mb-0">{{ name if not is_deleted else 'Excluído' }}</p>
+                    <p class="fw-semibold mb-0">{{ name if not guest_is_deleted else 'Excluído' }}</p>
                     {# <span class="fw-normal">Web Designer</span> #}
                 </td>
                 <td class="border-bottom-0">
@@ -94,9 +94,10 @@
                             <i class="ti ti-door-exit"></i>
                         </a>
                         {% elif reservation.status == 'checked_out' %}
-                        <a href="/dashboard_reservations/new?guest_id={{ guest_id }}" class="text-success"
+                        <a {% if not guest_is_deleted %} href="/dashboard_reservations/new?guest_id={{ guest_id }}" {% else %} href="javascript:void(0)" {% endif %}
+                            class="text-success {% if guest_is_deleted %} opacity-25 {% endif %}"
                             data-bs-toggle="tooltip" data-bs-placement="bottom" title=""
-                            data-bs-original-title="Reservar este hóspede novamente"
+                            data-bs-original-title="{% if guest_is_deleted %}Não é possível reservar este hóspede novamente{% else %}Reservar este hóspede novamente{% endif %}"
                             aria-label="Reservar este hóspede novamente">
                             <i class="ti ti-calendar-plus"></i>
                         </a>
