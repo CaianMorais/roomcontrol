@@ -37,6 +37,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
 
                     const data = await res.json();
+                    console.log(data);
+                    if (!res.ok) {
+                        throw new Error(data.detail || 'Erro desconhecido');
+                    }
 
                     if (data.status) {
                         // se tiver o data.status, significa que a reserva foi atualizada
@@ -62,9 +66,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 // alerta sem timer dando erro: problema ao fazer a requisição
                 } catch (err) {
+                    console.log(err);
                     showAlert(
-                        `Erro ao atualizar a reserva`,
-                        `${err}`,
+                        `Erro ao atualizar a reserva!`,
+                        err.message,
                         'error'
                     );
                 }

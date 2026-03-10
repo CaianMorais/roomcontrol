@@ -1,5 +1,11 @@
+from fastapi import HTTPException
+
+from app.domain.reservation_rules import decide_fast_update
 from app.repositories.reservation_repository import ReservationRepository
+from app.models.reservations import Reservations
 import datetime
+
+from app.repositories.room_repository import RoomsRepository
 
 class ReservationService:
 
@@ -45,3 +51,124 @@ class ReservationService:
     @staticmethod
     def get_available_rooms(db, check_in, check_out, hotel_id):
         return ReservationRepository.check_available_rooms(db, hotel_id, check_in, check_out)
+    
+    @staticmethod
+    def create_reservation(db, check_in, check_out, check_in_now, room, guest):
+        # validações redundantes, o front-end já faz, mas é bom garantir
+        if check_out <= check_in:
+            return None, "Data de check-out deve ser posterior à data de check-in."
+        if check_out < datetime.datetime.now():
+            return None, "O horário de check-out não pode ser menor que o horário atual."
+        
+        if not check_in_now:
+            status = 'booked'
+        elif check_in_now:
+            status = 'checked_in'
+            room.status = 'occupied'
+        else:
+            return None, "Data de check-in inválida."
+        
+        new_reservation = Reservations(
+            guest_id=guest.id,
+            room_id=room.id,
+            check_in=check_in,
+            check_out=check_out,
+            status=status
+        )
+
+        return ReservationRepository.create(db, new_reservation), None
+        
+    @staticmethod
+    def get_reservation(db, reservation_id, hotel_id):
+        reservation = ReservationRepository.find_by_id(db, reservation_id, hotel_id)
+        if reservation:
+            return reservation, None
+        else:
+            return None, "Reserva não encontrada"
+        
+    @staticmethod
+    def update_status_from_manage(db, check_in, check_out, cancel, reservation):
+        # se check-in for true, tenta realizar o check-in
+        if check_in and reservation.Reservations.status == 'booked' and reservation.Rooms.status == 'available':
+            reservation.Reservations.status = 'checked_in'
+            check_in_now = datetime.datetime.now()
+            reservation.Reservations.check_in = check_in_now
+
+            if check_in_now > reservation.Reservations.check_out:
+                reservation.Reservations.check_out = check_in_now + datetime.timedelta(days=1)
+            reservation.Rooms.status = 'occupied'
+        elif check_in and (reservation.Reservations.status != 'booked' or reservation.Rooms.status != 'available'):
+            return reservation, "Erro ao realizar check-in."
+        
+        # se check-out for true, tenta realizar o check-out
+        if check_out and reservation.Reservations.status == 'checked_in' and reservation.Rooms.status == 'occupied':
+            reservation.Reservations.status = 'checked_out'
+            reservation.Reservations.check_out = datetime.datetime.now()
+            reservation.Rooms.status = 'available'
+        elif check_out and (reservation.Reservations.status != 'checked_in' or reservation.Rooms.status != 'occupied'):
+            return reservation, "Erro ao realizar check-out."
+        
+        # se cancel for true, tenta realizar o cancelamento
+        if cancel and reservation.Reservations.status == 'canceled':
+            return reservation, "A reserva já está cancelada."
+        elif cancel and reservation.Reservations.status == 'checked_out':
+            return reservation, "A reserva já foi encerrada."
+        elif cancel and (reservation.Reservations.status == 'booked' or reservation.Reservations.status == 'checked_in'):
+            reservation.Reservations.status = 'canceled'
+            reservation.Reservations.check_out = datetime.datetime.now()
+            reservation.Rooms.status = 'available'
+        
+        return ReservationRepository.update(db, reservation), None
+    
+    @staticmethod
+    def update_status_from_table(db, reservation, room):
+
+        # valida se a reserva e o quarto estão em estados que permitem atualização
+        ok, new_reservation_status, new_room_status = decide_fast_update(
+            reservation.Reservations.status,
+            room.status,
+        )
+
+        if not ok:
+            return None, "Não foi possível modificar esta reserva!"
+        
+        now = datetime.datetime.now()
+
+        if new_reservation_status == 'checked_in':
+            reservation.Reservations.status = new_reservation_status
+            reservation.Reservations.check_in = now
+
+            if now > reservation.Reservations.check_out:
+                reservation.Reservations.check_out = now + datetime.timedelta(days=1)
+
+        elif new_reservation_status == 'checked_out':
+            reservation.Reservations.status = new_reservation_status
+            reservation.Reservations.check_out = now
+            
+        room.status = new_room_status
+
+        reservation_updated = ReservationRepository.update(db, reservation)
+        room_updated = RoomsRepository.update(db, room)
+
+        if not reservation_updated or not room_updated:
+            return None, "Erro ao atualizar a reserva"
+        
+        return reservation_updated, None
+    
+    @staticmethod
+    def change_requests_services(db, reservation):
+        # se a reserva estiver habilitada a solicitar serviços
+        if reservation.Reservations.allow_request_services:
+            reservation.Reservations.allow_request_services = False
+            message = "O hóspede não está mais autorizado a solicitar serviços para essa reserva"
+
+        else:
+            reservation.Reservations.allow_request_services = True
+            message = "O hóspede está autorizado a solicitar serviços para essa reserva"
+
+        reservation_updated = ReservationRepository.update(db, reservation)
+        if not reservation_updated:
+            return None, "Erro ao realizar operação", None
+        
+        return reservation_updated, None, message
+

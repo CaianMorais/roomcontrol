@@ -183,7 +183,7 @@ def edit_guest(
 ):
     # localiza hotel e o hospede
     hotel_id = request.session.get("hotel_id")
-    guest = GuestService.get_guest(db, guest_id, hotel_id)
+    guest = GuestService.get_guest(db, hotel_id, guest_id)
 
     # validações basicas 
     if not hotel_id or not guest:
@@ -216,7 +216,7 @@ def update_guest(
     hotel_id = request.session.get("hotel_id")
 
     # localiza o hospede
-    guest = GuestService.get_guest(db, guest_id, hotel_id)
+    guest = GuestService.get_guest(db, hotel_id, guest_id)
 
     # validações básicas
     if not validate_csrf_token(request, csrf_token):
@@ -236,7 +236,7 @@ def update_guest(
 
     if next:
         return RedirectResponse(url=next, status_code=303)
-    return RedirectResponse(url=request.url_for("guests"), status_code=303)
+    return RedirectResponse(url=request.url_for("edit_guest", guest_id=guest.id, guest_cpf=guest.cpf), status_code=303)
 
 @router.get("/delete/{guest_id}/{guest_cpf}", response_class=HTMLResponse, include_in_schema=False)
 def delete_guest(
@@ -248,7 +248,7 @@ def delete_guest(
     hotel_id = request.session.get("hotel_id")
 
     #localiza o hospede 
-    guest = GuestService.get_guest(db, guest_id, hotel_id)
+    guest = GuestService.get_guest(db, hotel_id, guest_id)
     
     # soft-delete na service
     GuestService.delete_guest(db, guest)

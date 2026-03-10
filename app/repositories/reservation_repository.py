@@ -61,7 +61,7 @@ class ReservationRepository:
         return query
 
     @staticmethod
-    def check_guest_conflict(db, guest_id, check_in, check_out):
+    def check_guest_conflict(db: Session, guest_id: int, check_in: datetime.datetime, check_out: datetime.datetime):
         guest_conflict = db.query(Reservations).filter(
             Reservations.status.not_in(["canceled", "checked_out"]),
             Reservations.guest_id == guest_id,
@@ -72,7 +72,7 @@ class ReservationRepository:
         return guest_conflict
     
     @staticmethod
-    def check_available_guests(db, hotel_id, check_in, check_out):
+    def check_available_guests(db: Session, hotel_id: int, check_in: datetime.datetime, check_out: datetime.datetime):
         reserved_guest_ids = db.query(Reservations.guest_id).filter(
             Reservations.check_in < check_out,
             Reservations.check_out > check_in,
@@ -88,7 +88,7 @@ class ReservationRepository:
         return available_guests
     
     @staticmethod
-    def check_available_rooms(db, hotel_id, check_in, check_out):
+    def check_available_rooms(db: Session, hotel_id: int, check_in: datetime.datetime, check_out: datetime.datetime):
         # Pega as reservas ativas no período que se cruza com o período desejado
         reserved_room_ids = db.query(Reservations.room_id).filter(
             Reservations.status.in_(["booked", "checked_in"]),
@@ -106,3 +106,26 @@ class ReservationRepository:
         ).all()
 
         return available_rooms
+    
+    @staticmethod
+    def find_by_id(db: Session, reservation_id: int, hotel_id: int):
+        return db.query(Reservations, Rooms.room_number, Guest, Rooms) \
+            .join(Rooms, Rooms.id == Reservations.room_id) \
+            .join(Guest, Guest.id == Reservations.guest_id) \
+            .filter(Reservations.id == reservation_id) \
+            .filter(Rooms.hotel_id == hotel_id) \
+            .first()
+    
+    @staticmethod
+    def create(db: Session, new_reservation: Reservations):
+        db.add(new_reservation)
+        db.commit()
+        db.refresh(new_reservation)
+        return new_reservation
+    
+    @staticmethod
+    def update(db: Session, reservation: Reservations):
+        db.commit()
+        db.refresh(reservation.Reservations)
+        return reservation
+    
