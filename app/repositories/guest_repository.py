@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.guest import Guest
 from app.models.reservations import Reservations
@@ -16,49 +17,55 @@ class GuestRepository:
         )
     
     @staticmethod
-    def _active_reservations_subquery(db: Session):
+    def _active_reservations_subquery(db: Session, hotel_id: int):
         # consulta as reservas ativas no hotel
-        return (
-            db.query(
+        return db.query(
                 Reservations.guest_id,
                 Reservations.check_in.label("reservation_check_in"),
                 Reservations.status.label("reservation_status"),
                 Reservations.id.label("reservation_id"),
-                Rooms.room_number.label("room_number")
-            )
-            .join(Rooms, Rooms.id == Reservations.room_id)
+                Rooms.room_number.label("room_number"),
+                # numera as reservas de cada hospede:
+                func.row_number().over(
+                    # agrupa por ID do hospede:
+                    partition_by=Reservations.guest_id,
+                    #ordena por data de check-in mais recente:
+                    order_by=Reservations.check_in.asc()
+                ).label("rn")
+            ) \
+            .join(Rooms, Rooms.id == Reservations.room_id) \
             .filter(
-                Reservations.status.in_(["booked", "checked_in"])
-            )
-            .order_by(Reservations.check_in)
+                Reservations.status.in_(["booked", "checked_in"]),
+                Rooms.hotel_id == hotel_id
+            ) \
+            .order_by(Reservations.check_in) \
             .subquery()
-        )
 
     @staticmethod
     def guests_with_active_reservations(db: Session, hotel_id: int):
-        subquery = GuestRepository._active_reservations_subquery(db)
+        subquery = GuestRepository._active_reservations_subquery(db, hotel_id)
 
         # com as reservas ativas armazenadas em "subquery"
         # consulta os hospedes do hotel
         # e anexa a reserva ativa correspondente a ele
 
-        return (
-            db.query(
+        query = db.query(
                 Guest,
                 subquery.c.reservation_check_in,
                 subquery.c.reservation_status,
                 subquery.c.reservation_id,
                 subquery.c.room_number
-            )
+            ) \
             .outerjoin(
                 subquery,
-                Guest.id == subquery.c.guest_id
-            )
+                (Guest.id == subquery.c.guest_id) & (subquery.c.rn == 1) # pega somente a reserva mais recente de cada hospede
+            ) \
             .filter(
                 Guest.hotel_id == hotel_id,
                 Guest.is_deleted == False
             )
-        )
+                
+        return query
     
     @staticmethod
     def filter_guests_by_name_or_cpf(db: Session, name: str , cpf: str, query):

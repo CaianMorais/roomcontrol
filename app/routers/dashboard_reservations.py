@@ -345,12 +345,9 @@ def update_reservation(
     reservation, error = ReservationService.update_status_from_table(db, reservation, room)
 
     if error:
-        return JSONResponse(
-            status_code=400,
-            content={
-                "message": error,
-            },
-        )
+        return {
+            'message': error
+        }
     # registra log
     register_audit(db, hotel_id, 'update', 'reservation', reservation.Reservations.id, request.session.get("collaborator_id"))
 

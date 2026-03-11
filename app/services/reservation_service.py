@@ -88,6 +88,10 @@ class ReservationService:
         
     @staticmethod
     def update_status_from_manage(db, check_in, check_out, cancel, reservation):
+        if check_in:
+            guest_is_occupied = ReservationRepository.check_guest_is_available(db, reservation)
+            if guest_is_occupied:
+                return reservation.Reservations, "O hóspede tem uma reserva ativa neste momento."
         # se check-in for true, tenta realizar o check-in
         if check_in and reservation.Reservations.status == 'booked' and reservation.Rooms.status == 'available':
             reservation.Reservations.status = 'checked_in'
@@ -98,7 +102,7 @@ class ReservationService:
                 reservation.Reservations.check_out = check_in_now + datetime.timedelta(days=1)
             reservation.Rooms.status = 'occupied'
         elif check_in and (reservation.Reservations.status != 'booked' or reservation.Rooms.status != 'available'):
-            return reservation, "Erro ao realizar check-in."
+            return reservation.Reservations, "Erro ao realizar check-in."
         
         # se check-out for true, tenta realizar o check-out
         if check_out and reservation.Reservations.status == 'checked_in' and reservation.Rooms.status == 'occupied':
@@ -106,13 +110,13 @@ class ReservationService:
             reservation.Reservations.check_out = datetime.datetime.now()
             reservation.Rooms.status = 'available'
         elif check_out and (reservation.Reservations.status != 'checked_in' or reservation.Rooms.status != 'occupied'):
-            return reservation, "Erro ao realizar check-out."
+            return reservation.Reservations, "Erro ao realizar check-out."
         
         # se cancel for true, tenta realizar o cancelamento
         if cancel and reservation.Reservations.status == 'canceled':
             return reservation, "A reserva já está cancelada."
         elif cancel and reservation.Reservations.status == 'checked_out':
-            return reservation, "A reserva já foi encerrada."
+            return reservation.Reservations, "A reserva já foi encerrada."
         elif cancel and (reservation.Reservations.status == 'booked' or reservation.Reservations.status == 'checked_in'):
             reservation.Reservations.status = 'canceled'
             reservation.Reservations.check_out = datetime.datetime.now()

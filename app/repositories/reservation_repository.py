@@ -108,6 +108,14 @@ class ReservationRepository:
         return available_rooms
     
     @staticmethod
+    def check_guest_is_available(db: Session, reservation: Reservations):
+        return db.query(Reservations).filter(
+            Reservations.id != reservation.Reservations.id,
+            Reservations.guest_id == reservation.Reservations.guest_id,
+            Reservations.status == 'checked_in'
+        ).first()
+    
+    @staticmethod
     def find_by_id(db: Session, reservation_id: int, hotel_id: int):
         return db.query(Reservations, Rooms.room_number, Guest, Rooms) \
             .join(Rooms, Rooms.id == Reservations.room_id) \
