@@ -1,5 +1,3 @@
-from fastapi import HTTPException
-
 from app.domain.reservation_rules import decide_fast_update
 from app.repositories.reservation_repository import ReservationRepository
 from app.models.reservations import Reservations
@@ -88,6 +86,7 @@ class ReservationService:
         
     @staticmethod
     def update_status_from_manage(db, check_in, check_out, cancel, reservation):
+        # se check-in for true, verifica se o hóspede já tem uma reserva checked_in
         if check_in:
             guest_is_occupied = ReservationRepository.check_guest_is_available(db, reservation)
             if guest_is_occupied:

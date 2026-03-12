@@ -21,6 +21,7 @@ from app.schemas.services import ServicesOut
 from app.schemas.table_services import TableServicesOut
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
+from app.services.services_request_service import ServicesRequestService
 
 router = APIRouter(
     prefix='/dashboard_services',
@@ -130,11 +131,8 @@ def services_requests(
     request: Request,
 ):
     # essa rota não consulta no banco
-    # o JS consulta diretamente na API
-    if not request.session.get("hotel_id"):
-        add_flash_message(request, 'Não foi identificado o ID do hotel na sua sessão, tente novamente', 'error')
-        return RedirectResponse(url="/logout", status_code=303)
-    
+    # o JS consulta no endpoint interno da API
+
     return render(
         templates,
         request,
