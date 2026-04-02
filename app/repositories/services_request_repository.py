@@ -14,3 +14,9 @@ class ServicesRequestRepository:
         .join(Rooms, Rooms.id == Services.room_id) \
         .filter(Services.id==request_id, Guest.hotel_id==hotel_id) \
         .first()
+    
+    @staticmethod
+    def update(db: Session, service: Services, new_status: str):
+        service.status = new_status
+        db.commit()
+        db.refresh(service)

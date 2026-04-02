@@ -3,15 +3,14 @@ from typing import List, Literal, Optional
 
 # import de libs third-party
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session, joinedload
 
 # import do current-app
 from app.core.config import get_db
 from app.core.dependencies import get_api_access
-from app.helpers.services.query_requests import query_requests
-from app.helpers.services.update_request_status import update_req_status
+from app.helpers.register_audit import register_audit
 from app.models.guest import Guest
 from app.models.hotel import Hotel
 from app.models.reservations import Reservations
@@ -130,8 +129,8 @@ def get_table_services_requests(
 def services_requests(
     request: Request,
 ):
-    # essa rota não consulta no banco
-    # o JS consulta no endpoint interno da API
+    # essa rota somente renderiza o template
+    # o carregamento dos dados é feito via JS chamando a endpoint interna
 
     return render(
         templates,
@@ -145,7 +144,10 @@ def view_request(
     request_id: int,
     db: Session = Depends(get_db)
 ):
-    service_request = query_requests(request, db, request.session.get('hotel_id'), request_id)
+    service_request, error = ServicesRequestService.get_request(db, request.session.get('hotel_id'), request_id)
+    if error:
+        add_flash_message(request, error, "warning")
+        return RedirectResponse(request.url_for('services_requests'), status_code=303)
     
     # seta o id do serviço na sessão para fazer update sem precisar passar o id pelo template
     request.session['service_id'] = service_request.Services.id
@@ -165,7 +167,25 @@ def update_service_status(
     payload: dict = Body(...),
     db: Session = Depends(get_db)
 ):
+    # resgata o novo status do body que JS envia
     new_status = payload.get("status")
-    response = update_req_status(request, db, payload, new_status)
+    # resgata o id do pedido
+    service_id = request.session.get('service_id')
+    # chama a função de update passando o request, db, novo status e o id do peddio
+    response = ServicesRequestService.update_request_status(request, db, new_status, service_id)
+
+    if response["ok"]:
+        register_audit(db, request.session.get("hotel_id"), 'update', 'service', service_id, request.session.get("collaborator_id"))
     
-    return response
+    return JSONResponse(
+        {
+            "ok": response["ok"],
+            "message": response["message"],
+            "new_status": response["new_status"]
+        },
+        status_code=200 if response["ok"] else 400
+    )
+    
+
+
+    
