@@ -29,9 +29,11 @@
         {% include 'guests_access/partials/_modal_solicitar.html' %}
     </div>
     {% endif %}
+    
     <div class="modal fade" id="solicitacaoServico" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         {% include 'guests_access/partials/_modal_ver_solicitacao.html' %}
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{{ url_for('dashboard', path='js/alerts.js') }}" type="module"></script>
     {% if reserva.Reservations.status == 'checked_in' and reserva.Reservations.allow_request_services %}

@@ -33,8 +33,5 @@
 <script src="https://cdn.datatables.net/2.3.5/js/dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.5/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    const hotel_id = '{{ request.session.get("hotel_id") }}';
-</script>
 <script src="{{ url_for('dashboard', path='js/services/table_requests.js') }}"></script>
 {% endblock %}

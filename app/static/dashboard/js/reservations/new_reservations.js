@@ -19,13 +19,20 @@ const guestSelect = document.getElementById("name_select2");
 async function updateAvailability() {
     const checkIn = checkInInput.value;
     const checkOut = checkOutInput.value;
+    const now = new Date();
     const guest_id = guestSelect ? guestSelect.value || GUEST_ID : GUEST_ID;
 
     if (!checkIn || !checkOut) return;
 
     if (checkIn > checkOut) {
         showAlert("Opa...", "O check-out deve ser posterior ao check-in", "error", true, 2000);
-        checkInInput.value = ''; checkOutInput.value = '';
+        checkOutInput.value = '';
+        return;
+    }
+
+    if (new Date(checkOut) < now) {
+        showAlert("Opa...", "O check-out deve ser uma data futura", "error", true, 2000);
+        checkOutInput.value = '';
         return;
     }
 
