@@ -1,5 +1,5 @@
-## 🔄️ Última Atualização 27/02/2026
-- Router `dashboard_services.py` migradas para Services Layer e Repositories.
+## 🔄️ Última Atualização 08/04/2026
+- Routers `dashboard_services.py` e `guest_access.py` migradas para Services Layer e Repositories.
 - Bugs e inconsistências ajustadas em `repositories/room_repository.py`, `model/services.py`, `services/guest_service.py` e `services/room_service.py`
 
 ## ➡️ Próximas atualizações
