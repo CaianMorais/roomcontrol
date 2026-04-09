@@ -79,3 +79,4 @@ class RoomsRepository:
         room.is_deleted = True
         db.commit()
         db.refresh(room)
+        return room

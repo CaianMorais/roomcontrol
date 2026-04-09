@@ -14,7 +14,7 @@ class GuestService:
     @staticmethod
     def get_guest(db, hotel_id, guest_id=None, cpf=None):
         guest = None
-        print(f"Buscando guest com guest_id={guest_id}, cpf={cpf}, hotel_id={hotel_id}")
+        
         if guest_id:
             guest = GuestRepository.find_by_id(db, guest_id, hotel_id)
         if not guest and cpf:

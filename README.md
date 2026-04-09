@@ -1,8 +1,6 @@
 ## 🔄️ Última Atualização 27/02/2026
-- Todas as ações do sistema estão gerando logs quando ações são tomadas por um colaborador.
-- Melhoria de segurança: geração e validação de CSRF Token aprimoradas com token assinado, único e vinculado à sessão ativa.
-- Login de funcionário agora tem um select com o hotel o qual o funcionário está entrando, podendo ter um login para múltiplos hotéis **(sistema multi-tenant)**.
-- Router `dashboard_guests.py` totalmente otimizada para o padrão **Unit of Work** contando com Services para controlar transações e Repositories para persistência e acesso aos dados.
+- Router `dashboard_services.py` migradas para Services Layer e Repositories.
+- Bugs e inconsistências ajustadas em `repositories/room_repository.py`, `model/services.py`, `services/guest_service.py` e `services/room_service.py`
 
 ## ➡️ Próximas atualizações
 

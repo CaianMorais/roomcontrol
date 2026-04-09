@@ -71,7 +71,7 @@ class RoomsService:
     @staticmethod
     def create_room(db, hotel_id, room_number, room_type, capacity_adults, capacity_children, capacity_total, price, is_active, comments):
 
-        existing = RoomsRepository.find_by_room_number(db, room_number, hotel_id)
+        existing = RoomsRepository.find_by_room_number(db, hotel_id, room_number)
 
         if existing and not existing.is_deleted:
             return None, "Número de quarto já cadastrado no seu hotel"

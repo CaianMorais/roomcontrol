@@ -16,3 +16,5 @@ class Services(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
     reservation = relationship("Reservations", back_populates='services_requests')
+    guest = relationship("Guest", back_populates='services_requests')
+    room = relationship("Rooms", back_populates='services_requests')
