@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 # import do current-app
 from app.core.config import get_db
-from app.core.dependencies import get_api_hotel
+from app.core.dependencies import get_api_access
 from app.helpers.audit.filter_logs import filter_logs
 from app.models.audit_log import AuditLog
 from app.models.collaborator import Collaborator
@@ -28,7 +28,7 @@ router = APIRouter(
 api_router = APIRouter(
     prefix="/api",
     tags=["audit"],
-    dependencies=[Depends(get_api_hotel)]
+    dependencies=[Depends(get_api_access)]
 )
 
 templates = Jinja2Templates(directory="app/templates")

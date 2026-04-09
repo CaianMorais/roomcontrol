@@ -48,7 +48,9 @@ btnNewKey.addEventListener("click", async () => {
             `,
             icon: "success",
             confirmButtonText: "Entendi"
-        })
+        }).then(() => {
+            window.location.reload();
+        });
 
     } catch (error) {
         Swal.fire({

@@ -37,7 +37,7 @@ def get_hotels(
     db: Session = Depends(get_db)
 ):
     if not access["is_global"]:
-        raise HTTPException(status_code=403, detail="API Key não autorizada")
+        raise HTTPException(status_code=403, detail="API Key não autorizada.")
     
     query = db.query(Hotel)
 
