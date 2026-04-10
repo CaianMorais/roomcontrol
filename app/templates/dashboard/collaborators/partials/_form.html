@@ -51,9 +51,9 @@
     {% endif %}
     {% if not collaborator %}
     <button type="submit" class="btn btn-primary">Criar</button>
-    <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
+    <a href="{{ url_for('collaborators') }}" class="btn btn-outline-danger ms-2">Voltar</a>
     {% else %}
     <button type="submit" class="btn btn-primary">Salvar</button>
-    <a href="javascript:history.back()" class="btn btn-outline-danger ms-2">Voltar</a>
+    <a href="{{ url_for('collaborators') }}" class="btn btn-outline-danger ms-2">Voltar</a>
     {% endif %}
 </form>

@@ -212,6 +212,7 @@ async def login(
     request.session.clear()
     request.session['hotel_id'] = hotel.id
     request.session['hotel_name'] = hotel.name
+    request.session['admin_logged_in'] = True
 
     add_flash_message(request, "Login bem-sucedido,", "success")
     response = RedirectResponse(url="/dashboard", status_code=302)

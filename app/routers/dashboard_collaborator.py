@@ -1,32 +1,22 @@
-# import de libs padrao
+# import de libs padrão
 from typing import List, Optional
 
-#import de libs third-party
-
+# import de libs third-party
 from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import or_
+from sqlalchemy.orm import Session
 
-# import de funções da aplicação local
-
+# import do current-app
 from app.core.config import get_db
+from app.core.dependencies import get_api_access
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.helpers.collaborators.filter_collaborators import filter_collaborators
-from app.helpers.collaborators.collaborator_creator import collaborator_creator
-from app.helpers.collaborators.restore_collaborator import restore_collaborator
-from app.helpers.collaborators.collaborator_updater import collaborator_updater
-from app.helpers.collaborators.format_username import format_username
+from app.schemas.collaborator import CollaboratorOut
+from app.services.collaborator_service import CollaboratorService
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_admin_session
-from app.schemas.collaborator import CollaboratorOut
-from app.models.collaborator import Collaborator
-from app.models.hotel import Hotel
-from app.core.security import hash_password
-from app.core.dependencies import get_api_access
 
 router = APIRouter(
     prefix="/dashboard_collaborators",
@@ -42,6 +32,7 @@ api_router = APIRouter(
 
 templates = Jinja2Templates(directory="app/templates")
 
+
 @api_router.get("/collaborators", response_model=List[CollaboratorOut], summary="Filtrar colaboradores (Exclusivo para chave global)")
 def get_collaborators(
     access: dict = Depends(get_api_access),
@@ -52,27 +43,17 @@ def get_collaborators(
     db: Session = Depends(get_db)
 ):
     if not access["is_global"]:
-        raise HTTPException(status_code=403, detail="API Key não autorizada.")
-    
-    query = db.query(Collaborator) \
-    .options(joinedload(Collaborator.hotel)) \
-    .filter(Collaborator.is_deleted == False)
+        raise HTTPException(status_code=403, detail="API Key não autorizada")
 
-    if hotel_name:
-        query = query.join(Hotel, Collaborator.hotel_id == Hotel.id).filter(Hotel.name.ilike(f"%{hotel_name}%"))
-    if firstname:
-        query = query.filter(Collaborator.firstname.ilike(f"%{firstname}%"))
-    if lastname:
-        query = query.filter(Collaborator.lastname.ilike(f"%{lastname}%"))
-    if cpf:
-        query = query.filter(Collaborator.cpf.ilike(f"%{cpf}%"))
+    query = CollaboratorService.list_collaborators_global(db)
+    query = CollaboratorService.filter_collaborators_global(query, hotel_name, firstname, lastname, cpf)
 
     collaborators = query.all()
-
     if not collaborators:
-        raise HTTPException(status_code=404, detail="Nenhum pedido encontrado")
-    
+        raise HTTPException(status_code=404, detail="Nenhum colaborador encontrado")
+
     return collaborators
+
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def collaborators(
@@ -83,28 +64,15 @@ def collaborators(
     search: Optional[str] = Query(""),
     status: Optional[str] = Query(None),
 ):
-    # captura e valida o hotel
     hotel_id = request.session.get("hotel_id")
 
-    if not hotel_id:
-        add_flash_message(request, "Hotel não localizado", 'danger')
-        return RedirectResponse(url='/dashboard', status_code=303)
-    
     has_filter = False
+    query = CollaboratorService.list_collaborators(db, hotel_id)
 
-    # inicia a query
-    query = db.query(Collaborator) \
-    .filter(Collaborator.hotel_id == hotel_id) \
-    .filter(Collaborator.is_deleted == False) \
-    .order_by(Collaborator.is_active) \
-    .order_by(Collaborator.created_at.desc()) \
-
-    # faz o filtro (se tiver)
     if search or status:
-        query = filter_collaborators(query, search, status)
+        query = CollaboratorService.filter_collaborators(query, search, status)
         has_filter = True
 
-    # paginação
     params = Params(page=page, size=per_page)
     page_obj = sa_paginate(db, query, params)
 
@@ -113,9 +81,8 @@ def collaborators(
         request,
         "dashboard/collaborators/collaborators.html",
         {
-            "request": request,
             "collaborators": page_obj.items,
-            "has_filter" : has_filter,
+            "has_filter": has_filter,
             "search": search,
             "status": status,
             "pager": {
@@ -127,20 +94,17 @@ def collaborators(
         }
     )
 
-@router.get("/new", response_class=HTMLResponse, include_in_schema=False)
-def new_collaborator(
-    request: Request,
-):
-    csrf_token = generate_csrf_token(request)
 
+@router.get("/new", response_class=HTMLResponse, include_in_schema=False)
+def new_collaborator(request: Request):
+    csrf_token = generate_csrf_token(request)
     return render(
         templates,
         request,
         "dashboard/collaborators/form_collaborator.html",
-        {
-            "csrf_token": csrf_token
-        }
+        {"csrf_token": csrf_token}
     )
+
 
 @router.post("/create", response_class=HTMLResponse, include_in_schema=False)
 def create_collaborator(
@@ -152,36 +116,23 @@ def create_collaborator(
     cpf: str = Form(...),
     username: str = Form(...)
 ):
-    #valida o token e o hotel
     if not validate_csrf_token(request, csrf_token):
         add_flash_message(request, "Token de segurança inválido", "danger")
-        return RedirectResponse(url="/dashboard_collaborators/new", status_code=303)
-    
+        return RedirectResponse(url=request.url_for('new_collaborator'), status_code=303)
+
     hotel_id = request.session.get("hotel_id")
-    if not hotel_id:
-        add_flash_message(request, "Hotel não localizado", 'danger')
-        return RedirectResponse(url='/dashboard', status_code=303)
 
-    # consulta para saber se existe um colaborador com esse cpf cadastrado
-    collaborator = db.query(Collaborator) \
-    .filter(Collaborator.cpf == cpf) \
-    .filter(Collaborator.hotel_id == hotel_id) \
-    .first()
+    collaborator, outcome, error = CollaboratorService.create_collaborator(db, hotel_id, firstname, lastname, username, cpf)
+    # outcome para saber se é novo, restaurado ou já existente (para uso futuro)
 
-    # se tiver, nao toma nenhuma ação
-    if collaborator is not None and collaborator.is_deleted == False:
-        add_flash_message(request, "Esse colaborador já está cadastrado no seu hotel", "danger")
-        return RedirectResponse(url="/dashboard_collaborators/new", status_code=303)
-    
-    # se tiver e estiver deletado, apenas restaura atualizando com as novas infos
-    elif collaborator is not None and collaborator.is_deleted == True:
-        restore_collaborator(request, db, collaborator, firstname, lastname, username)
+    if error:
+        add_flash_message(request, error, "danger")
+        return RedirectResponse(url=request.url_for('new_collaborator'), status_code=303)
 
-    # se não tiver, cria um novo
-    elif collaborator is None:
-        collaborator_creator(request, db, firstname, lastname, username, cpf, hotel_id)
+    add_flash_message(request, "Colaborador cadastrado, no primeiro acesso a senha é o CPF.", "success")
 
-    return RedirectResponse(url="/dashboard_collaborators", status_code=303)
+    return RedirectResponse(url=request.url_for('edit_collaborator', collaborator_id=collaborator.id), status_code=303)
+
 
 @router.get("/edit/{collaborator_id}", response_class=HTMLResponse, include_in_schema=False)
 def edit_collaborator(
@@ -190,14 +141,13 @@ def edit_collaborator(
     db: Session = Depends(get_db)
 ):
     hotel_id = request.session.get("hotel_id")
-        
-    collaborator = db.query(Collaborator) \
-    .filter(Collaborator.id == collaborator_id) \
-    .filter(Collaborator.hotel_id == hotel_id) \
-    .first()
+
+    collaborator, error = CollaboratorService.get_collaborator(db, collaborator_id, hotel_id)
+    if error:
+        add_flash_message(request, error, "warning")
+        return RedirectResponse(url=request.url_for('collaborators'), status_code=303)
 
     csrf_token = generate_csrf_token(request)
-
     return render(
         templates,
         request,
@@ -207,6 +157,7 @@ def edit_collaborator(
             "csrf_token": csrf_token
         }
     )
+
 
 @router.post("/edit/{collaborator_id}", response_class=HTMLResponse, include_in_schema=False)
 def update_collaborator(
@@ -220,35 +171,28 @@ def update_collaborator(
     csrf_token: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    # valida token
     if not validate_csrf_token(request, csrf_token):
-        add_flash_message(request, "Token de segurança invéliado, operação finalizada.", "danger")
-        return RedirectResponse(url="/dashboard", status_code=303)
-    
-    # captura o hotel
-    hotel_id = request.session.get("hotel_id")
+        add_flash_message(request, "Token de segurança inválido, operação finalizada.", "danger")
+        return RedirectResponse(url=request.url_for('collaborators'), status_code=303)
 
-    # valida o hotel
+    hotel_id = request.session.get("hotel_id")
     if not hotel_id:
         add_flash_message(request, "Hotel não reconhecido", "warning")
-        return RedirectResponse(url="/dashboard_collaborators", status_code=303)
-    
-    #verificar se colaborador existe
-    collaborator = db.query(Collaborator) \
-    .filter(Collaborator.id == collaborator_id) \
-    .filter(Collaborator.hotel_id == hotel_id) \
-    .filter(Collaborator.is_deleted == False) \
-    .first()
+        return RedirectResponse(url=request.url_for('collaborators'), status_code=303)
 
-    # valida que o colaborador existe
-    if not collaborator:
-        add_flash_message(request, "Colaborador não encontrado", "warning")
-        return RedirectResponse(url="/dashboard_collaborators", status_code=303)
+    collaborator, error = CollaboratorService.get_collaborator(db, collaborator_id, hotel_id)
+    if error:
+        add_flash_message(request, error, "warning")
+        return RedirectResponse(url=request.url_for('collaborators'), status_code=303)
 
-    # função para atualizar um colaborador ja existente
-    collaborator_updater(request, db, collaborator, change_password, firstname, lastname, username, is_active)
+    CollaboratorService.update_collaborator(db, collaborator, firstname, lastname, username, is_active, change_password)
 
-    return RedirectResponse(url="/dashboard_collaborators", status_code=303)
+    if change_password:
+        add_flash_message(request, "Senha redefinida, e deverá ser trocada no próximo login.", "info")
+
+    add_flash_message(request, "Colaborador editado com sucesso", "success")
+    return RedirectResponse(url=request.url_for('edit_collaborator', collaborator_id=collaborator.id), status_code=303)
+
 
 @router.get("/delete/{collaborator_id}", response_class=HTMLResponse, include_in_schema=False)
 def delete_collaborator(
@@ -257,15 +201,11 @@ def delete_collaborator(
     db: Session = Depends(get_db)
 ):
     hotel_id = request.session.get("hotel_id")
-    collaborator = db.query(Collaborator) \
-    .filter(Collaborator.id == collaborator_id) \
-    .filter(Collaborator.is_deleted == False) \
-    .filter(Collaborator.hotel_id == hotel_id) \
-    .first()
 
-    collaborator.is_deleted = True
-    db.commit()
+    collaborator, error = CollaboratorService.delete_collaborator(db, collaborator_id, hotel_id)
+    if error:
+        add_flash_message(request, error, "warning")
+        return RedirectResponse(url=request.url_for('collaborators'), status_code=303)
 
     add_flash_message(request, "Colaborador deletado com sucesso", "success")
-    return RedirectResponse(url="/dashboard_collaborators", status_code=303)
-
+    return RedirectResponse(url=request.url_for('collaborators'), status_code=303)

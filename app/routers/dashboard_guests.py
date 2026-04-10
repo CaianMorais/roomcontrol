@@ -19,7 +19,7 @@ from app.core.dependencies import get_api_access
 from app.helpers.guests.valid_phone_number import valid_phone_number_on_create, valid_phone_number_on_edit
 from app.helpers.register_audit import register_audit
 from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_session
+from app.utils.session_guard import require_collaborator_session, require_session
 from app.schemas.guest import GuestOut
 from app.models.guest import Guest
 from app.models.hotel import Hotel
