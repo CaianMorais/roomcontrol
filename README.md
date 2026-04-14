@@ -1,10 +1,10 @@
-## 🔄️ Última Atualização 10/04/2026
-- Routers `dashboard_collaborator.py` migradas para Services Layer e Repositories.
-- Melhorias em `utils/session_guard.py` para aprimorar a validação da sessão e do controle de acesso a rotas protegidas.
+## 🔄️ Última Atualização 14/04/2026
+- Todas as routers tiveram seus códigos que definiam as regras de negócio para Services e todos os códigos de persistência e manipulação de dados centralizados em Repositories, agora temos uma arquitetura de software limpa, sendo mais fácil dar manutenção ao código e deixando a visualização mais limpa.
+- Foram corrigidas diversos erros de redirecionamento de páginas.
 
 ## ➡️ Próximas atualizações
 
-- (Neste momento, em andamento) Desenvolvimento das **Services** para definir a regra de negócio da aplicação e desenvolvimento dos **Repositories** para centralizar os acessos aos dados SQL, visando **consistência na arquitetura do software** e mantendo apenas validações básicas e a coordenação do fluxo HTTP.
+- (Neste momento, em andamento) Migração dos endpoints para arquivos `.py` exclusivos da API, a intenção é separar a lógica dos endpoints da API das rotas da plataforma, deixando as routers mais limpas.
 - Endpoint com métodos `POST`, `PUT` e `DELETE` para possibilitar a manipulação de dados através de outros sistemas e oferecendo autonomia dos dados aos usuários da API embarcada ao sistema.
 - Função para alterar o quarto da reserva após a reserva já ter sido criada.
 - Migração das funções que representam uma regra de caso de uso específica de um módulo será migrada para dentro da Service Layer do módulo correspondente como uma função privada. Sendo assim, helpers genéricos e de utilidade global permanecerão dentro de `helpers/`.

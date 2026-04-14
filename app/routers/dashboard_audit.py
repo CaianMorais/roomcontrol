@@ -45,9 +45,6 @@ def audit(
     after: Optional[str] = Query(None),
 ):
     hotel_id = request.session.get("hotel_id")
-    if not hotel_id:
-        add_flash_message(request, "Hotel não localizado", "danger")
-        return RedirectResponse(url="/dashboard", status_code=303)
 
     has_filter = False
     query = AuditService.list_logs(db, hotel_id)
@@ -56,7 +53,7 @@ def audit(
         query, error = AuditService.filter_logs(query, name, action, entity, entity_id, before, after)
         if error:
             add_flash_message(request, error, "warning")
-            return RedirectResponse(url="/dashboard_audit", status_code=303)
+            return RedirectResponse(url=request.url_for('audit'), status_code=303)
         has_filter = True
 
     params = Params(page=page, size=per_page)

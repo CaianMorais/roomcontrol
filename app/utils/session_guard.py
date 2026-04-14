@@ -34,7 +34,6 @@ def require_admin_session(
     request: Request,
     db=Depends(get_db)
 ):
-    print("Validando sessão de administrador...")
     hotel_id = request.session.get("hotel_id")
     collaborator_id = request.session.get("collaborator_id")
 
@@ -58,7 +57,6 @@ def require_collaborator_session(
     request: Request,
     db=Depends(get_db)
 ):
-    print("Validando a sessão do colaborador...")
     hotel_id = request.session.get("hotel_id")
     collaborator_id = request.session.get("collaborator_id")
 
