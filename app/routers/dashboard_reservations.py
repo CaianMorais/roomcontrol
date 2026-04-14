@@ -20,10 +20,10 @@ from app.schemas.reservations import ReservationOut
 from app.models.reservations import Reservations
 from app.models.guest import Guest
 from app.models.hotel import Hotel
-from app.helpers.register_audit import register_audit
 from app.helpers.reservations.price_calculator import calc_price
 from app.helpers.reservations.order_reservations import order_reservations
 from app.core.dependencies import get_api_access
+from app.services.audit_service import AuditService
 from app.services.reservation_service import ReservationService
 from app.services.guest_service import GuestService
 from app.services.room_service import RoomsService
@@ -261,7 +261,7 @@ def create_reservation(
         return RedirectResponse(url="/dashboard_reservations/new", status_code=303)
 
     # registra log
-    register_audit(db, hotel_id, 'create', 'reservation', reservation.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'create', 'reservation', reservation.id, request.session.get("collaborator_id"))
 
     add_flash_message(request, "Reserva criada com sucesso!", "success")
     return RedirectResponse(url=request.url_for("manage_reservation", reservation_id=reservation.id), status_code=303)
@@ -292,6 +292,9 @@ def manage_reservation(
         if error:
             add_flash_message(request, error, "warning")
             return RedirectResponse(url=request.url_for('manage_reservation', reservation_id=reservation_id), status_code=303)
+        else:
+            AuditService.register(db, hotel_id, 'update', 'reservation', reservation.Reservations.id, request.session.get("collaborator_id"))
+        
 
     # recalcula o preço das diárias
     price = calc_price(reservation)
@@ -349,7 +352,7 @@ def update_reservation(
             'message': error
         }
     # registra log
-    register_audit(db, hotel_id, 'update', 'reservation', reservation.Reservations.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'update', 'reservation', reservation.Reservations.id, request.session.get("collaborator_id"))
 
     # Só leva reservation.status pro front se for sucesso (é como o js sabe que deu certo)
     return {
@@ -380,7 +383,7 @@ def update_request_auth(
             "message": error
         })
 
-    register_audit(db, hotel_id, 'update', 'reservation', reservation.Reservations.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'update', 'reservation', reservation.Reservations.id, request.session.get("collaborator_id"))
     return JSONResponse({
         "ok": True,
         "message": message

@@ -10,17 +10,18 @@ from sqlalchemy.orm import Session, joinedload
 # import do current-app
 from app.core.config import get_db
 from app.core.dependencies import get_api_access
-from app.helpers.register_audit import register_audit
 from app.models.guest import Guest
 from app.models.hotel import Hotel
 from app.models.reservations import Reservations
 from app.models.rooms import Rooms
 from app.models.services import Services
+from app.services.audit_service import AuditService
+from app.services.services_request_service import ServicesRequestService
 from app.schemas.services import ServicesOut
 from app.schemas.table_services import TableServicesOut
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
-from app.services.services_request_service import ServicesRequestService
+
 
 router = APIRouter(
     prefix='/dashboard_services',
@@ -175,7 +176,7 @@ def update_service_status(
     response = ServicesRequestService.update_request_status(request, db, new_status, service_id)
 
     if response["ok"]:
-        register_audit(db, request.session.get("hotel_id"), 'update', 'service', service_id, request.session.get("collaborator_id"))
+        AuditService.register(db, request.session.get("hotel_id"), 'update', 'service', service_id, request.session.get("collaborator_id"))
     
     return JSONResponse(
         {

@@ -17,14 +17,14 @@ from app.core.config import get_db
 from app.core.security import generate_csrf_token, validate_csrf_token
 from app.core.dependencies import get_api_access
 from app.helpers.guests.valid_phone_number import valid_phone_number_on_create, valid_phone_number_on_edit
-from app.helpers.register_audit import register_audit
 from app.utils.flash import add_flash_message, render
-from app.utils.session_guard import require_collaborator_session, require_session
+from app.utils.session_guard import require_session
+from app.services.audit_service import AuditService
+from app.services.guest_service import GuestService
 from app.schemas.guest import GuestOut
 from app.models.guest import Guest
 from app.models.hotel import Hotel
 
-from app.services.guest_service import GuestService
 
 router = APIRouter(
     prefix="/dashboard_guests",
@@ -164,7 +164,7 @@ def create_guest(
         return RedirectResponse(request.url_for("new_guest"), status_code=303)
 
     # registra log
-    register_audit(db, hotel_id, 'create', 'guest', guest.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'create', 'guest', guest.id, request.session.get("collaborator_id"))
 
     # validação do phone_number (não interrompe em caso não validação)
     valid_phone_number_on_create(request, phone_number)
@@ -232,7 +232,7 @@ def update_guest(
     add_flash_message(request, "Hóspede atualizado com sucesso", "success")
 
     # registra log
-    register_audit(db, hotel_id, 'update', 'guest', guest.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'update', 'guest', guest.id, request.session.get("collaborator_id"))
 
     if next:
         return RedirectResponse(url=next, status_code=303)
@@ -255,6 +255,6 @@ def delete_guest(
     add_flash_message(request, "Hóspede excluído com sucesso!", "success")
 
     # registra log
-    register_audit(db, hotel_id, 'delete', 'guest', guest.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'delete', 'guest', guest.id, request.session.get("collaborator_id"))
 
     return RedirectResponse(url=request.url_for("guests"), status_code=303)

@@ -7,15 +7,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 # import do current-app
 from app.core.config import get_db
 from app.core.dependencies import get_api_access
-from app.helpers.audit.filter_logs import filter_logs
-from app.models.audit_log import AuditLog
-from app.models.collaborator import Collaborator
+from app.services.audit_service import AuditService
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_admin_session
 
@@ -33,6 +30,7 @@ api_router = APIRouter(
 
 templates = Jinja2Templates(directory="app/templates")
 
+
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def audit(
     request: Request,
@@ -47,20 +45,18 @@ def audit(
     after: Optional[str] = Query(None),
 ):
     hotel_id = request.session.get("hotel_id")
-
     if not hotel_id:
-        add_flash_message(request, "Hotel não localizado", 'danger')
-        return RedirectResponse(url='/dashboard', status_code=303)
+        add_flash_message(request, "Hotel não localizado", "danger")
+        return RedirectResponse(url="/dashboard", status_code=303)
 
     has_filter = False
-
-    query = db.query(AuditLog, Collaborator) \
-    .filter(AuditLog.hotel_id == hotel_id) \
-    .outerjoin(Collaborator, Collaborator.id == AuditLog.collaborator_id) \
-    .order_by(AuditLog.id.desc())
+    query = AuditService.list_logs(db, hotel_id)
 
     if name or action or entity or entity_id or before or after:
-        query = filter_logs(request, query, name, action, entity, entity_id, before, after)
+        query, error = AuditService.filter_logs(query, name, action, entity, entity_id, before, after)
+        if error:
+            add_flash_message(request, error, "warning")
+            return RedirectResponse(url="/dashboard_audit", status_code=303)
         has_filter = True
 
     params = Params(page=page, size=per_page)
@@ -71,7 +67,6 @@ def audit(
         request,
         "dashboard/audit/audit.html",
         {
-            "request": request,
             "has_filter": has_filter,
             "logs": page_obj.items,
             "pager": {
@@ -80,12 +75,11 @@ def audit(
                 "per_page": page_obj.size,
                 "total": page_obj.total,
             },
-            "name" : name,
+            "name": name,
             "action": action,
             "entity": entity,
             "entity_id": entity_id,
             "before": before,
-            "after": after
+            "after": after,
         }
     )
-

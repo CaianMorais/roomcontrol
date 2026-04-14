@@ -14,18 +14,13 @@ from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
 from app.core.config import get_db
 from app.core.dependencies import get_api_access
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.helpers.register_audit import register_audit
-from app.helpers.rooms.object_mapper import coluna_map, room_capacities_map, tipos_map
-from app.helpers.rooms.room_creator import room_creator
-from app.helpers.rooms.room_editor import room_editor
 from app.models.hotel import Hotel
-from app.models.reservations import Reservations
 from app.models.rooms import Rooms
+from app.services.audit_service import AuditService
+from app.services.room_service import RoomsService
 from app.schemas.rooms import RoomOut
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
-
-from app.services.room_service import RoomsService
 
 router = APIRouter(
     prefix="/dashboard_rooms",
@@ -200,7 +195,7 @@ def create_room(
         return RedirectResponse(url=request.url_for("new_room"), status_code=303)
     
     # registra log
-    register_audit(db, hotel_id, 'create', 'room', room.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'create', 'room', room.id, request.session.get("collaborator_id"))
     add_flash_message(request, f"Quarto {room.room_number} criado com sucesso.", "success")
 
     return RedirectResponse(
@@ -281,7 +276,7 @@ def update_room(
         add_flash_message(request, error, "warning")
         return RedirectResponse(url=request.url_for("rooms"), status_code=303)
 
-    register_audit(db, hotel_id, 'update', 'room', room.id, request.session.get("collaborator_id"))
+    AuditService.register(db, hotel_id, 'update', 'room', room.id, request.session.get("collaborator_id"))
     add_flash_message(request, f"Quarto {room.room_number} atualizado com sucesso.", "success")
 
     if next:
@@ -311,7 +306,7 @@ def delete_room(room_id: int, request: Request, db: Session = Depends(get_db
         return RedirectResponse(url=request.url_for("rooms"), status_code=303)
 
     # registra log
-    register_audit(db, room.hotel_id, 'delete', 'room', room.id, request.session.get("collaborator_id"))
+    AuditService.register(db, room.hotel_id, 'delete', 'room', room.id, request.session.get("collaborator_id"))
     add_flash_message(request, f"Quarto {room.room_number} excluído com sucesso.", "success")
 
     return RedirectResponse(url="/dashboard_rooms", status_code=303)
