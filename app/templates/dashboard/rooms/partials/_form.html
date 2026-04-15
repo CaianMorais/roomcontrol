@@ -58,7 +58,7 @@
                 </a>
             </label>
             <input type="number" class="form-control" id="capacity_adults" name="capacity_adults" required
-                value="{{ room.capacity_adults if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' %}readonly{% endif %} required>
+                value="{{ room.capacity_adults if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' or room and room.type != '9' %}readonly{% endif %} required>
         </div>
         <div class="mb-3 col-4">
             <label for="capacity_children" class="form-label">Crianças (até 17 anos)
@@ -69,7 +69,7 @@
                 </a>
             </label>
             <input type="number" class="form-control" id="capacity_children" name="capacity_children" required
-                value="{{ room.capacity_children if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' %}readonly{% endif %} required>
+                value="{{ room.capacity_children if room else '' }}" autocomplete="off" {% if room and room.status == 'occupied' or room and room.type != '9' %}readonly{% endif %} required>
         </div>
         <div class="mb-3 col-4">
             <label for="capacity_total" class="form-label">Total

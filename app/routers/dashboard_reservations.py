@@ -20,8 +20,6 @@ from app.schemas.reservations import ReservationOut
 from app.models.reservations import Reservations
 from app.models.guest import Guest
 from app.models.hotel import Hotel
-from app.helpers.reservations.price_calculator import calc_price
-from app.helpers.reservations.order_reservations import order_reservations
 from app.core.dependencies import get_api_access
 from app.services.audit_service import AuditService
 from app.services.reservation_service import ReservationService
@@ -121,9 +119,6 @@ def reservations(
         if error:
             add_flash_message(request, error, "danger")
             return RedirectResponse(url=request.url_for('reservations'), status_code=303)
-
-    # ordena a query
-    query = order_reservations(query)
 
     # joga no paginate
     params = Params(page=page, size=per_page)
@@ -297,7 +292,7 @@ def manage_reservation(
         
 
     # recalcula o preço das diárias
-    price = calc_price(reservation)
+    price = ReservationService.get_reservation_price(reservation)
 
     return render(
         templates,

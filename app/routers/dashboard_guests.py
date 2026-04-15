@@ -16,7 +16,6 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.config import get_db
 from app.core.security import generate_csrf_token, validate_csrf_token
 from app.core.dependencies import get_api_access
-from app.helpers.guests.valid_phone_number import valid_phone_number_on_create, valid_phone_number_on_edit
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 from app.services.audit_service import AuditService
@@ -166,8 +165,13 @@ def create_guest(
     # registra log
     AuditService.register(db, hotel_id, 'create', 'guest', guest.id, request.session.get("collaborator_id"))
 
-    # validação do phone_number (não interrompe em caso não validação)
-    valid_phone_number_on_create(request, phone_number)
+    
+    # valid_phone_number_on_create(request, phone_number)
+
+    if phone_number and len(phone_number) < 10:
+        add_flash_message(request, "Hóspede criado, porém o telefone é inválido", "info")
+    else:
+        add_flash_message(request, "Hóspede criado com sucesso", "success")
 
     return RedirectResponse(
         url=request.url_for("edit_guest", guest_id=guest.id, guest_cpf=guest.cpf),
@@ -223,12 +227,12 @@ def update_guest(
         add_flash_message(request, "Token de segurança inválido.", "danger")
         return RedirectResponse(url=request.url_for("guests"), status_code=303)
     
-    valid = valid_phone_number_on_edit(request, phone_number, guest)
-    if not valid:
+    # atualiza o hospede com os novos dados recebidos
+    guest, error = GuestService.update_guest(db, guest, email, phone_number)
+    if error:
+        add_flash_message(request, error, "danger")
         return RedirectResponse(url=request.url_for("edit_guest", guest_id=guest.id, guest_cpf=guest.cpf), status_code=303)
     
-    # atualiza o hospede com os novos dados recebidos
-    GuestService.update_guest(db, guest, email, phone_number)
     add_flash_message(request, "Hóspede atualizado com sucesso", "success")
 
     # registra log

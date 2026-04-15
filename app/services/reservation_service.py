@@ -2,7 +2,6 @@ from app.domain.reservation_rules import decide_fast_update
 from app.repositories.reservation_repository import ReservationRepository
 from app.models.reservations import Reservations
 import datetime
-
 from app.repositories.room_repository import RoomsRepository
 
 class ReservationService:
@@ -83,6 +82,10 @@ class ReservationService:
             return reservation, None
         else:
             return None, "Reserva não encontrada"
+        
+    @staticmethod
+    def get_reservation_price(reservation):
+        return ReservationRepository.calculate_price(reservation)
         
     @staticmethod
     def update_status_from_manage(db, check_in, check_out, cancel, reservation):

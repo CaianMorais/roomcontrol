@@ -1,13 +1,15 @@
-## 🔄️ Última Atualização 14/04/2026
+## 🔄️ Última Atualização 15/04/2026
 - Todas as routers tiveram seus códigos que definiam as regras de negócio para Services e todos os códigos de persistência e manipulação de dados centralizados em Repositories, agora temos uma arquitetura de software limpa, sendo mais fácil dar manutenção ao código e deixando a visualização mais limpa.
+- Funções específicas de caso de uso movidas para a Service Layer respectiva, deixando a `helpers/` exclusiva para futuras funções auxiliares genéricas.
 - Foram corrigidas diversos erros de redirecionamento de páginas.
+- Corrigidos campos de formulários que não deveriam ser editáveis.
 
 ## ➡️ Próximas atualizações
 
-- (Neste momento, em andamento) Migração dos endpoints para arquivos `.py` exclusivos da API, a intenção é separar a lógica dos endpoints da API das rotas da plataforma, deixando as routers mais limpas.
+- Migração dos endpoints para arquivos `.py` exclusivos da API, a intenção é separar a lógica dos endpoints da API das rotas da plataforma, deixando as routers mais limpas.
 - Endpoint com métodos `POST`, `PUT` e `DELETE` para possibilitar a manipulação de dados através de outros sistemas e oferecendo autonomia dos dados aos usuários da API embarcada ao sistema.
 - Função para alterar o quarto da reserva após a reserva já ter sido criada.
-- Migração das funções que representam uma regra de caso de uso específica de um módulo será migrada para dentro da Service Layer do módulo correspondente como uma função privada. Sendo assim, helpers genéricos e de utilidade global permanecerão dentro de `helpers/`.
+- Desenvolvimento de um módulo que possibilita a visualização e alteração de alguns dados cadastrais do hotel.
 
 # RoomControl
 

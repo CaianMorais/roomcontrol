@@ -1,6 +1,19 @@
 from app.repositories.guest_repository import GuestRepository
 from app.models.guest import Guest
 
+def valid_phone_number_on_create(phone_number):
+    # validação do phone_number (não interrompe em caso não validação)
+    if phone_number and len(phone_number) >= 10:
+        return phone_number
+    else:
+        return None
+
+def valid_phone_number_on_edit(phone_number):
+    # validação do phone_number (cancela a operação em caso de número inválido)
+    if phone_number and len(phone_number) < 10:
+        return None, "Número de telefone inválido, operação cancelada"
+    return phone_number, None
+
 class GuestService:
 
     @staticmethod
@@ -33,13 +46,10 @@ class GuestService:
         if existing and not existing.is_deleted:
             return None, "CPF já cadastrado no seu hotel"
         
-        if phone_number and len(phone_number) < 10:
-            phone_number = None
+        phone_number = valid_phone_number_on_create(phone_number)
 
         if email == '':
             email = None
-        if phone_number == '':
-            phone_number = None
 
         # se existir e estiver como deletado, restaura atualizando os dados
         if existing and existing.is_deleted:
@@ -65,9 +75,12 @@ class GuestService:
 
     @staticmethod
     def update_guest(db, guest, email, phone_number):
+        phone_number, error = valid_phone_number_on_edit(phone_number)
+        if error:
+            return guest, error
         guest.email = email
         guest.phone_number = phone_number
-        return GuestRepository.update(db, guest)
+        return GuestRepository.update(db, guest), None
 
     @staticmethod
     def delete_guest(db, guest):

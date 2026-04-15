@@ -1,5 +1,8 @@
+from math import ceil
+
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import case, or_
+from app.models import reservations
 from app.models.guest import Guest
 from app.models.reservations import Reservations
 from app.models.rooms import Rooms
@@ -18,7 +21,21 @@ class ReservationRepository:
     
     @staticmethod
     def get_reservations(db: Session, hotel_id: int):
-        return ReservationRepository.base_query(db, hotel_id)
+        query = ReservationRepository.base_query(db, hotel_id)
+
+        # ordenação padrão
+        query = query.order_by(
+            case(
+                (Reservations.status == "booked", 1),
+                (Reservations.status == "checked_in", 2),
+                (Reservations.status == "checked_out", 3),
+                (Reservations.status == "canceled", 4),
+            ),
+            Reservations.check_in.desc(),
+            Reservations.id.desc()
+        )
+
+        return query
     
     @staticmethod
     def apply_filters(
@@ -123,6 +140,18 @@ class ReservationRepository:
             .filter(Reservations.id == reservation_id) \
             .filter(Rooms.hotel_id == hotel_id) \
             .first()
+    
+    @staticmethod
+    def calculate_price(reservation: Reservations):
+        if reservation.Reservations.status != 'canceled':
+            if not reservation.Reservations.check_out or not reservation.Reservations.check_in:
+                return 0
+            days = reservation.Reservations.check_out - reservation.Reservations.check_in
+            total_days = ceil(days.total_seconds() / (24 * 3600))
+            price = reservation.Rooms.price * total_days
+            return price
+        else:
+            return 0
     
     @staticmethod
     def create(db: Session, new_reservation: Reservations):

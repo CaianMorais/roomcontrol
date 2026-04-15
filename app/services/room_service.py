@@ -2,7 +2,39 @@ from decimal import Decimal
 
 from app.repositories.room_repository import RoomsRepository
 from app.models.rooms import Rooms
-from app.helpers.rooms.object_mapper import room_capacities_map, tipos_map, coluna_map
+
+def _tipos_map():
+# mapeia flags -> tipos
+    return {
+        "solteiro": ["1"],
+        "duplo": ["2", "3"],
+        "casal": ["4"],
+        "triplo": ["5", "6", "7"],
+        "triplo_com_casal": ["8"],
+        "personalizado": ["9"],
+    }
+
+def _coluna_map():
+# mapeia criteria -> coluna
+    return {
+        "room_number": Rooms.room_number,
+        "capacity_total": Rooms.capacity_total,
+        "capacity_adults": Rooms.capacity_adults,
+        "capacity_children": Rooms.capacity_children,
+        "price": Rooms.price,
+    }
+
+def _room_capacities_map():
+    return {
+        "1": [1, 0],
+        "2": [1, 1],
+        "3": [2, 0],
+        "4": [2, 0],
+        "5": [1, 2],
+        "6": [2, 1],
+        "7": [3, 0],
+        "8": [2, 1],
+    }
 
 class RoomsService:
 
@@ -12,8 +44,8 @@ class RoomsService:
     
     @staticmethod
     def filter_rooms(query, solteiro, duplo, casal, triplo, triplo_com_casal, personalizado, available, occupied, maintenance, criteria, order):
-        ROOM_TYPE_MAP = tipos_map()
-        ORDER_MAP = coluna_map()
+        ROOM_TYPE_MAP = _tipos_map()
+        ORDER_MAP = _coluna_map()
 
         # MARCA AS FLAGS COM TRUE OU FALSE QUE FORAM MARCADAS NO FILTRO
         selected_type_flags = {
@@ -76,7 +108,7 @@ class RoomsService:
         if existing and not existing.is_deleted:
             return None, "Número de quarto já cadastrado no seu hotel"
         
-        room_capacities = room_capacities_map()
+        room_capacities = _room_capacities_map()
 
         if room_type in room_capacities:
             # pega as capacidades do quarto no map
@@ -127,7 +159,7 @@ class RoomsService:
                     return None, "O quarto não pode ser desativado pois possui reservas ativas."
         
         # define a capacidade com base no tipo do quarto (pra não depender dos dados do form)
-        room_capacities = room_capacities_map()
+        room_capacities = _room_capacities_map()
         
         if room_type in room_capacities:
             # pega as capacidades do quarto no map
