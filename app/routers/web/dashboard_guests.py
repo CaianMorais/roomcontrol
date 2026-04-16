@@ -1,79 +1,34 @@
 # import de libs padrao
 import datetime
-from typing import List, Optional
+from typing import Optional
 
 #import de libs third-party
 
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request, status
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 # import de funções da aplicação local
 
 from app.core.config import get_db
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.core.dependencies import get_api_access
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 from app.services.audit_service import AuditService
 from app.services.guest_service import GuestService
-from app.schemas.guest import GuestOut
-from app.models.guest import Guest
-from app.models.hotel import Hotel
 
-
+# confgiração do router e templates
 router = APIRouter(
     prefix="/dashboard_guests",
     tags=["guests"],
     dependencies=[Depends(require_session)]
 )
-
-api_router = APIRouter(
-    prefix="/api",
-    tags=["guests"],
-    dependencies=[Depends(get_api_access)]
-)
-
 templates = Jinja2Templates(directory="app/templates")
 
-@api_router.get("/guests", response_model=List[GuestOut], summary="Filtrar hóspedes")
-def get_guests(
-    access: dict = Depends(get_api_access),
-    guest_cpf: Optional[str] = Query(None, description="Filtrar pelo CPF do hóspede"),
-    guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
-    hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    db: Session = Depends(get_db)
-):
-    query = db.query(Guest).options(joinedload(Guest.hotel)) \
-    .filter(Guest.is_deleted == False)
-
-    if not access["is_global"]:
-        query = query.filter(Guest.hotel_id == access["hotel_id"])
-
-    else:
-        if hotel_id:
-            query = query.filter(Guest.hotel_id == hotel_id)
-        if hotel_name:
-            query = query.join(Hotel, Guest.hotel_id == Hotel.id) \
-            .filter(Hotel.name.ilike(f"%{hotel_name}%"))
-
-    if guest_cpf:
-        query = query.filter(Guest.cpf.ilike(f"%{guest_cpf}%"))
-    if guest_name:
-        query = query.filter(Guest.name.ilike(f"%{guest_name}%"))
-
-    guests = query.all()
-
-    if not guests:
-        raise HTTPException(status_code=404, detail="Nenhum hóspede encontrado")
-
-    return guests
-
-
+######## ROTAS PARA PÁGINAS DE HÓSPEDES NO DASHBOARD ########
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def guests(
     request: Request,
@@ -94,7 +49,7 @@ def guests(
     # filtra os hospedes
     if name or cpf:
         has_filter = True
-        query = GuestService.filter_guests(db, name, cpf, query)
+        query = GuestService.filter_guests(name, cpf, query)
         add_flash_message(request, "Filtro aplicado", "success")
 
     # paginação

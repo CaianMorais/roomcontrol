@@ -8,6 +8,10 @@ from app.utils.brdocs import only_digits
 class HotelRepository:
 
     @staticmethod
+    def base_query(db: Session):
+        return db.query(Hotel)
+
+    @staticmethod
     def find_by_cnpj(db: Session, cnpj_digits: str):
         return (
             db.query(Hotel)

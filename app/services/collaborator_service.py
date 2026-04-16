@@ -23,14 +23,6 @@ class CollaboratorService:
         return CollaboratorRepository.apply_filters(query, search, status)
 
     @staticmethod
-    def list_collaborators_global(db: Session):
-        return CollaboratorRepository.find_all_global(db)
-
-    @staticmethod
-    def filter_collaborators_global(query, hotel_name: str = None, firstname: str = None, lastname: str = None, cpf: str = None):
-        return CollaboratorRepository.apply_global_filters(query, hotel_name, firstname, lastname, cpf)
-
-    @staticmethod
     def get_collaborator(db: Session, collaborator_id: int, hotel_id: int):
         collaborator = CollaboratorRepository.find_by_id(db, collaborator_id, hotel_id)
         if not collaborator:
@@ -93,3 +85,13 @@ class CollaboratorService:
             return None, "Colaborador não encontrado"
         CollaboratorRepository.soft_delete(db, collaborator)
         return collaborator, None
+    
+class ApiCollaboratorService:
+
+    @staticmethod
+    def list_collaborators(db: Session):
+        return CollaboratorRepository.find_all_global(db)
+    
+    @staticmethod
+    def filter_collaborators(query, hotel_name: str = None, firstname: str = None, lastname: str = None, cpf: str = None):
+        return CollaboratorRepository.apply_global_filters(query, hotel_name, firstname, lastname, cpf)

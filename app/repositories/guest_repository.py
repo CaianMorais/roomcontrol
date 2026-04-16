@@ -1,17 +1,17 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.guest import Guest
+from app.models.hotel import Hotel
 from app.models.reservations import Reservations
 from app.models.rooms import Rooms
 
 class GuestRepository:
 
     @staticmethod
-    def base_query(db: Session, hotel_id: int):
+    def base_query(db: Session):
         return (
             db.query(Guest)
             .filter(
-                Guest.hotel_id == hotel_id,
                 Guest.is_deleted == False
             )
         )
@@ -68,12 +68,32 @@ class GuestRepository:
         return query
     
     @staticmethod
-    def filter_guests_by_name_or_cpf(db: Session, name: str , cpf: str, query):
+    def filter_guests_by_name_or_cpf(name: str , cpf: str, query):
         if name:
             query = query.filter(Guest.name.ilike(f"%{name}%"))
         if cpf:
             query = query.filter(Guest.cpf.like(f"%{cpf}%"))
         return query
+    
+    @staticmethod
+    def filter_guests_by_hotel(query, hotel_id: int = None, hotel_name: str = None):
+        if hotel_id:
+            query = query.filter(Guest.hotel_id == hotel_id)
+        if hotel_name:
+            query = query.join(Hotel, Guest.hotel_id == Hotel.id) \
+            .filter(Hotel.name.ilike(f"%{hotel_name}%"))
+        return query
+    
+    @staticmethod
+    def list_guests_by_hotel(db: Session, hotel_id: int):
+        if hotel_id:
+            return (
+                db.query(Guest)
+                .filter(
+                    Guest.hotel_id == hotel_id,
+                    Guest.is_deleted == False
+                )
+            )
     
     @staticmethod
     def find_by_cpf(db: Session, cpf: str, hotel_id: int):

@@ -92,9 +92,11 @@ class AuthHotelService:
             return None, "O hotel está desativado no sistema"
 
         return hotel, None
+    
+class ApiAuthHotelService:
 
     @staticmethod
     def list_hotels(db: Session, cnpj: Optional[str] = None, name: Optional[str] = None):
-        query = db.query(Hotel)
+        query = HotelRepository.base_query(db)
         query = HotelRepository.apply_filters(query, cnpj, name)
         return query.all()

@@ -1,8 +1,8 @@
 # import de libs padrão
-from typing import List, Optional
+from typing import Optional
 
 # import de libs third-party
-from fastapi import APIRouter, HTTPException, Depends, Form, Query, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi_pagination import Params
@@ -11,49 +11,20 @@ from sqlalchemy.orm import Session
 
 # import do current-app
 from app.core.config import get_db
-from app.core.dependencies import get_api_access
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.schemas.collaborator import CollaboratorOut
 from app.services.collaborator_service import CollaboratorService
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_admin_session
 
+# configuração do router e templates
 router = APIRouter(
     prefix="/dashboard_collaborators",
     tags=["collaborators"],
     dependencies=[Depends(require_admin_session)]
 )
-
-api_router = APIRouter(
-    prefix="/api",
-    tags=["collaborators"],
-    dependencies=[Depends(get_api_access)]
-)
-
 templates = Jinja2Templates(directory="app/templates")
 
-
-@api_router.get("/collaborators", response_model=List[CollaboratorOut], summary="Filtrar colaboradores (Exclusivo para chave global)")
-def get_collaborators(
-    access: dict = Depends(get_api_access),
-    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
-    firstname: Optional[str] = Query(None, description="Filtrar pelo primeiro nome"),
-    lastname: Optional[str] = Query(None, description="Filtrar pelo último nome"),
-    cpf: Optional[str] = Query(None, description="Filtrar pelo CPF"),
-    db: Session = Depends(get_db)
-):
-    if not access["is_global"]:
-        raise HTTPException(status_code=403, detail="API Key não autorizada")
-
-    query = CollaboratorService.list_collaborators_global(db)
-    query = CollaboratorService.filter_collaborators_global(query, hotel_name, firstname, lastname, cpf)
-
-    collaborators = query.all()
-    if not collaborators:
-        raise HTTPException(status_code=404, detail="Nenhum colaborador encontrado")
-
-    return collaborators
-
+###### ROTAS PARA PÁGINAS DE COLABORADORES NO DASHBOARD ######
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def collaborators(

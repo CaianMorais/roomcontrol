@@ -21,8 +21,8 @@ class GuestService:
         return GuestRepository.guests_with_active_reservations(db, hotel_id)
     
     @staticmethod
-    def filter_guests(db, name, cpf, query):
-        return GuestRepository.filter_guests_by_name_or_cpf(db, name, cpf, query)
+    def filter_guests(name, cpf, query):
+        return GuestRepository.filter_guests_by_name_or_cpf(name, cpf, query)
     
     @staticmethod
     def get_guest(db, hotel_id, guest_id=None, cpf=None):
@@ -85,3 +85,21 @@ class GuestService:
     @staticmethod
     def delete_guest(db, guest):
         return GuestRepository.soft_delete(db, guest)
+    
+class ApiGuestService:
+
+    @staticmethod
+    def list_guests(db):
+        return GuestRepository.base_query(db)
+    
+    @staticmethod
+    def list_guests_by_hotel(db, hotel_id):
+        return GuestRepository.list_guests_by_hotel(db, hotel_id)
+    
+    @staticmethod
+    def filter_guests(name, cpf, query):
+        return GuestRepository.filter_guests_by_name_or_cpf(name, cpf, query)
+    
+    @staticmethod
+    def filter_guests_by_hotel(query, hotel_id: int = None, hotel_name: str = None):
+        return GuestRepository.filter_guests_by_hotel(query, hotel_id, hotel_name)

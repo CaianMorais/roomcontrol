@@ -22,11 +22,6 @@ router = APIRouter(
     dependencies=[Depends(require_admin_session)]
 )
 
-api_router = APIRouter(
-    prefix="/api",
-    tags=["audit"],
-    dependencies=[Depends(get_api_access)]
-)
 
 templates = Jinja2Templates(directory="app/templates")
 

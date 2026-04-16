@@ -1,15 +1,11 @@
-# import de libs built-in
-from typing import List, Optional
-
 # import de libs third-party
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 # import do current-app
 from app.core.config import get_db
-from app.core.dependencies import get_api_access
 from app.core.security import generate_csrf_token, validate_csrf_token
 from app.repositories.auth_hotel_repository import HotelRepository
 from app.schemas.hotel import HotelOut, RegisterHotelStep1In, RegisterHotelStep1Out
@@ -17,36 +13,12 @@ from app.services.auth_collaborator_service import AuthCollaboratorService
 from app.services.auth_hotel_service import AuthHotelService
 from app.utils.flash import add_flash_message, render
 
-router = APIRouter(prefix="/auth", tags=["hotels"])
-
-api_router = APIRouter(
-    prefix="/api",
-    tags=["hotels"],
-    dependencies=[Depends(get_api_access)]
+router = APIRouter(
+    prefix="/auth",
+    tags=["hotels"]
 )
 
 templates = Jinja2Templates(directory="app/templates")
-
-
-############## API (ENDPOINTS) ################
-
-@api_router.get("/hotels", response_model=List[HotelOut], summary="Filtrar hotéis (Exclusivo para chave global)")
-def get_hotels(
-    access: dict = Depends(get_api_access),
-    cnpj: Optional[str] = Query(None, description="Filtrar pelo CNPJ do hotel"),
-    name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel"),
-    db: Session = Depends(get_db)
-):
-    if not access["is_global"]:
-        raise HTTPException(status_code=403, detail="API Key não autorizada")
-
-    hotels = AuthHotelService.list_hotels(db, cnpj, name)
-
-    if not hotels:
-        raise HTTPException(status_code=404, detail="Nenhum hotel encontrado")
-
-    return hotels
-
 
 ################### REGISTRO DE HOTEL #################
 

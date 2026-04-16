@@ -14,7 +14,24 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import SessionLocal
 from app.models.guest import Guest
-from app.routers import auth, guest, dashboard, dashboard_rooms, dashboard_guests, dashboard_reservations, dashboard_services, dashboard_api_keys, dashboard_collaborator, dashboard_audit
+
+# Importação dos routers
+from app.routers.api import auth as auth_api
+from app.routers.web import auth as auth_web
+
+#from app.routers.api import api_keys as api_keys_api
+from app.routers.web import dashboard_api_keys as api_keys_web
+
+#from app.routers.api import audit as audit_api
+from app.routers.web import dashboard_audit as audit_web
+
+from app.routers.api import collaborator as collaborator_api
+from app.routers.web import dashboard_collaborator as collaborator_web
+
+from app.routers.api import guests as guests_api
+from app.routers.web import dashboard_guests as guests_web
+
+from app.routers.web import dashboard_reservations, dashboard_rooms, dashboard_services, dashboard, guest
 
 app = FastAPI(
     title="RoomControl - Management API REST",
@@ -44,31 +61,30 @@ def get_db():
 add_pagination(app)
 
 #INCLUSAO DAS ROTAS DE API
-app.include_router(auth.api_router)
-app.include_router(dashboard_collaborator.api_router)
+app.include_router(auth_api.api_router)
+app.include_router(collaborator_api.api_router)
 app.include_router(guest.api_router)
 app.include_router(dashboard.api_router)
 app.include_router(dashboard_rooms.api_router)
-app.include_router(dashboard_guests.api_router)
+app.include_router(guests_api.api_router)
 app.include_router(dashboard_reservations.api_router)
 app.include_router(dashboard_services.api_router)
-app.include_router(dashboard_audit.api_router)
 
 #INCLUSAO DOS ENDPOINTS UTILIZADOS PARA CONSULTA DO DASHBOARD
 app.include_router(dashboard_services.internal_api_router)
 app.include_router(dashboard_rooms.internal_api_router)
 
 #INCLUSAO DAS ROTAS DE PAGINAS
-app.include_router(auth.router)
+app.include_router(auth_web.router)
 app.include_router(guest.router)
 app.include_router(dashboard.router)
 app.include_router(dashboard_rooms.router)
-app.include_router(dashboard_guests.router)
+app.include_router(guests_web.router)
 app.include_router(dashboard_reservations.router)
 app.include_router(dashboard_services.router)
-app.include_router(dashboard_api_keys.router)
-app.include_router(dashboard_collaborator.router)
-app.include_router(dashboard_audit.router)
+app.include_router(api_keys_web.router)
+app.include_router(collaborator_web.router)
+app.include_router(audit_web.router)
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def home(request: Request, db: Session = Depends(get_db)):

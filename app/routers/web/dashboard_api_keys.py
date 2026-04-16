@@ -21,7 +21,6 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory="app/templates")
 
-
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def api_keys(
     request: Request,

@@ -1,12 +1,10 @@
 ## 🔄️ Última Atualização 15/04/2026
-- Todas as routers tiveram seus códigos que definiam as regras de negócio para Services e todos os códigos de persistência e manipulação de dados centralizados em Repositories, agora temos uma arquitetura de software limpa, sendo mais fácil dar manutenção ao código e deixando a visualização mais limpa.
-- Funções específicas de caso de uso movidas para a Service Layer respectiva, deixando a `helpers/` exclusiva para futuras funções auxiliares genéricas.
-- Foram corrigidas diversos erros de redirecionamento de páginas.
-- Corrigidos campos de formulários que não deveriam ser editáveis.
+- Separação parcial das routers da aplicação WEB e endpoints da API, dando mais organização aos dois contextos do projeto.
+- Organização das classes nas Services utilizadas para queries exclusivas da API.
 
 ## ➡️ Próximas atualizações
 
-- Migração dos endpoints para arquivos `.py` exclusivos da API, a intenção é separar a lógica dos endpoints da API das rotas da plataforma, deixando as routers mais limpas.
+- (Neste momento, em desenvolvimento) Migração dos endpoints para arquivos `.py` exclusivos da API, a intenção é separar a lógica dos endpoints da API das rotas da plataforma, deixando as routers mais limpas.
 - Endpoint com métodos `POST`, `PUT` e `DELETE` para possibilitar a manipulação de dados através de outros sistemas e oferecendo autonomia dos dados aos usuários da API embarcada ao sistema.
 - Função para alterar o quarto da reserva após a reserva já ter sido criada.
 - Desenvolvimento de um módulo que possibilita a visualização e alteração de alguns dados cadastrais do hotel.
@@ -51,7 +49,6 @@ alembic/
     env.py
 app/
     core/   # Configs do SQLAlchemy, CSRF-Token, Encrypt e API Keys
-    helpers/  # Funções simples que evitam código longo nas routers
     models/   # Models SQLAlchemy
     repositories/   # Controla a persistência e manipulação dos dados
     routers/   # Rotas organizadas por módulo
