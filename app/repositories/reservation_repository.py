@@ -1,9 +1,9 @@
 from math import ceil
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import case, or_
-from app.models import reservations
 from app.models.guest import Guest
+from app.models.hotel import Hotel
 from app.models.reservations import Reservations
 from app.models.rooms import Rooms
 import datetime
@@ -166,3 +166,44 @@ class ReservationRepository:
         db.refresh(reservation.Reservations)
         return reservation
     
+class ApiReservationRepository:
+
+    @staticmethod
+    def base_query(db: Session):
+        return (
+            db.query(Reservations)
+            .join(Guest, Reservations.guest_id == Guest.id)
+            .join(Rooms, Reservations.room_id == Rooms.id)
+            .join(Hotel, Rooms.hotel_id == Hotel.id)
+            .options(
+                joinedload(Reservations.guest),
+                joinedload(Reservations.room).joinedload(Rooms.hotel),
+            )
+        )
+    
+    @staticmethod
+    def reservations_hotel(db: Session, hotel_id: int):
+        return ApiReservationRepository.base_query(db).filter(Rooms.hotel_id == hotel_id)
+    
+    @staticmethod
+    def apply_hotel_filters(query, hotel_id: int = None, hotel_name: str = None):
+        if hotel_id:
+            query = query.filter(Rooms.hotel_id == hotel_id)
+        if hotel_name:
+            query = query.filter(Hotel.name.ilike(f"%{hotel_name}%"))
+
+        return query
+
+    @staticmethod
+    def apply_filters(query, guest_id: int = None, guest_name: str = None, room_number: str = None, check_in: str = None, check_out: str = None):
+        if guest_id:
+            query = query.filter(Reservations.guest_id == guest_id)
+        if guest_name:
+            query = query.filter(Guest.name.ilike(f"%{guest_name}%"))
+        if room_number:
+            query = query.filter(Rooms.room_number.ilike(f"%{room_number}%"))
+        if check_in:
+            query = query.filter(Reservations.check_in == check_in)
+        if check_out:
+            query = query.filter(Reservations.check_out == check_out)
+        return query

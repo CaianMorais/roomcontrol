@@ -1,5 +1,5 @@
 from app.domain.reservation_rules import decide_fast_update
-from app.repositories.reservation_repository import ReservationRepository
+from app.repositories.reservation_repository import ApiReservationRepository, ReservationRepository
 from app.models.reservations import Reservations
 import datetime
 from app.repositories.room_repository import RoomsRepository
@@ -178,3 +178,34 @@ class ReservationService:
         
         return reservation_updated, None, message
 
+class ApiReservationService:
+
+    @staticmethod
+    def get_reservations_global(db):
+        return ApiReservationRepository.base_query(db)
+    
+    @staticmethod
+    def get_reservations_hotel(db, hotel_id):
+        return ApiReservationRepository.reservations_hotel(db, hotel_id)
+    
+    @staticmethod
+    def filter_reservations(query, hotel_id: int = None, hotel_name: str = None, guest_id: int = None, guest_name: str = None, room_number: str = None, check_in: str = None, check_out: str = None):
+
+        if hotel_id or hotel_name:
+            query = ApiReservationRepository.apply_hotel_filters(
+                query=query,
+                hotel_id=hotel_id,
+                hotel_name=hotel_name
+            )
+            
+        if guest_id or guest_name or room_number or check_in or check_out:
+            query = ApiReservationRepository.apply_filters(
+                query=query,
+                guest_id=guest_id,
+                guest_name=guest_name,
+                room_number=room_number,
+                check_in=check_in,
+                check_out=check_out
+            )
+
+        return query

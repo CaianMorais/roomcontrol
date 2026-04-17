@@ -26,71 +26,14 @@ from app.services.reservation_service import ReservationService
 from app.services.guest_service import GuestService
 from app.services.room_service import RoomsService
 
+# confiraução do router e template
 router = APIRouter(
     prefix="/dashboard_reservations",
     tags=["reservations"],
     dependencies=[Depends(require_session)]
 )
-
-api_router = APIRouter(
-    prefix="/api",
-    tags=["reservations"],
-    dependencies=[Depends(get_api_access)]
-)
-
 templates = Jinja2Templates(directory="app/templates")
 
-@api_router.get("/reservations", response_model=List[ReservationOut], summary="Filtrar reservas")
-def get_reservations(
-    access: dict = Depends(get_api_access),
-    guest_id: Optional[int] = Query(None, description="Filtrar pelo ID do hóspede"),
-    guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
-    room_number: Optional[str] = Query(None, description="Filtrar pelo número do quarto"),
-    check_in: Optional[str] = Query(None, description="Filtrar pela data de check-in"),
-    check_out: Optional[str] = Query(None, description="Filtrar pela data de check-out"),
-    hotel_id: Optional[str] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    db: Session = Depends(get_db)
-):
-    query = (
-        db.query(Reservations)
-        .options(
-            joinedload(Reservations.guest),
-            joinedload(Reservations.room).joinedload(Rooms.hotel),
-        )
-    )
-    
-    if not access["is_global"]:
-        query = query.join(Rooms, Reservations.room_id == Rooms.id) \
-            .join(Hotel, Rooms.hotel_id == Hotel.id) \
-            .filter(Hotel.id == access["hotel_id"])
-    else:
-        if hotel_id:
-            query = query.join(Rooms, Reservations.room_id == Rooms.id) \
-                .filter(Rooms.hotel_id == hotel_id)
-        if hotel_name:
-            query = query.join(Rooms, Reservations.room_id == Rooms.id) \
-                .join(Hotel, Rooms.hotel_id == Hotel.id) \
-                .filter(Hotel.name.ilike(f"%{hotel_name}%"))
-
-    if guest_id:
-        query = query.filter(Reservations.guest_id == guest_id)
-    if guest_name:
-        query = query.join(Guest, Guest.id == Reservations.guest_id) \
-            .filter(Guest.name.ilike(f"%{guest_name}%"))
-    if room_number:
-        query = query.join(Rooms, Reservations.room_id == Rooms.id).filter(Rooms.room_number == room_number)
-    if check_in:
-        query = query.filter(Reservations.check_in == check_in)
-    if check_out:
-        query = query.filter(Reservations.check_out == check_out)
-
-    reservations = query.all()
-
-    if not reservations:
-        raise HTTPException(status_code=404, detail="Nenhuma reserva encontrada")
-
-    return reservations
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def reservations(

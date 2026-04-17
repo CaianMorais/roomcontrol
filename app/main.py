@@ -31,6 +31,9 @@ from app.routers.web import dashboard_collaborator as collaborator_web
 from app.routers.api import guests as guests_api
 from app.routers.web import dashboard_guests as guests_web
 
+from app.routers.api import reservations as reservations_api
+from app.routers.web import dashboard_reservations as reservations_web
+
 from app.routers.web import dashboard_reservations, dashboard_rooms, dashboard_services, dashboard, guest
 
 app = FastAPI(
@@ -67,7 +70,7 @@ app.include_router(guest.api_router)
 app.include_router(dashboard.api_router)
 app.include_router(dashboard_rooms.api_router)
 app.include_router(guests_api.api_router)
-app.include_router(dashboard_reservations.api_router)
+app.include_router(reservations_api.api_router)
 app.include_router(dashboard_services.api_router)
 
 #INCLUSAO DOS ENDPOINTS UTILIZADOS PARA CONSULTA DO DASHBOARD
@@ -80,7 +83,7 @@ app.include_router(guest.router)
 app.include_router(dashboard.router)
 app.include_router(dashboard_rooms.router)
 app.include_router(guests_web.router)
-app.include_router(dashboard_reservations.router)
+app.include_router(reservations_web.router)
 app.include_router(dashboard_services.router)
 app.include_router(api_keys_web.router)
 app.include_router(collaborator_web.router)
