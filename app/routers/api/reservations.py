@@ -1,16 +1,12 @@
 from typing import List, Optional
 
 # import de libs da third-party
-from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlalchemy.orm import Session, joinedload
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 
 # import de funções da aplicação local
 from app.core.config import get_db
-from app.models.rooms import Rooms
 from app.schemas.reservations import ReservationOut
-from app.models.reservations import Reservations
-from app.models.guest import Guest
-from app.models.hotel import Hotel
 from app.core.dependencies import get_api_access
 from app.services.reservation_service import ApiReservationService
 
@@ -35,9 +31,11 @@ def get_reservations(
 ):
     # se a chave nao for global, consulta somente do hotel relacionado a chave
     if not access["is_global"]:
-        query = ApiReservationService.get_reservations_hotel(db, access["hotel_id"])
+        query = ApiReservationService.get_reservations(db, access["hotel_id"])
+    # se for global, consulta de todos os hoteis
     else:
-        query = ApiReservationService.get_reservations_global(db)
+        query = ApiReservationService.get_reservations(db, None)
+        # aplica filtro de hotel se tiver, filtro de hotel somente para chave global
         if hotel_id or hotel_name:
             query = ApiReservationService.filter_reservations(
                 query=query,

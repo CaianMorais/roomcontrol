@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from app.repositories.room_repository import RoomsRepository
+from app.repositories.room_repository import RoomsRepository, ApiRoomsRepository
 from app.models.rooms import Rooms
 
 def _tipos_map():
@@ -199,3 +199,12 @@ class RoomsService:
                 return None, "O quarto não pode ser removido pois possui reservas ativas."
             
         return RoomsRepository.soft_delete(db, room), None
+    
+class ApiRoomsService:
+    @staticmethod
+    def get_rooms(db, hotel_id):
+        return ApiRoomsRepository.base_query(db, hotel_id)
+    
+    @staticmethod
+    def filter_rooms(query, hotel_name, hotel_id):
+        return ApiRoomsRepository.apply_filters(query, hotel_name=hotel_name, hotel_id=hotel_id)

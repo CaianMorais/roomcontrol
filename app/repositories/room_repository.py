@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from app.models.hotel import Hotel
 from app.models.reservations import Reservations
 from app.models.rooms import Rooms
 
@@ -80,3 +81,29 @@ class RoomsRepository:
         db.commit()
         db.refresh(room)
         return room
+    
+class ApiRoomsRepository:
+
+    @staticmethod
+    def base_query(db: Session, hotel_id: int = None):
+        query = (
+            db.query(Rooms) \
+            .join(Rooms.hotel) \
+            .options(
+                joinedload(Rooms.hotel)
+            )
+        )
+        
+        if hotel_id:
+            query = query.filter(Rooms.hotel_id == hotel_id, Rooms.is_deleted == False)
+            
+        return query
+    
+    @staticmethod
+    def apply_filters(query, hotel_name: str = None, hotel_id: int = None):
+        if hotel_name:
+            query = query.filter(Hotel.name.ilike(f"%{hotel_name}%"))
+        if hotel_id:
+            query = query.filter(Hotel.id == hotel_id)
+
+        return query

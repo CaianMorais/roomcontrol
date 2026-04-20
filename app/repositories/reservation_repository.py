@@ -169,8 +169,8 @@ class ReservationRepository:
 class ApiReservationRepository:
 
     @staticmethod
-    def base_query(db: Session):
-        return (
+    def base_query(db: Session, hotel_id: int = None):
+        query = (
             db.query(Reservations)
             .join(Guest, Reservations.guest_id == Guest.id)
             .join(Rooms, Reservations.room_id == Rooms.id)
@@ -180,10 +180,10 @@ class ApiReservationRepository:
                 joinedload(Reservations.room).joinedload(Rooms.hotel),
             )
         )
-    
-    @staticmethod
-    def reservations_hotel(db: Session, hotel_id: int):
-        return ApiReservationRepository.base_query(db).filter(Rooms.hotel_id == hotel_id)
+        
+        if hotel_id:
+            query = query.filter(Rooms.hotel_id == hotel_id)
+        return query
     
     @staticmethod
     def apply_hotel_filters(query, hotel_id: int = None, hotel_name: str = None):

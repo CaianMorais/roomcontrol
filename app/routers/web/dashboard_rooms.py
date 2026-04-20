@@ -22,67 +22,13 @@ from app.schemas.rooms import RoomOut
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 
+# configurações do router e templates
 router = APIRouter(
     prefix="/dashboard_rooms",
     tags=["rooms"],
     dependencies=[Depends(require_session)]
 )
-
-api_router = APIRouter(
-    prefix="/api",
-    tags=["rooms"],
-    dependencies=[Depends(get_api_access)]
-)
-
-internal_api_router = APIRouter(
-    prefix="/internal_api",
-    tags=["rooms"],
-    dependencies=[Depends(require_session)]
-)
-
 templates = Jinja2Templates(directory="app/templates")
-
-@api_router.get("/rooms", response_model=List[RoomOut], summary="Filtrar quartos")
-def get_rooms(
-    access: dict = Depends(get_api_access),
-    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    hotel_id: Optional[int] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    db: Session = Depends(get_db)
-):
-    query = db.query(Rooms).options(joinedload(Rooms.hotel))
-
-    if not access["is_global"]:
-        query = query.filter(Rooms.hotel_id == access["hotel_id"])
-
-    if access["is_global"]:
-        if hotel_name:
-            query = query.filter(Hotel.name.ilike(f"%{hotel_name}%"))
-        if hotel_id:
-            query = query.filter(Hotel.id == hotel_id)
-
-    rooms = query.all()
-
-    if not rooms:
-        raise HTTPException(status_code=404, detail="Nenhum quarto encontrado")
-    
-    return rooms
-
-@internal_api_router.get("/rooms", include_in_schema=False)
-def get_rooms_for_reservations_filter(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    hotel_id = request.session.get("hotel_id")
-    if not hotel_id:
-        raise HTTPException(status_code=400, detail="Hotel não reconhecido")
-    
-    rooms = db.query(Rooms) \
-        .options(joinedload(Rooms.hotel)) \
-        .filter(Rooms.is_deleted == False) \
-        .filter(Rooms.hotel_id == hotel_id) \
-        .all()
-
-    return rooms
 
 @router.get("", response_class=HTMLResponse, include_in_schema=False)
 def rooms(

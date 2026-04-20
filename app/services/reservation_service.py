@@ -181,12 +181,8 @@ class ReservationService:
 class ApiReservationService:
 
     @staticmethod
-    def get_reservations_global(db):
-        return ApiReservationRepository.base_query(db)
-    
-    @staticmethod
-    def get_reservations_hotel(db, hotel_id):
-        return ApiReservationRepository.reservations_hotel(db, hotel_id)
+    def get_reservations(db, hotel_id):
+        return ApiReservationRepository.base_query(db, hotel_id)
     
     @staticmethod
     def filter_reservations(query, hotel_id: int = None, hotel_name: str = None, guest_id: int = None, guest_name: str = None, room_number: str = None, check_in: str = None, check_out: str = None):
