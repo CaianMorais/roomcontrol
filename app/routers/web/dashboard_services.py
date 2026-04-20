@@ -22,109 +22,14 @@ from app.schemas.table_services import TableServicesOut
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 
-
+# configuração do router e templates
 router = APIRouter(
     prefix='/dashboard_services',
     tags=['services'],
     dependencies=[Depends(require_session)]
 )
-
-api_router = APIRouter(
-    prefix='/api',
-    tags=['services'],
-    dependencies=[Depends(get_api_access)]
-)
-
-internal_api_router = APIRouter(
-    prefix='/internal_api',
-    tags=['services'],
-    dependencies=[Depends(require_session)]
-)
-
 templates = Jinja2Templates(directory='app/templates')
 
-###################### API START ######################
-@api_router.get('/services_requests', response_model=List[ServicesOut], summary="Filtrar pedidos de serviços")
-def get_services_requests(
-    access: dict = Depends(get_api_access),
-    reservation_id: Optional[int] = Query(None, description="Filtrar pelo número da reserva"),
-    guest_cpf: Optional[int] = Query(None, description="Filtrar pelo CPF do hóspede"),
-    guest_name: Optional[str] = Query(None, description="Filtrar pelo nome do hóspede"),
-    room_number: Optional[str] = Query(None, description="Filtrar pelo número do quarto"),
-    status: Optional[Literal['pending', 'in_progress', 'completed']] = Query(None, description="Filtrar pelo status do pedido"),
-    hotel_id: Optional[int] = Query(None, description="Filtrar pelo ID do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    hotel_name: Optional[str] = Query(None, description="Filtrar pelo nome do hotel (FUNCIONAL SOMENTE PARA CHAVE GLOBAL)"),
-    db: Session = Depends(get_db)
-):      
-    query = (
-        db.query(Services)
-        .options(
-            joinedload(Services.reservation).joinedload(Reservations.guest),
-            joinedload(Services.reservation).joinedload(Reservations.room).joinedload(Rooms.hotel)
-        )
-    )
-
-    if not access["is_global"]:
-        query = query.join(Rooms, Services.room_id == Rooms.id).join(
-            Hotel, Rooms.hotel_id == Hotel.id
-        ).filter(Hotel.id == access["hotel_id"])
-    else:
-        if hotel_id:
-            query = query.join(Rooms, Services.room_id == Rooms.id).join(
-                Hotel, Rooms.hotel_id == Hotel.id
-            ).filter(Hotel.id == hotel_id)
-        if hotel_name:
-            query = query.join(Rooms, Services.room_id == Rooms.id).join(
-                Hotel, Rooms.hotel_id == Hotel.id
-            ).filter(Hotel.name.ilike(f'%{hotel_name}%'))
-
-    if reservation_id:
-        query = query.filter(Services.reservation_id == reservation_id)
-    if guest_cpf:
-        query = query.join(Guest, Services.guest_id == Guest.id).filter(Guest.cpf == guest_cpf)
-    if guest_name:
-        query = query.join(Guest, Services.guest_id == Guest.id).filter(Guest.name.ilike(f'%{guest_name}%'))
-    if room_number:
-        query = query.join(Rooms, Services.room_id == Rooms.id).filter(Rooms.room_number == room_number)
-    if status:
-        query = query.filter(Services.status.ilike(f'%{status}%'))
-
-    requests = query.all()
-
-    if not requests:
-        raise HTTPException(status_code=404, detail="Nenhum pedido encontrado")
-    
-    return requests
-
-@internal_api_router.get('/table_services_requests', response_model=List[TableServicesOut], include_in_schema=False)
-def get_table_services_requests(
-    request: Request,
-    db: Session = Depends(get_db)
-):
-    hotel_id = request.session.get("hotel_id")
-
-    if not hotel_id:
-        raise HTTPException(status_code=400, detail="Hotel não reconhecido")
-
-    query = (
-        db.query(Services)
-        .options(
-            joinedload(Services.reservation).joinedload(Reservations.guest),
-            joinedload(Services.reservation).joinedload(Reservations.room).joinedload(Rooms.hotel)
-        )
-        .join(Rooms, Services.room_id == Rooms.id)
-        .join(Hotel, Rooms.hotel_id == Hotel.id)
-        .filter(Hotel.id == hotel_id)
-    )
-
-    requests = query.all()
-
-    if not requests:
-        return []
-    
-    return requests
-
-###################### API END ######################
 
 @router.get('', response_class=HTMLResponse, include_in_schema=False)
 def services_requests(
@@ -132,6 +37,7 @@ def services_requests(
 ):
     # essa rota somente renderiza o template
     # o carregamento dos dados é feito via JS chamando a endpoint interna
+    # endpoint interno: /routers/api/service_requests.py: @internal_api_router
 
     return render(
         templates,

@@ -31,17 +31,16 @@ def get_guests(
 
     # Se o acesso não é global, salva o hotel_id relacionado a chave
     if not access["is_global"]:
-        hotel_id = access["hotel_id"]
-        query = ApiGuestService.list_guests_by_hotel(db, hotel_id)
+        query = ApiGuestService.get_guests(db, access["hotel_id"])
 
     else:
-        query = ApiGuestService.list_guests(db)
+        query = ApiGuestService.get_guests(db, None)
         if hotel_id or hotel_name:
             print(hotel_id, hotel_name)
-            query = ApiGuestService.filter_guests_by_hotel(query, hotel_id, hotel_name)
+            query = ApiGuestService.filter_guests(query, hotel_id=hotel_id, hotel_name=hotel_name)
 
     if guest_cpf or guest_name:
-        query = ApiGuestService.filter_guests(db, guest_name, guest_cpf, query)
+        query = ApiGuestService.filter_guests(query, name=guest_name, cpf=guest_cpf)
 
     guests = query.all()
 

@@ -1,4 +1,4 @@
-from app.repositories.guest_repository import GuestRepository
+from app.repositories.guest_repository import GuestRepository, ApiGuestsRepository
 from app.models.guest import Guest
 
 def valid_phone_number_on_create(phone_number):
@@ -89,17 +89,13 @@ class GuestService:
 class ApiGuestService:
 
     @staticmethod
-    def list_guests(db):
-        return GuestRepository.base_query(db)
+    def get_guests(db, hotel_id):
+        return ApiGuestsRepository.base_query(db, hotel_id)
     
     @staticmethod
-    def list_guests_by_hotel(db, hotel_id):
-        return GuestRepository.list_guests_by_hotel(db, hotel_id)
-    
-    @staticmethod
-    def filter_guests(name, cpf, query):
-        return GuestRepository.filter_guests_by_name_or_cpf(name, cpf, query)
-    
-    @staticmethod
-    def filter_guests_by_hotel(query, hotel_id: int = None, hotel_name: str = None):
-        return GuestRepository.filter_guests_by_hotel(query, hotel_id, hotel_name)
+    def filter_guests(query, name=None, cpf=None, hotel_id=None, hotel_name=None):
+        if name or cpf:
+            query = ApiGuestsRepository.filter_guests(query, name, cpf)
+        if hotel_id or hotel_name:
+            query = ApiGuestsRepository.filter_guests_by_hotel(query, hotel_id, hotel_name)
+        return query

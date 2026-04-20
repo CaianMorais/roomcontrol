@@ -1,4 +1,4 @@
-from app.repositories.services_request_repository import ServicesRequestRepository
+from app.repositories.services_request_repository import ServicesRequestRepository, ApiServicesRequestRepository
 from app.models.services import Services
 from fastapi.responses import JSONResponse
 
@@ -58,3 +58,19 @@ class ServicesRequestService:
             "message": "Status do pedido atualizado com sucesso.",
             "new_status": new_status
         }
+    
+class ApiServicesRequestService:
+
+    @staticmethod
+    def get_requests(db, hotel_id):
+        return ApiServicesRequestRepository.base_query(db, hotel_id)
+    
+    @staticmethod
+    def filter_requests(query, hotel_id: int = None, hotel_name: str = None, reservation_id: int = None, guest_cpf: str = None, guest_name: str = None, room_number: str = None, status: str = None):
+        if hotel_id or hotel_name:
+            query = ApiServicesRequestRepository.filter_requests_by_hotel(query, hotel_id, hotel_name)
+
+        if reservation_id or guest_cpf or guest_name or room_number or status:
+            query = ApiServicesRequestRepository.filter_requests(query, reservation_id, guest_cpf, guest_name, room_number, status)
+
+        return query
