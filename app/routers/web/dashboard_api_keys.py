@@ -85,7 +85,7 @@ def update_api_key(
     api_key, error = ApiKeyService.toggle_key(db, api_key_id, hotel_id)
     if error:
         add_flash_message(request, error, "danger")
-        return RedirectResponse(request.url_for("api_keys"), status_code=303)
+        return RedirectResponse(url=request.url_for("api_keys"), status_code=303)
 
     add_flash_message(request, "Chave atualizada com sucesso", "success")
-    return RedirectResponse(request.url_for("api_keys"), status_code=303)
+    return RedirectResponse(url=request.url_for("api_keys"), status_code=303)

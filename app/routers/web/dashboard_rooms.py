@@ -1,24 +1,19 @@
 # import de libs built-in
-from decimal import Decimal
-from typing import List, Optional
+from typing import Optional
 
 # import de libs third-party
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate as sa_paginate
 
 # import do current-app
 from app.core.config import get_db
-from app.core.dependencies import get_api_access
 from app.core.security import generate_csrf_token, validate_csrf_token
-from app.models.hotel import Hotel
-from app.models.rooms import Rooms
 from app.services.audit_service import AuditService
 from app.services.room_service import RoomsService
-from app.schemas.rooms import RoomOut
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_session
 
@@ -51,11 +46,6 @@ def rooms(
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
     has_filter = False
-
-    # valida o hotel
-    if not hotel_id:
-        add_flash_message(request, "Hotel não reconhecido", "warning")
-        return RedirectResponse(url="/dashboard_rooms", status_code=303)
 
     # usa a service para fazer a query
     query = RoomsService.list_rooms(db, hotel_id)
@@ -255,4 +245,4 @@ def delete_room(room_id: int, request: Request, db: Session = Depends(get_db
     AuditService.register(db, room.hotel_id, 'delete', 'room', room.id, request.session.get("collaborator_id"))
     add_flash_message(request, f"Quarto {room.room_number} excluído com sucesso.", "success")
 
-    return RedirectResponse(url="/dashboard_rooms", status_code=303)
+    return RedirectResponse(url=request.url_for("rooms"), status_code=303)

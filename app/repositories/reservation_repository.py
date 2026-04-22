@@ -90,12 +90,14 @@ class ReservationRepository:
     
     @staticmethod
     def check_available_guests(db: Session, hotel_id: int, check_in: datetime.datetime, check_out: datetime.datetime):
+        # pega os hospedes que estão reservados no periodo
         reserved_guest_ids = db.query(Reservations.guest_id).filter(
             Reservations.check_in < check_out,
             Reservations.check_out > check_in,
             Reservations.status.in_(["booked", "checked_in"])
         ).subquery()
 
+        # pega os hospedes que não estão reservados no periodo, ativos e nao deletados
         available_guests = db.query(Guest).filter(
             Guest.hotel_id == hotel_id,
             Guest.is_deleted == False,
@@ -106,14 +108,14 @@ class ReservationRepository:
     
     @staticmethod
     def check_available_rooms(db: Session, hotel_id: int, check_in: datetime.datetime, check_out: datetime.datetime):
-        # Pega as reservas ativas no período que se cruza com o período desejado
+        # pega as reservas ativas no periodo que se cruza com o periodo desejado
         reserved_room_ids = db.query(Reservations.room_id).filter(
             Reservations.status.in_(["booked", "checked_in"]),
             Reservations.check_in < check_out,
             Reservations.check_out > check_in
         ).subquery()
 
-        # pega os quartos que não estão reservados no periodo, ativos, não deletados e não estão em manutenção
+        # pega os quartos que não estão reservados no periodo, ativos, nao deletados e que não estão em manutenção
         available_rooms = db.query(Rooms).filter(
             Rooms.hotel_id == hotel_id,
             Rooms.status != "maintenance",

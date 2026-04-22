@@ -35,9 +35,8 @@ api_key_header = APIKeyHeader(
 
 
 
-# FUNÇÃO GENÉRICA PARA VERIFICAR
-# CHAVE DE API DE NIVEL GLOBAL
-# CONFIGURADO NO .env
+# FUNÇÃO PARA VERIFICAR CHAVE DE API DE NIVEL GLOBAL CONFIGURADO NO .env
+# OU VALIDAR CHAVE DE API NORMAL PARA ACESSO A DADOS DE UM HOTEL ESPECÍFICO
 def get_api_access(
     api_key: str = Security(api_key_header),
     db: Session = Depends(get_db)

@@ -40,7 +40,7 @@ from app.routers.web import dashboard_rooms as rooms_web
 from app.routers.api import service_requests as service_requests_api
 from app.routers.web import dashboard_services as services_requests_web
 
-from app.routers.web import dashboard, guest
+from app.routers.web import dashboard_main, guest
 
 app = FastAPI(
     title="RoomControl - Management API REST",
@@ -72,8 +72,7 @@ add_pagination(app)
 #INCLUSAO DAS ROTAS DE API
 app.include_router(auth_api.api_router)
 app.include_router(collaborator_api.api_router)
-app.include_router(guest.api_router)
-app.include_router(dashboard.api_router)
+app.include_router(dashboard_main.api_router)
 app.include_router(rooms_api.api_router)
 app.include_router(guests_api.api_router)
 app.include_router(reservations_api.api_router)
@@ -86,7 +85,7 @@ app.include_router(rooms_api.internal_api_router)
 #INCLUSAO DAS ROTAS DE PAGINAS
 app.include_router(auth_web.router)
 app.include_router(guest.router)
-app.include_router(dashboard.router)
+app.include_router(dashboard_main.router)
 app.include_router(rooms_web.router)
 app.include_router(guests_web.router)
 app.include_router(reservations_web.router)

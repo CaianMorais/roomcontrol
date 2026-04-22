@@ -115,7 +115,7 @@ def create_guest(
 
     if error:
         add_flash_message(request, error, "danger")
-        return RedirectResponse(request.url_for("new_guest"), status_code=303)
+        return RedirectResponse(url=request.url_for("new_guest"), status_code=303)
 
     # registra log
     AuditService.register(db, hotel_id, 'create', 'guest', guest.id, request.session.get("collaborator_id"))

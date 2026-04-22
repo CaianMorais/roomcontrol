@@ -11,18 +11,16 @@ from sqlalchemy.orm import Session
 
 # import do current-app
 from app.core.config import get_db
-from app.core.dependencies import get_api_access
 from app.services.audit_service import AuditService
 from app.utils.flash import add_flash_message, render
 from app.utils.session_guard import require_admin_session
 
+#configuração do router e do template
 router = APIRouter(
     prefix="/dashboard_audit",
     tags=["audit"],
     dependencies=[Depends(require_admin_session)]
 )
-
-
 templates = Jinja2Templates(directory="app/templates")
 
 

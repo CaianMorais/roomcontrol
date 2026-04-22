@@ -214,7 +214,7 @@ def login_collaborator(
 
     if error:
         add_flash_message(request, error, "danger")
-        return RedirectResponse(request.url_for("login_collaborator"), status_code=303)
+        return RedirectResponse(url=request.url_for("login_collaborator"), status_code=303)
 
     request.session.clear()
     request.session["hotel_id"] = collaborator.hotel_id
@@ -233,7 +233,7 @@ def login_collaborator(
 @router.get("/collaborator/change_password", response_class=HTMLResponse, include_in_schema=False)
 def change_password_page(request: Request):
     if not request.session.get("force_change_password"):
-        return RedirectResponse(request.url_for("dashboard"), status_code=303)
+        return RedirectResponse(url=request.url_for("dashboard"), status_code=303)
 
     return render(
         templates,

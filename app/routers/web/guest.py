@@ -12,7 +12,7 @@ from app.utils.flash import add_flash_message, render
 
 templates = Jinja2Templates(directory="app/templates")
 router = APIRouter(prefix="/guests", tags=["guests"])
-api_router = APIRouter(prefix="/api", tags=["api_guests"])
+#api_router = APIRouter(prefix="/api", tags=["api_guests"])
 
 
 @router.get('', response_class=HTMLResponse, include_in_schema=False)
