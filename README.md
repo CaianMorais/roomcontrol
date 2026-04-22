@@ -1,10 +1,10 @@
-## 🔄️ Última Atualização 15/04/2026
-- Separação parcial das routers da aplicação WEB e endpoints da API, dando mais organização aos dois contextos do projeto.
-- Organização das classes nas Services utilizadas para queries exclusivas da API.
+## 🔄️ Última Atualização 22/04/2026
+- Migrados todos os endpoints para arquivos `.py` exclusivos da API, a intenção é separar a lógica dos endpoints da API das rotas da plataforma, deixando as routers mais limpas.
+- Dashboard principal com dados relevantes para uma primeira visualização geral pós-login criado, os dados mais simples são consultados pelo back-end. Demais dados com mais detalhes e que exigem um pouco mais de recursos para serem exibidos são feitos pelo JS após o carregamento inicial da página e são atualizados regularmente, evitando carregamento lento ao carregar página.
 
 ## ➡️ Próximas atualizações
 
-- (Neste momento, em desenvolvimento) Migração dos endpoints para arquivos `.py` exclusivos da API, a intenção é separar a lógica dos endpoints da API das rotas da plataforma, deixando as routers mais limpas.
+- Otimização e refatoração de código front-end (template e scripts) do módulo `main_dashboard`.
 - Endpoint com métodos `POST`, `PUT` e `DELETE` para possibilitar a manipulação de dados através de outros sistemas e oferecendo autonomia dos dados aos usuários da API embarcada ao sistema.
 - Função para alterar o quarto da reserva após a reserva já ter sido criada.
 - Desenvolvimento de um módulo que possibilita a visualização e alteração de alguns dados cadastrais do hotel.

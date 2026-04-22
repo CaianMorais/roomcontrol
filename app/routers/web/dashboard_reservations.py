@@ -272,7 +272,7 @@ def update_reservation(
     if not guest:
         return JSONResponse(
             status_code=404,
-            content={"detail": error}
+            content={"detail": "Hóspede inexistente"}
         )
     
     # atualiza a reserva rapidamente pela tabela

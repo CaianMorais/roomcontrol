@@ -136,7 +136,7 @@ class ReservationService:
         )
 
         if not ok:
-            return None, "Não foi possível modificar esta reserva!"
+            return None, "O quarto ou a reserva não estão em estados que permitam atualização!"
         
         now = datetime.datetime.now()
 
