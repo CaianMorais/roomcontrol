@@ -6,6 +6,12 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/2.3.5/css/dataTables.bootstrap5.min.css" />
 
 <div class="container-fluid">
+    {% set breadcrumb_title = "Pedidos" %}
+    {% set breadcrumb_items = [
+    {"name": "Dashboard", "url": url_for("dashboard")},
+    {"name": "Pedidos"}
+    ] %}
+    {% include "dashboard/partials/breadcrumb.html" %}
     <div class="row">
 
         <div class="col-lg-12 d-flex align-items-stretch">
@@ -17,7 +23,8 @@
                             <span>A tabela atualizará em <b id="count"></b> segundos</span>
                         </div>
                         <div>
-                            <a class="btn btn-info mb-4" onclick="reloadTable()">Atualizar <i class="ti ti-refresh"></i></a>
+                            <a class="btn btn-info mb-4" onclick="reloadTable()">Atualizar <i
+                                    class="ti ti-refresh"></i></a>
                         </div>
                     </div>
                     <div class="table-responsive">

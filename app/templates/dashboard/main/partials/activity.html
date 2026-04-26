@@ -1,0 +1,28 @@
+<div class="col-12">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-white">
+            <h2 class="h5 mb-0">Atividade recente</h2>
+        </div>
+        <div class="card-body">
+            {% if activity %}
+            <div class="list-group list-group-flush">
+                {% for item in activity %}
+                <div class="list-group-item px-0">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <strong>{{ item.actor }}</strong>
+                            {{ item.action|lower }}
+                            {{ item.entity }}
+                            <span class="text-muted">#{{ item.entity_id }}</span>
+                        </div>
+                        <small class="text-muted text-nowrap">{{ item.created_at }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-muted small">Nenhuma atividade recente encontrada.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>

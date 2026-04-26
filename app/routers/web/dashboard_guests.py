@@ -171,6 +171,7 @@ def update_guest(
     next: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
+    print(phone_number)
     # captura o hotel
     hotel_id = request.session.get("hotel_id")
 

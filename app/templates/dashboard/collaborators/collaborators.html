@@ -6,6 +6,13 @@
 
 
 <div class="container-fluid">
+    {% set breadcrumb_title = "Colaboradores" %}
+    {% set breadcrumb_items = [
+    {"name": "Dashboard", "url": url_for("dashboard")},
+    {"name": "Colaboradores"}
+    ] %}
+    {% include "dashboard/partials/breadcrumb.html" %}
+
     <div class="row">
         <div class="col-lg-12 d-flex align-items-stretch">
             {% include 'dashboard/collaborators/partials/_filter.html' %}

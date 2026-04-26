@@ -1,0 +1,84 @@
+<h5 class="card-title fw-semibold mb-4">Editar Dados do Hotel</h5>
+<form id="hotelProfileForm" action="{{ url_for('update_hotel_profile') }}" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="name" class="form-label">Nome do Hotel</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ hotel.name }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ hotel.email }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="login" class="form-label">Login</label>
+                <input type="text" class="form-control" id="login" name="login" value="{{ hotel.login }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="phone_number" class="form-label">Telefone</label>
+                <input type="text" class="form-control" id="phone_number" name="phone_number"
+                    value="{{ hotel.phone_number }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">CNPJ (Não editável)</label>
+                <input type="text" class="form-control bg-light" id="cnpj" value="{{ hotel.cnpj }}" readonly>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="zip_code" class="form-label">CEP</label>
+                <input type="text" class="form-control" id="zip_code" name="zip_code" value="{{ hotel.zip_code }}"
+                    maxlength="8" required>
+            </div>
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Endereço</label>
+                        <input type="text" class="form-control bg-light" id="address" name="address"
+                            value="{{ hotel.address.split(',')[0].strip() if ',' in hotel.address else hotel.address }}"
+                            readonly required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="number" class="form-label">Número</label>
+                        <input type="text" class="form-control" id="number" name="number"
+                            value="{{ hotel.address.split(',')[1].strip() if ',' in hotel.address else '' }}" required>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="city" class="form-label">Cidade</label>
+                        <input type="text" class="form-control bg-light" id="city" name="city" value="{{ hotel.city }}"
+                            readonly required>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="state" class="form-label">Estado (UF)</label>
+                        <input type="text" class="form-control bg-light" id="state" name="state"
+                            value="{{ hotel.state }}" maxlength="2" readonly required>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Nova Senha (Deixe em branco para não
+                    alterar)</label>
+                <input type="password" class="form-control" id="password" name="password" minlength="8">
+            </div>
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label">Confirmar Nova Senha</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" minlength="8">
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-danger ms-2">Cancelar</a>
+    </div>
+</form>

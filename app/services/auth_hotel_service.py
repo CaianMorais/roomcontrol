@@ -7,6 +7,13 @@ from app.repositories.auth_hotel_repository import HotelRepository
 from app.utils.brdocs import is_valid_cnpj, only_digits
 from app.utils.cnpj_ws import CNPJWsError, fetch_cnpj_situacao
 
+def valid_phone_number_on_create(phone_number):
+    phone_number = "".join(filter(str.isdigit, phone_number))
+    print(phone_number)
+    if phone_number and len(phone_number) >= 10:
+        return phone_number
+    else:
+        return None
 
 class AuthHotelService:
 
@@ -92,6 +99,58 @@ class AuthHotelService:
             return None, "O hotel está desativado no sistema"
 
         return hotel, None
+
+    @staticmethod
+    def update_profile(
+        db: Session,
+        hotel_id: int,
+        name: str,
+        email: str,
+        login: str,
+        phone_number: str,
+        zip_code: str,
+        address: str,
+        number: str,
+        city: str,
+        state: str,
+        password: Optional[str] = None,
+        confirm_password: Optional[str] = None,
+    ):
+        hotel = HotelRepository.find_by_id(db, hotel_id)
+        if not hotel:
+            return None, "Hotel não encontrado."
+
+        # Validações de campos únicos se mudarem
+        if email != hotel.email:
+            if HotelRepository.find_by_email(db, email):
+                return None, "Este email já está sendo usado por outro hotel."
+        
+        if login and login != hotel.login:
+            if HotelRepository.find_by_login(db, login):
+                return None, "Este login já está sendo usado por outro hotel."
+
+        phone_number = valid_phone_number_on_create(phone_number)
+
+        if not phone_number:
+            return None, "Número de telefone inválido."
+
+        # Validação de senha
+        if password:
+            if password != confirm_password:
+                return None, "As senhas não conferem."
+            hotel.password = hash_password(password)
+
+        # Atualização dos campos
+        hotel.name = name
+        hotel.email = email
+        hotel.login = login
+        hotel.phone_number = phone_number
+        hotel.zip_code = zip_code
+        hotel.address = address + ", " + number
+        hotel.city = city
+        hotel.state = state
+
+        return HotelRepository.update(db, hotel), None
     
 class ApiAuthHotelService:
 

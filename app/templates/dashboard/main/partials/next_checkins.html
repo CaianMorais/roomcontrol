@@ -1,0 +1,28 @@
+<div class="col-12 col-xl-6">
+    <div class="card shadow-lg border-0 h-100">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between">
+            <div>
+                <h2 class="h5 mb-0">Próximos check-ins</h2>
+                <small class="text-muted">Próximas 24 horas</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="refresh-checkins-btn">
+                Atualizar
+            </button>
+        </div>
+        <div class="card-body">
+            <div id="checkins-loading" class="text-muted small">
+                Carregando próximos check-ins...
+            </div>
+
+            <div id="checkins-error" class="alert alert-danger py-2 px-3 d-none mb-3" role="alert">
+                Não foi possível carregar os próximos check-ins.
+            </div>
+
+            <div id="checkins-empty" class="text-muted small d-none">
+                Nenhum check-in previsto nas próximas 24 horas.
+            </div>
+
+            <div class="list-group list-group-flush" id="checkins-list"></div>
+        </div>
+    </div>
+</div>

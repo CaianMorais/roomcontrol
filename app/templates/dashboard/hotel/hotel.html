@@ -1,0 +1,31 @@
+{% extends "dashboard/partials/base.html" %}
+
+{% block title %}Dados do Hotel - {{ hotel.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {% set breadcrumb_title = "Dados do Hotel" %}
+    {% set breadcrumb_items = [
+    {"name": "Dashboard", "url": url_for("dashboard")},
+    {"name": "Dados do Hotel"}
+    ] %}
+    {% include "dashboard/partials/breadcrumb.html" %}
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if not request.session.get("collaborator_id") %}
+                    {% include "dashboard/hotel/partials/_form_admin.html" %}
+                    {% else %}
+                    {% include "dashboard/hotel/partials/_form_collaborator.html" %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script type="module" src="{{ url_for('dashboard', path='js/hotel/hotel_form.js') }}"></script>
+<script type="module" src="{{ url_for('dashboard', path='js/hotel/viacep.js') }}"></script>
+{% endblock %}

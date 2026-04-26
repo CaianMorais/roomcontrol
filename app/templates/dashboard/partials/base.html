@@ -13,22 +13,22 @@
 
 <body class="overflow-y-scroll">
     {% if flash %}
-        <div aria-live="polite" aria-atomic="true" class="position-relative">
-            <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100">
-                {% for category, message in flash %}
-                <div class="toast align-items-center text-bg-{{ 'danger' if category=='error' else category }} border-0 mb-2"
-                    role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            {{ message | safe }}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                            aria-label="Close"></button>
+    <div aria-live="polite" aria-atomic="true" class="position-relative">
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100">
+            {% for category, message in flash %}
+            <div class="toast align-items-center text-bg-{{ 'danger' if category=='error' else category }} border-0 mb-2"
+                role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {{ message | safe }}
                     </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                        aria-label="Close"></button>
                 </div>
-                {% endfor %}
             </div>
+            {% endfor %}
         </div>
+    </div>
     {% endif %}
     <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
@@ -170,7 +170,9 @@
                     </ul>
                     {% if current_hotel %}
                     <div>
-                        <p class="m-0 p-0">Painel <strong>{{ current_hotel.name }}</strong>, logado como <strong>{{ current_collaborator.name if current_collaborator.name else 'Administrador' }}</strong></p>
+                        <p class="m-0 p-0">Painel <strong>{{ current_hotel.name }}</strong>, logado como <strong>{{
+                                current_collaborator.name if current_collaborator.name else 'Administrador' }}</strong>
+                        </p>
                     </div>
                     {% endif %}
                     <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
@@ -180,13 +182,13 @@
                             <li class="nav-item dropdown">
                                 <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2"
                                     data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="{{ url_for('dashboard', path='images/profile/user-1.jpg') }}" alt="" width="35" height="35"
-                                        class="rounded-circle">
+                                    <img src="{{ url_for('dashboard', path='images/profile/user-1.jpg') }}" alt=""
+                                        width="35" height="35" class="rounded-circle">
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up"
                                     aria-labelledby="drop2">
                                     <div class="message-body">
-                                        <a href="javascript:void(0)"
+                                        <a href="{{ url_for('profile') }}"
                                             class="d-flex align-items-center gap-2 dropdown-item">
                                             <i class="ti ti-building-arch fs-6"></i>
                                             <p class="mb-0 fs-3">Dados do hotel</p>
@@ -225,13 +227,17 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js" integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
     <script src="{{ url_for('dashboard', path='js/sidebarmenu.js') }}"></script>
     <script src="{{ url_for('dashboard', path='js/app.min.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.36.2/apexcharts.min.js" integrity="sha512-YwMWovbODpJxF5IN8vZI3F6v+t/Q0UBrgfeyJUEJYl00uOVWqtWWOIfpplNy88ZL2ZYb5LywrKz2aD0ZtlFU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplebar/5.3.6/simplebar.js" integrity="sha512-u8Av8DfXNJ/VVZfRY81cEXWJGk3JiVydaJNL1PiFe42YmlLs9tx9nR/OlYOnecdwQsM15TwCEtmrYbd70uQfnw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.36.2/apexcharts.min.js"
+        integrity="sha512-YwMWovbODpJxF5IN8vZI3F6v+t/Q0UBrgfeyJUEJYl00uOVWqtWWOIfpplNy88ZL2ZYb5LywrKz2aD0ZtlFU9g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplebar/5.3.6/simplebar.js"
+        integrity="sha512-u8Av8DfXNJ/VVZfRY81cEXWJGk3JiVydaJNL1PiFe42YmlLs9tx9nR/OlYOnecdwQsM15TwCEtmrYbd70uQfnw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <!-- <script src="{{ url_for('dashboard', path='js/dashboard.js') }}"></script> -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-        const toastEls = document.querySelectorAll('.toast');
-        toastEls.forEach(el => new bootstrap.Toast(el, { delay: 4000 }).show());
+            const toastEls = document.querySelectorAll('.toast');
+            toastEls.forEach(el => new bootstrap.Toast(el, { delay: 4000 }).show());
         });
     </script>
 

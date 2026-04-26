@@ -39,6 +39,24 @@ class HotelRepository:
         return db.query(Hotel).filter(Hotel.is_active == True).all()
 
     @staticmethod
+    def find_by_id(db: Session, hotel_id: int):
+        return db.query(Hotel).filter(Hotel.id == hotel_id).first()
+
+    @staticmethod
+    def find_by_login(db: Session, login: str):
+        return db.query(Hotel).filter(Hotel.login == login).first()
+
+    @staticmethod
+    def find_by_email(db: Session, email: str):
+        return db.query(Hotel).filter(Hotel.email == email).first()
+
+    @staticmethod
+    def update(db: Session, hotel: Hotel):
+        db.commit()
+        db.refresh(hotel)
+        return hotel
+
+    @staticmethod
     def apply_filters(query, cnpj: Optional[str] = None, name: Optional[str] = None):
         if cnpj:
             query = query.filter(Hotel.cnpj.ilike(f"%{cnpj}%"))

@@ -15,35 +15,47 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import SessionLocal
 from app.models.guest import Guest
 
-# Importação dos routers
+#### Importação dos routers ####
+
+# hotel e autenticação
 from app.routers.api import auth as auth_api
 from app.routers.web import auth as auth_web
 
+# achaves da API
 #from app.routers.api import api_keys as api_keys_api
 from app.routers.web import dashboard_api_keys as api_keys_web
 
-#from app.routers.api import audit as audit_api
+# registro de auditoria
 from app.routers.web import dashboard_audit as audit_web
 
+# colaboradores do hotel
 from app.routers.api import collaborator as collaborator_api
 from app.routers.web import dashboard_collaborator as collaborator_web
 
+# dados do hotel
+from app.routers.web import dashboard_hotel as hotel_web
+
+# hospedes
 from app.routers.api import guests as guests_api
 from app.routers.web import dashboard_guests as guests_web
 
+# reservas
 from app.routers.api import reservations as reservations_api
 from app.routers.web import dashboard_reservations as reservations_web
 
+#quartos 
 from app.routers.api import rooms as rooms_api
 from app.routers.web import dashboard_rooms as rooms_web
 
+# pedidos de serviço
 from app.routers.api import service_requests as service_requests_api
 from app.routers.web import dashboard_services as services_requests_web
 
+# dashboard
 from app.routers.api import main_dashboard as main_dashboard_api
 from app.routers.web import dashboard_main as main_dashboard_web
 
-from app.routers.web import dashboard_main, guest
+from app.routers.web import guest
 
 app = FastAPI(
     title="RoomControl - Management API REST",
@@ -96,6 +108,7 @@ app.include_router(services_requests_web.router)
 app.include_router(api_keys_web.router)
 app.include_router(collaborator_web.router)
 app.include_router(audit_web.router)
+app.include_router(hotel_web.router)
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def home(request: Request, db: Session = Depends(get_db)):

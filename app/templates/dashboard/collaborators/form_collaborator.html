@@ -5,31 +5,47 @@
 {% block content %}
 
 <div class="container-fluid">
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title fw-semibold mb-4">
-                    {% if not collaborator %}
-                    Novo Colaborador
-                    {% else %}
-                    Editar Colaborador
-                    {% endif %}
-                </h5>
-                <div class="card">
-                    <div class="card-body">
-                        {% include 'dashboard/collaborators/partials/_form.html' %}
-                    </div>
-                </div>
+    {% if not collaborator %}
+    {% set breadcrumb_title = "Novo Colaborador" %}
+    {% set breadcrumb_items = [
+    {"name": "Dashboard", "url": url_for("dashboard")},
+    {"name": "Colaboradores", "url": url_for("collaborators")},
+    {"name": "Novo Colaborador"}
+    ] %}
+    {% else %}
+    {% set breadcrumb_title = "Editar Colaborador" %}
+    {% set breadcrumb_items = [
+    {"name": "Dashboard", "url": url_for("dashboard")},
+    {"name": "Colaboradores", "url": url_for("collaborators")},
+    {"name": "Editar Colaborador"}
+    ] %}
+    {% endif %}
+
+    {% include "dashboard/partials/breadcrumb.html" %}
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title fw-semibold mb-4">
                 {% if not collaborator %}
-                <h6 class="text-info text-center">
-                    No primeiro acesso o colaborador deve usar o <strong>CPF</strong> (sem pontuação e sem hífen) como senha.
-                </h6>
+                Novo Colaborador
+                {% else %}
+                Editar Colaborador
                 {% endif %}
+            </h5>
+            <div class="card">
+                <div class="card-body">
+                    {% include 'dashboard/collaborators/partials/_form.html' %}
+                </div>
             </div>
+            {% if not collaborator %}
+            <h6 class="text-info text-center">
+                No primeiro acesso o colaborador deve usar o <strong>CPF</strong> (sem pontuação e sem hífen) como
+                senha.
+            </h6>
+            {% endif %}
         </div>
     </div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"
     integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>

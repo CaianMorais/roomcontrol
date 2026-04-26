@@ -5,15 +5,27 @@
 {% block content %}
 
 <div class="container-fluid">
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-body">
-                {% include 'dashboard/guests/partials/_form.html' %}
-            </div>
+    {% set breadcrumb_title = "Novo Hóspede" %}
+    {% set breadcrumb_items = [
+    {"name": "Dashboard", "url": url_for("dashboard")},
+    {"name": "Hóspedes", "url": url_for("guests")},
+    {"name": "Novo Hóspede"}
+    ] %}
+    {% include "dashboard/partials/breadcrumb.html" %}
+
+
+    <div class="card">
+        <div class="card-body">
+            {% include 'dashboard/guests/partials/_form.html' %}
         </div>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js" integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js" integrity="sha512-F5Ul1uuyFlGnIT1dk2c4kB4DBdi5wnBJjVhL7gQlGh46Xn0VhvD8kgxLtjdZ5YN83gybk/aASUAlpdoWUjRR3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"
+    integrity="sha512-Pa4Jto+LuCGBHy2/POQEbTh0reuoiEXQWXGn8S7aRlhcwpVkO8+4uoZVSOqUjdCsE+77oygfu2Tl+7qGHGIWsw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.9/jquery.inputmask.min.js"
+    integrity="sha512-F5Ul1uuyFlGnIT1dk2c4kB4DBdi5wnBJjVhL7gQlGh46Xn0VhvD8kgxLtjdZ5YN83gybk/aASUAlpdoWUjRR3g=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="{{ url_for('dashboard', path='js/guests/guests.js') }}" type="module"></script>
 {% endblock %}

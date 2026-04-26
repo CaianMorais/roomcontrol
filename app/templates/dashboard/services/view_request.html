@@ -5,42 +5,47 @@
 {% block content %}
 
 {% set ROOM_TYPE_LABEL = {
-    '1': 'Solteiro',
-    '2': 'Duplo',
-    '3': 'Duplo',
-    '4': 'Casal',
-    '5': 'Triplo',
-    '6': 'Triplo',
-    '7': 'Triplo',
-    '8': 'Triplo (com casal)',
-    '9': 'Personalizado'
+'1': 'Solteiro',
+'2': 'Duplo',
+'3': 'Duplo',
+'4': 'Casal',
+'5': 'Triplo',
+'6': 'Triplo',
+'7': 'Triplo',
+'8': 'Triplo (com casal)',
+'9': 'Personalizado'
 } %}
 
 {% set REQUEST_STATUS_LABEL = {
-    'pending': 'Pendente',
-    'in_progress': 'Em andamento',
-    'completed': 'Concluído'
+'pending': 'Pendente',
+'in_progress': 'Em andamento',
+'completed': 'Concluído'
 } %}
 
 <div class="container-fluid">
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-body">
-                <a class="btn btn-danger" type="button" href="{{ url_for('services_requests') }}">Voltar para pedidos</a>
-                <h5 class="card-title mt-3">Detalhes do pedido</h5>
-                <div class="row">
-                    <div class="col-5">
-                        <div class="card">
-                            {% include 'dashboard/services/partials/_card_reservation.html' %}
-                        </div>
-                        <div class="card">
-                            {% include 'dashboard/services/partials/_card_guest.html' %}
-                        </div>
+    {% set breadcrumb_title = "Detalhes do Pedido" %}
+    {% set breadcrumb_items = [
+    {"name": "Dashboard", "url": url_for("dashboard")},
+    {"name": "Pedidos", "url": url_for("services_requests")},
+    {"name": "Detalhes do Pedido"}
+    ] %}
+    {% include "dashboard/partials/breadcrumb.html" %}
+    <div class="card">
+        <div class="card-body">
+            <a class="btn btn-danger" type="button" href="{{ url_for('services_requests') }}">Voltar para pedidos</a>
+            <h5 class="card-title mt-3">Detalhes do pedido</h5>
+            <div class="row">
+                <div class="col-5">
+                    <div class="card">
+                        {% include 'dashboard/services/partials/_card_reservation.html' %}
                     </div>
-                    
-                    <div class="card col-7">
-                        {% include 'dashboard/services/partials/_card_request.html' %}
+                    <div class="card">
+                        {% include 'dashboard/services/partials/_card_guest.html' %}
                     </div>
+                </div>
+
+                <div class="card col-7">
+                    {% include 'dashboard/services/partials/_card_request.html' %}
                 </div>
             </div>
         </div>
