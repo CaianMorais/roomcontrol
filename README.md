@@ -1,16 +1,19 @@
-## 🔄️ Última Atualização 26/04/2026
+# RoomControl
+
+## 🚀 VERSÃO 1.0 LANÇADA OFICIALMENTE
+![Dashboard](https://prnt.sc/yJQveBkVXjkc)
+
+### 🔄️ Última Atualização 26/04/2026
 
 - Otimização e refatoração de código front-end (template e scripts) do módulo `main_dashboard`.
 - Criado módulo para visualização e atualização de dados cadastrais do hotel, totalmente otimizado em Services e Repositories e aplicando Clean Architecture.
 - Adicionado Breadcrumbs em todas os templates, deixando a navegação mais intuitiva e organizada.
 
-## ➡️ Próximas atualizações
+### ➡️ Próximas atualizações
 
 - Endpoint com métodos `POST`, `PUT` e `DELETE` para possibilitar a manipulação de dados através de outros sistemas e oferecendo autonomia dos dados aos usuários da API embarcada ao sistema.
 - Função para alterar o quarto da reserva após a reserva já ter sido criada.
 - Paginação nas consultas da API para evitar super lotação de dados consultados.
-
-# RoomControl
 
 ### 📌 Visão Geral
 
